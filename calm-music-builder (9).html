@@ -1,0 +1,1740 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>∞ Calm Music Builder — Sonsuz Benzersiz 2 dk Calm Müzik</title>
+<meta name="theme-color" content="#0a0e1a">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎧</text></svg>">
+<style>
+  :root{
+    --bg:#0a0e1a; --tx:#dfe6f5; --dim:#8b95ad; --ac1:#fbbf24; --ac2:#fb7185;
+    --card:rgba(255,255,255,.045); --line:rgba(255,255,255,.09);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(1100px 600px at 15% -10%, rgba(94,234,212,.10), transparent 60%),
+      radial-gradient(900px 500px at 110% 10%, rgba(129,140,248,.12), transparent 55%),
+      radial-gradient(800px 700px at 50% 120%, rgba(251,113,133,.07), transparent 60%),
+      var(--bg);
+    color:var(--tx);
+    font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    min-height:100vh;
+  }
+  .wrap{max-width:1120px;margin:0 auto;padding:26px 18px 40px}
+  header h1{
+    margin:6px 0 4px;font-size:clamp(24px,4vw,38px);letter-spacing:.5px;
+    background:linear-gradient(90deg,var(--ac1),var(--ac2),#818cf8);
+    -webkit-background-clip:text;background-clip:text;color:transparent;font-weight:800;
+  }
+  header p{margin:0 0 12px;color:var(--dim);font-size:14px;line-height:1.5}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 22px}
+  .chip{font-size:12px;color:var(--tx);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 11px}
+  .grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:18px}
+  @media (max-width:920px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:18px}
+  .card h2{font-size:15px;margin:0 0 12px;letter-spacing:.3px}
+  .card h2 small{color:var(--dim);font-weight:400}
+  canvas#viz{display:block;width:100%;height:300px}
+  }
+  #pieceTitle{color:var(--dim);font-size:12.5px;margin:10px 2px 0;font-family:ui-monospace,Menlo,Consolas,monospace}
+  /* ---- player ---- */
+  .cwrap{position:relative;border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+  .chordbox{position:absolute;top:12px;left:14px;pointer-events:none;text-shadow:0 2px 10px rgba(0,0,0,.6)}
+  .chordbox #chordName{font-size:26px;font-weight:800;letter-spacing:.5px}
+  .chordbox #chordFreqs{font-size:11px;color:#c7d2fe;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;margin-top:2px;max-width:340px}
+  .chordbox #xfade{font-size:11px;color:#5eead4;margin-top:4px;display:none}
+  .transport{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:999px;border:0;cursor:pointer;
+    background:linear-gradient(135deg,var(--ac1),var(--ac2));color:#0b1020;font-weight:800;font-size:14px;
+    box-shadow:0 6px 20px -8px var(--ac1);transition:transform .12s ease, filter .12s;
+  }
+  .btn:hover{transform:translateY(-1px);filter:brightness(1.07)}
+  .btn:disabled{opacity:.45;cursor:wait;transform:none}
+  .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,.2);color:var(--tx);box-shadow:none;font-weight:600}
+  .switch{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--tx);cursor:pointer;user-select:none}
+  .switch input{display:none}
+  .switch .knob{width:40px;height:22px;border-radius:999px;background:rgba(255,255,255,.15);position:relative;transition:background .15s}
+  .switch .knob::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .15s}
+  .switch input:checked + .knob{background:linear-gradient(90deg,var(--ac1),var(--ac2))}
+  .switch input:checked + .knob::after{left:21px}
+  .badge{font-size:12px;font-family:ui-monospace,Menlo,Consolas,monospace;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 12px;color:var(--dim)}
+  .controls{display:flex;flex-wrap:wrap;gap:14px 22px;margin-top:16px;font-size:13px;color:var(--dim)}
+  .controls label{display:flex;flex-direction:column;gap:6px;min-width:130px}
+  .controls select{
+    background:#131a2c;color:var(--tx);border:1px solid var(--line);border-radius:10px;padding:7px 10px;font-size:13px;outline:none;
+  }
+  .controls input[type=range]{accent-color:var(--ac1);width:150px}
+  .controls .val{color:var(--tx);font-family:ui-monospace,Menlo,Consolas,monospace}
+  .randline{font-size:12.5px;color:var(--dim);background:rgba(255,255,255,.03);border:1px dashed var(--line);border-radius:10px;padding:8px 12px;margin-top:14px}
+  .randline b{color:var(--tx)}
+  .mxhead{font-size:13px;color:var(--tx);font-weight:700;margin-top:18px}
+  .mxhead small{color:var(--dim);font-weight:400}
+  .mxgrid{display:flex;flex-wrap:wrap;gap:10px 24px;margin-top:10px}
+  .mxgrid label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--dim);min-width:150px}
+  .mxgrid input[type=range]{accent-color:var(--ac2);width:150px}
+  .mxgrid .val{color:var(--tx);font-family:ui-monospace,Menlo,Consolas,monospace}
+  .progress{position:relative;height:10px;border-radius:999px;background:rgba(255,255,255,.08);margin-top:18px;overflow:hidden}
+  #progFill{position:absolute;inset:0 auto 0 0;width:0%;background:linear-gradient(90deg,var(--ac1),var(--ac2));border-radius:999px;transition:width .2s linear}
+  .mark{position:absolute;top:0;bottom:0;width:2px;background:rgba(255,255,255,.35)}
+  .statusline{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--dim);margin-top:8px;font-family:ui-monospace,Menlo,Consolas,monospace;flex-wrap:wrap}
+  /* ---- DNA ---- */
+  .kv{display:flex;flex-direction:column;gap:2px;padding:7px 0;border-bottom:1px dashed rgba(255,255,255,.07)}
+  .kv span{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px}
+  .kv b{font-size:13px;font-weight:600;line-height:1.45}
+  .structchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+  .schip{font-size:11px;border:1px solid var(--line);border-radius:8px;padding:4px 8px;color:var(--dim);font-family:ui-monospace,Menlo,Consolas,monospace}
+  .schip.on{color:#0b1020;background:linear-gradient(90deg,var(--ac1),var(--ac2));border-color:transparent;font-weight:700}
+  .gbar{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:11.5px}
+  .gbar .nm{width:150px;color:var(--dim)}
+  .gbar .tr{flex:1;height:8px;background:rgba(255,255,255,.07);border-radius:999px;overflow:hidden}
+  .gbar .fl{height:100%;background:linear-gradient(90deg,var(--ac1),var(--ac2));border-radius:999px}
+  .gbar .ct{width:20px;text-align:right;color:var(--tx);font-family:ui-monospace,Menlo,Consolas,monospace}
+  /* ---- log ---- */
+  .logbox{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;max-height:210px;overflow:hidden;display:flex;flex-direction:column-reverse}
+  .logline{display:flex;gap:10px;padding:3.5px 2px;border-bottom:1px solid rgba(255,255,255,.05);animation:fadein .5s ease}
+  .logline .t{color:var(--dim);width:44px}
+  .logline .n{color:#5eead4;width:46px;font-weight:700}
+  .logline .h{color:#c7d2fe}
+  .logline.dim{color:var(--dim);border:0}
+  @keyframes fadein{from{opacity:0;transform:translateY(-4px)}to{opacity:1}}
+  details{color:var(--dim);font-size:13.5px;line-height:1.65}
+  details summary{cursor:pointer;color:var(--tx);font-weight:700;font-size:14px}
+  details code{background:rgba(255,255,255,.08);padding:1px 6px;border-radius:6px;font-size:12px;color:#a5f3fc}
+  /* ---- uyku modu ---- */
+  body.sleeping{filter:saturate(.82) brightness(.93)}
+  .sleepgrid{display:flex;flex-direction:column;gap:12px}
+  .sleeptop{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
+  .stages{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:2px}
+  .sstage{border:1px solid var(--line);border-radius:12px;padding:9px 6px;text-align:center;transition:all .4s;background:rgba(255,255,255,.03)}
+  .sstage .sn{font-size:12.5px;font-weight:800;letter-spacing:.6px}
+  .sstage .sr{font-size:10.5px;color:var(--dim);margin-top:3px;font-family:ui-monospace,Menlo,Consolas,monospace}
+  .sstage.on{border-color:transparent;box-shadow:0 4px 18px -6px rgba(0,0,0,.55)}
+  .sprog{height:8px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:2px}
+  #slFill{height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,#60a5fa,#a78bfa);transition:width .6s linear}
+  #slReadout{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:#c7d2fe;margin-top:2px;min-height:16px}
+  .sctl{display:flex;flex-wrap:wrap;gap:12px 20px;font-size:13px;color:var(--dim)}
+  .sctl label{display:flex;flex-direction:column;gap:6px;min-width:160px}
+  .sctl select{background:#131a2c;color:var(--tx);border:1px solid var(--line);border-radius:10px;padding:7px 10px;font-size:13px;outline:none}
+  .snote{font-size:11.5px;color:var(--dim);margin-top:2px;line-height:1.55}
+  footer{color:var(--dim);font-size:11.5px;line-height:1.6;margin-top:8px;opacity:.85}
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+
+  <header>
+    <h1>∞ Calm Music Builder</h1>
+    <p><b>audiolibrary.com.co/moods/calm</b> derin taramasından çıkarılan tür/mood metaverisi → harmonik frekans &amp; notasyon algoritmaları → <b>granül fizik motoruyla üretilen, tekrarı yasaklı, tam 2 dakikalık</b> yumuşak calm müzik üretimi. Canlı görselleştirici: dalga halkası, anlık akor + harmonik frekanslar, parçacıklar. Tümü tarayıcında, Web Audio API ile sentezlenir. Yalnızca <b>pozitif modlar</b> (majör · lydian · majör pentatonik): huzur veren, hayal kurduran tonlar — karamsar modlar bilinçli olarak hariç. En dipten kalp atışı metronomu tempoyu yönetir; cızırtı, filtre süpürmesi ve yoğun dron gibi yapaylıklar temizlendi. <b>😴 Uyku Modu:</b> Beta→Alfa→Teta→Delta nöro frekans kademeleri (binaural + izokronik, OM 136.1 Hz) ile uykuya taşıyan azalan seanslar. Tümü tarayıcında, Web Audio API ile canlı sentezlenir.</p>
+    <div class="chips">
+      <span class="chip">🔍 85 sayfalık katalog · 3 sayfa derin tarama · 27 parça profili</span>
+      <span class="chip">🎲 Her kompozisyonda rastgele stil·ton·tempo·progresyon</span>
+      <span class="chip">☀️ Pozitif modlar: majör · lydian · majör pentatonik</span>
+      <span class="chip">🎯 Rastgele tetikleyici akor → 5liler çemberinde yürüyüş</span>
+      <span class="chip">⚛️ Granül fiziği: çekim · merge · çarpışma · parçalanma</span>
+      <span class="chip">🧮 Şekil sayaçları: hiçbir progresyon tekrar çalamaz</span>
+      <span class="chip">🧮 Motif sayacı: en az çalınan garantisi</span>
+      <span class="chip">📻 Analoglaştırma: osilatör sürüklenmesi + teyp sıcaklığı</span>
+      <span class="chip">🌌 Ölçüye kilitli granül arpej: çarpışmasız · kırmızıya kayan taneler</span>
+      <span class="chip">🎧 3D dengeli stereo · rastgele sıralar + null suslar</span>
+            <span class="chip">🎛️ Web Audio API — canlı sentez</span>
+      <span class="chip">♾️ ∞ mod: 8 sn crossfade ile bitmeyen akış</span>
+      <span class="chip">⤓ 2 dk WAV dışa aktarma (44.1 kHz)</span>
+      <span class="chip">😴 Uyku modu: Beta→Alfa→Teta→Delta nöro eşleştirme · OM 136.1 Hz</span>
+    </div>
+  </header>
+
+  <div class="grid">
+    <div>
+      <section class="card">
+        <h2>🎧 Üretici / Oynatıcı</h2>
+        <div class="cwrap">
+          <canvas id="viz"></canvas>
+          <div class="chordbox">
+            <div id="chordName">—</div>
+            <div id="chordFreqs">harmonik frekanslar burada görünür</div>
+            <div id="xfade">∞ yeni benzersiz bölüm çapraz geçişle giriyor…</div>
+          </div>
+        </div>
+        <div id="pieceTitle">parça üretilmedi</div>
+
+        <div class="transport">
+          <button id="btnPlay" class="btn">▶ Oynat</button>
+          <button id="btnNew" class="btn ghost">🎲 Yeni Kompozisyon</button>
+          <button id="btnWav" class="btn ghost">⤓ WAV indir (2 dk)</button>
+          <label class="switch" title="Bitişte yeni benzersiz parça çapraz geçişle başlar">
+            <input type="checkbox" id="infChk" checked><span class="knob"></span>∞ Sonsuz
+          </label>
+          <span class="badge" id="seedBadge">seed —</span>
+        </div>
+
+        <div class="randline">🎲 Her yeni kompozisyonda <b>stil · tonalite · tempo · progresyon</b> rastgele seçilir · süre <b>tam 2:00</b> · yumuşak giriş (soft start)</div>
+        <div class="chips">
+          <span class="badge">🎼 Stil: <b id="curStyle">—</b></span>
+          <span class="badge">🎹 Tonalite: <b id="curKey">—</b></span>
+          <span class="badge">⚙️ Tempo: <b id="curBpm">—</b></span>
+          <span class="badge">🧭 Progresyon: <b id="curProg">—</b></span>
+          <span class="badge">❤️ Kalp metronomu: <b id="curHeart">—</b></span>
+        </div>
+        <div class="mxhead">🎛️ Master &amp; Filtreler <small>— mastering zinciri: EQ → kompresör → limiter · canlı</small></div>
+        <div class="mxgrid">
+          <label>🔊 Ana ses <span class="val" id="mxVolVal">80</span>
+            <input type="range" id="mxVol" min="0" max="100" step="1" value="80"></label>
+          <label>🎚️ Bass desteği <span class="val" id="mxBassVal">+3 dB</span>
+            <input type="range" id="mxBass" min="-6" max="9" step="1" value="3"></label>
+          <label>🌡️ Gövde · 220 Hz <span class="val" id="mxWarmVal">−2 dB</span>
+            <input type="range" id="mxWarm" min="-6" max="6" step="1" value="-2"></label>
+          <label>✨ Air · 9 kHz <span class="val" id="mxAirVal">−1 dB</span>
+            <input type="range" id="mxAir" min="-6" max="6" step="1" value="-1"></label>
+          <label>🚪 Tiz kesme <span class="val" id="mxToneVal">16.0 kHz</span>
+            <input type="range" id="mxTone" min="2000" max="20000" step="250" value="16000"></label>
+          <label>🌫️ Reverb <span class="val" id="mxRevVal">35</span>
+            <input type="range" id="mxRev" min="0" max="100" step="1" value="35"></label>
+        </div>
+
+        <div class="progress"><div id="progFill"></div><div id="secMarks"></div></div>
+        <div class="statusline">
+          <span id="timeLbl">0:00 / 2:00</span>
+          <span id="secLbl">bölüm: —</span>
+          <span id="wavStatus"></span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>😴 Uyku Modu <small>— nöro frekans kademeleri · Beta → Alfa → Teta → Delta</small></h2>
+        <div class="sleepgrid">
+          <div class="sleeptop">
+            <label class="switch" title="Uyku modunu aç/kapat">
+              <input type="checkbox" id="slChk"><span class="knob"></span>Uyku Modu
+            </label>
+            <span class="badge">OM taşıyıcı: 136.1 Hz</span>
+            <span class="badge">Δ: L−R fark tonu = hedef beyin dalgası</span>
+          </div>
+          <div class="sctl">
+            <label>Seans süresi
+              <select id="slLen">
+                <option value="15">15 dakika</option>
+                <option value="30" selected>30 dakika</option>
+                <option value="45">45 dakika</option>
+                <option value="60">60 dakika</option>
+                <option value="0">∞ — Delta'da sonsuz sür</option>
+              </select>
+            </label>
+            <label>Eşleştirme tekniği
+              <select id="slMode">
+                <option value="binaural">Binaural (kulaklık şart)</option>
+                <option value="izo">İzokronik (hoparlör de olur)</option>
+                <option value="both" selected>Binaural + İzokronik</option>
+              </select>
+            </label>
+          </div>
+          <div class="stages">
+            <div class="sstage" id="stBeta"><div class="sn">BETA</div><div class="sr">14→12 Hz · sakinleşme</div></div>
+            <div class="sstage" id="stAlpha"><div class="sn">ALFA</div><div class="sr">10→7.5 Hz · gevşeme</div></div>
+            <div class="sstage" id="stTheta"><div class="sn">TETA</div><div class="sr">7→4 Hz · uykuya dalış</div></div>
+            <div class="sstage" id="stDelta"><div class="sn">DELTA</div><div class="sr">2.5→0.8 Hz · derin uyku</div></div>
+          </div>
+          <div class="sprog"><div id="slFill"></div></div>
+          <div id="slReadout">uyku modu kapalı</div>
+          <div class="snote">🎧 Binaural etki için <b>stereo kulaklık</b> gerekli (sol/sağ frekans farkı beyinde Δ Hz'lik bir ritim oluşturur). Müzik eşzamanlı olarak soyulur: BPM yavaşlar, melodiler erir, filtre kapanır ve Delta'da sıcak bir drona dönüşür. Seans sonunda 90 sn'de yumuşakça söner. Tıbbi cihaz değildir; rahatlama amaçlıdır.</div>
+        </div>
+      </section>
+    </div>
+
+    <div>
+      <section class="card">
+        <h2>🧬 Müzikal DNA</h2>
+        <div class="kv"><span>Kaynak tarama</span><b>audiolibrary.com.co/moods/calm<br>3/85 sayfa · 27 parça · 6 tür kümesi</b></div>
+        <div class="kv"><span>Stil kümesi</span><b id="dStyle">—</b></div>
+        <div class="kv"><span>Taranan kaynak sanatçılar</span><b id="dSource">—</b></div>
+        <div class="kv"><span>Çeşitlilik defteri</span><b id="ledgerInfo">—</b></div>
+        <div class="kv"><span>Seed</span><b id="dSeed">—</b></div>
+        <div class="kv"><span>Tonalite / Ölçek</span><b id="dKey">—</b></div>
+        <div class="kv"><span>Akor ilerleyişi (diyatonik istif)</span><b id="dProg">—</b></div>
+        <div class="kv"><span>Tempo / Süre</span><b id="dBpm">—</b></div>
+        <div class="kv"><span>Form (yapı)</span><div class="structchips" id="dStruct"></div></div>
+        <h2 style="margin-top:16px">📊 Taranan tür dağılımı (n=27)</h2>
+        <div id="genreBars"></div>
+      </section>
+
+      <section class="card">
+        <h2>🎼 Nota &amp; Frekans Akışı <small>— canlı algoritma çıktısı</small></h2>
+        <div class="logbox" id="logBox">
+          <div class="logline dim">▶ oynatınca üretilen notalar (nota adı · harmonik frekans) burada akar…</div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <section class="card">
+    <details>
+      <summary>⚙️ Kullanılan harmonik frekans &amp; notasyon algoritmaları (tıkla)</summary>
+      <ol>
+        <li><b>Frekans eşlemesi (eşit temperaman):</b> her nota <code>f = 440 · 2^((n−69)/12)</code> formülüyle MIDI'den Hz'e çevrilir; akış panelinde canlı gösterilir.</li>
+        <li><b>Diyatonik harmonik istif (yalnızca parlak modlar):</b> akorlar ölçeğin <code>I–III–V–VII</code> derecelerinden istiflenir. Mod havuzu bilinçli olarak pozitiftir: <b>majör (Ionian) · lydian · majör pentatonik</b> — dorian/aeolian gibi minör-tadlı karanlık modlar hiçbir stil için seçilmez. Her progresyon <b>tonik majör (I) akoruyla başlar</b> ve parça son ölçüde yine I'e çözülür; minör akorlar yalnızca iç geçişte renk verir, asla açılış/çözülme noktası olmaz.</li>
+        <li><b>Ses yönetimi (voice-leading):</b> her yeni akor, tüm inversiyon + oktav kaydırma kombinasyonları taranıp önceki vokse ortalama hareketi en küçük olan seçilir (yumuşak geçiş).</li>
+        <li><b>Markov benzeri melodik yürüyüş:</b> melodi ölçek üzerinde ±1/±2/±3 adımla yürür; güçlü vuruşlarda en yakın <b>akor tonuna kilitlenir</b>, cümle sonunda çözünür; %22 olasılıkla alttan 3'lü ile harmonize edilir.</li>
+        <li><b>Arpej desenleri:</b> up / down / up-down / rastgele desenleri, akor tonları + 9 over üstünde 8'lik ızgarada, kapı (gate) ~%55-80.</li>
+        <li><b>🌌 Granül arpej (ölçüye kilitli, çarpışmasız):</b> arpejler her ölçüde rastgele sırada/sürede ve <b>null suslarla</b> çalınır; granüller ölçünün <b>boş 8'lik slotlarına</b> arpej gibi dizilir (arpej+ezgi slotları işaretlenir, çakışma imkânsız). Her tane aktif triaddan seçilir ve uzaklaştıkça <b>kırmızıya kayar</b> (frekans derinleşir, ±0.3% sonsuz detune), alçak geçiren kapanır, süresi kısalır, sessizleşir — evrende yayılan ses yapıları otomatik oluşur. Kalp gürültü katmanı iptal: saf yumuşak 58→40 Hz sinüs nabız. En alttaki çok hafif tok tom'lar zamanı ve mekânı verir.</li>
+        <li><b>Ritmik mikro-zamanlama:</b> lofi'de swing (offbeat 8'likler gecikmeli), tüm enstrümanlarda ±10 ms <i>humanize</i> ve hız (velocity) varyasyonu.</li>
+        <li><b>Mekânsal derinlik:</b> stil başına üretilmiş <i>noise-decay impulse response</i> ile ölçülü convolution reverb; filtre süpürmesi, LFO, vinil cızırtısı gibi yapay efektler bilinçli olarak kullanılmaz.</li>
+        <li><b>📻 Analoglaştırma:</b> dijital osilatörler analog donanım gibi davranır: her sese <b>perde sürüklenmesi</b> (birkaç centlik yavaş rastgele detune eğrisi — pad 7¢, pluck 5¢, keys/bas 4¢, kalp 1.5¢) ve masterda <b>teyp doygunluğu</b> (yumuşak tanh + hafif asimetri → çift-harmonik sıcaklık, 2x oversampling) uygulanır. Binaural OM frekansları terapötik hassasiyet gerektirdiğinden bilinçli olarak sürüklenmez.</li>
+        <li><b>🎚️ Mastering zinciri + tok bass:</b> tüm sesler <code>lowshelf 90 Hz → peaking 220 Hz (bulanıklık keser) → highshelf 9 kHz → lowpass → yumuşak kompresyon → master → güvenlik limitörü</code> zincirinden geçer; altı filtre slider'ıyla canlı ayarlanır. Bass: perde oturma eğrisi + tanh doygunlukla kısa ve tok — rahatsız etmeden destekler.</li>
+        <li><b>❤️ Kalp atışı metronomu:</b> her kompozisyonun en dibinde (58→40 Hz sinüs lub-dub) tempo ızgarasına kilitli bir nabız vardır; tüm katmanlar bu ızgaraya kuantize olur — kalp müziğe yön verir.</li>
+        <li><b>⚛️ Granül fizik motoru (standart melodi havuzu YOK):</b> startta rastgele bir <b>majör tetikleyici akor</b> (I/IV/V) seçilir; progresyon beşliler çemberinde komşu adımlarla yürür ve daima tetikleyiciye çözülür. Her ölçüde tetiklenen akorun triadı <b>granül tanelere</b> ayrılır: taneler birbirini çeker (<i>atom çekimi</i>), yakınlar <b>MERGE kütle</b> olur (kütleler melodik çekirdek notaları doğurur), birleşme şiddeti taneleri kırmızıya kaydırır ve şiddetli kütleler <b>yeniden granüle olup 1-2 çocuk tane saçlar</b>; %10 tesadüf olayları sisteme yaşam verir. Progresyon <b>asimetrik kapalı yürüyüş</b> olarak üretilir (palindrom yok, uzunluk rastgele): 7 aday şekil sayılır, defterde <b>en az çalınanlar</b> arasından rastgele biri seçilir; <b>son 5 şekil tamamen yasaktır</b> — uzay-zaman gibi uyumlu ama daima değişen akor mimarisi.</li>
+        <li><b>🎲 Rastgele kompozisyon + sonsuz benzersizlik:</b> her yeni parçada stil, tonalite, tempo ve progresyon seed'den rastgele çekilir; süre <b>tam 2:00</b>'dir ve 6 sn'lik <i>soft start</i> ile girer. ∞ modda parça bitmeden 8 sn önce yeni rastgele kompozisyon çapraz geçişle başlar → aynı parça asla iki kez duyulmaz.</li>
+        <li><b>😴 Uyku modu — nöro frekans eşleştirme (entrainment):</b> <b>Binaural</b>: stereo kulaklığa 136.1 Hz "OM" taşıyıcının ±Δ/2 saf sinüsleri gönderilir; beyin L−R farkı kadar (Δ Hz) bir ritim kilitler (frekans takip yanıtı). <b>İzokronik</b>: müzik verisi Δ Hz'de nazik genlik modülasyonuyla pulslanır. Seans <code>BETA (14→12 Hz) → ALFA (10→7.5 Hz) → TETA (7→4 Hz) → DELTA (2.5→0.8 Hz)</code> kademelerinde süzülür; müzik eşzamanlı soyulur: BPM %38'e kadar düşer, akorlar pedal drona uzar, melodi/arpej/davul sırayla erir, master filtresi 16 kHz→1.5 kHz kapanır. Süreli seansta 90 sn fade-out; ∞ seçimde Delta'da sonsuz sürer.</li>
+        <li><b>Telif:</b> siteden hiçbir MP3, ses örneği veya melodi kopyalanmaz; yalnızca tür/mood <i>metaverisinden</i> türetilmiş istatistiksel stil profili kullanılarak <b>özgün</b> müzik sentezlenir.</li>
+      </ol>
+    </details>
+  </section>
+
+  <footer>
+    Kaynak: <a href="https://www.audiolibrary.com.co/moods/calm" style="color:#8ab4ff">audiolibrary.com.co/moods/calm</a> — katalog metaverisi (sanatçı · tür · mood) derin taramayla çıkarılmış, stil profiline dönüştürülmüştür. Bu araç orijinal, algoritmik ve telifsiz müzik üretir. Ses düzeyi: uzun dinlemede düşük seviyede tutun. Uyku modu tıbbi bir cihaz/tedavi değildir; uykuya dalma destekleyicisi olarak düşük seste kullanın. 💜🌙
+  </footer>
+  <div id="buildInfo">build 2026.09.01.5 · klasik düzen · granül-fizik v2 · tekrar-yasağı v2</div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ============================================================
+   1) SABİTLER & YARDIMCILAR
+============================================================ */
+var NOTE_NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+var KEY_TR=['Do (C)','Do# (C#)','Re (D)','Re# (D#)','Mi (E)','Fa (F)','Fa# (F#)','Sol (G)','Sol# (G#)','La (A)','La# (A#)','Si (B)'];
+function mtof(m){ return 440*Math.pow(2,(m-69)/12); }
+function nn(m){ return NOTE_NAMES[((m%12)+12)%12]+(Math.floor(m/12)-1); }
+function clamp(v,a,b){ return Math.min(b,Math.max(a,v)); }
+function lerp(a,b,t){ return a+(b-a)*t; }
+function fmtT(s){ s=Math.max(0,s); var m=Math.floor(s/60), x=Math.floor(s%60); return m+':'+(x<10?'0':'')+x; }
+function hex(n){ return (n>>>0).toString(16).padStart(8,'0').toUpperCase(); }
+function softErr(tag,err){ /* döngü hatalarını sınırlı logla — konsol spam engeli */
+  softErr._n=(softErr._n||0)+1;
+  if(softErr._n<=3) console.warn('[calm·'+tag+' #'+softErr._n+']', (err&&err.message)||err);
+  if(softErr._n===4) console.warn('[calm] sonraki döngü hataları sessize alındı');
+}
+
+/* Deterministik PRNG — her seed = benzersiz, tekrar üretilebilir parça */
+function mulberry32(seed){
+  var a=seed>>>0;
+  return function(){
+    a|=0; a=(a+0x6D2B79F5)|0;
+    var t=Math.imul(a^(a>>>15),1|a);
+    t=(t+Math.imul(t^(t>>>7),61|t))^t;
+    return ((t^(t>>>14))>>>0)/4294967296;
+  };
+}
+function shuffle(arr,rnd){
+  var a=arr.slice();
+  for(var i=a.length-1;i>0;i--){ var j=(rnd()*(i+1))|0; var t=a[i]; a[i]=a[j]; a[j]=t; }
+  return a;
+}
+
+/* Ölçekler (yarım ton adımları) */
+var SCALES={
+  major  :{name:'majör',              steps:[0,2,4,5,7,9,11]},
+  lydian :{name:'lydian',             steps:[0,2,4,6,7,9,11]},
+  majPent:{name:'majör pentatonik',   steps:[0,2,4,7,9]},
+};
+function scaleNote(S,root,idx){
+  var L=S.steps.length;
+  var oct=Math.floor(idx/L);
+  return root+S.steps[((idx%L)+L)%L]+12*oct;
+}
+/* Diyatonik istif: derece d → I, III, V, VII (pentatonikte I, III, V, VII sarılır) */
+function stackChord(S,root,deg,count){
+  var out=[];
+  for(var i=0;i<count;i++) out.push(scaleNote(S,root,deg+2*i));
+  return out;
+}
+function chordName(notes){
+  var r=notes[0], pc=((r%12)+12)%12;
+  var third=notes[1]-r;
+  var sev=notes.length>3 ? notes[3]-r : null;
+  var q = third===3?'m' : third===4?'maj' : third===2?'sus2' : third===5?'sus4' : '';
+  var sq = sev===11?'7' : sev===10?'7' : sev===9?'6' : sev===14?'6/9' : '';
+  var name=NOTE_NAMES[pc]+(q==='maj'?(sq?'maj':''):(q? '('+q+')' : ''));
+  if(q==='maj') name=NOTE_NAMES[pc]+(sq==='7'?'maj7':(sq==='6'?'6':(sq==='6/9'?'6/9':'')));
+  else name=NOTE_NAMES[pc]+(q?q:'')+(sq?sq:'');
+  return name;
+}
+function romanOf(S,root,deg){
+  var c=stackChord(S,root,deg,4);
+  var third=c[1]-c[0];
+  var rn=['I','II','III','IV','V','VI','VII'][deg%7];
+  var q = third===3?'º7' : ((c[3]-c[0])===11?'maj7':'7');
+  return third===3 ? rn.toLowerCase()+'7' : rn+q;
+}
+
+/* ============================================================
+   2) DERİN TARAMA SONUCU: STİL DNA'LARI
+   audiolibrary.com.co/moods/calm (3 sayfa, 27 parça) metaverisi
+============================================================ */
+var SCRAPE={
+  url:'https://www.audiolibrary.com.co/moods/calm',
+  pagesScanned:3, pagesTotal:85, tracks:27,
+  genres:[
+    {name:'Dance & Electronic', n:8},
+    {name:'Hip Hop & Rap (Lofi)', n:7},
+    {name:'Ambient', n:6},
+    {name:'Cinematic', n:3},
+    {name:'Country & Folk', n:2},
+    {name:'Pop', n:1}
+  ]
+};
+var STYLES={
+  lofi:{
+    label:'Lofi Beat', ac1:'#fbbf24', ac2:'#fb7185',
+    source:'Snoozybeats, Next Route, Filo Starquez, KV, Roa Music (Hip Hop & Rap · Calm)',
+    bpm:[66,82], scales:['major','lydian','majPent'], swing:0.14, drums:'lofi', progLen:5,
+    reverb:0.30, arpDensity:0.55, padCut:1000, bassStyle:'lofi', pluckWave:'triangle'
+  },
+  ambient:{
+    label:'Ambient', ac1:'#5eead4', ac2:'#818cf8',
+    source:'GalaxyTones, Qlowdy, Joshua Moses, Filo Starquez (Ambient · Calm)',
+    bpm:[56,68], scales:['majPent','lydian','major'], swing:0, drums:'none', progLen:3,
+    reverb:0.65, arpDensity:0.35, padCut:800, bassStyle:'drone', pluckWave:'sine',
+    chordsPerBar:2
+  },
+  electronic:{
+    label:'Chill Electronic', ac1:'#60a5fa', ac2:'#a78bfa',
+    source:'Hotham, Qlowdy, Declan DP, chillity, Kimuor (Dance & Electronic · Calm)',
+    bpm:[84,100], scales:['major','lydian','majPent'], swing:0.04, drums:'soft4', progLen:5,
+    reverb:0.38, arpDensity:0.80, padCut:1300, bassStyle:'pulse', pluckWave:'triangle'
+  },
+  cinematic:{
+    label:'Cinematic', ac1:'#f9a8d4', ac2:'#c4b5fd',
+    source:'Scott Buckley — Effervescence, Ice Cream, Simplicity (Cinematic · Calm)',
+    bpm:[60,72], scales:['major','lydian'], swing:0, drums:'none', progLen:8,
+    reverb:0.55, arpDensity:0.50, padCut:950, bassStyle:'whole', pluckWave:'sine'
+  },
+  folk:{
+    label:'Folk / Dream Pop', ac1:'#bef264', ac2:'#5eead4',
+    source:'Rrrrrose Azerty (Country & Folk · Calm), MEZCLA (Pop · Calm)',
+    bpm:[76,92], scales:['major','majPent'], swing:0.08, drums:'shaker', progLen:5,
+    reverb:0.30, arpDensity:0.70, padCut:1150, bassStyle:'root5', pluckWave:'triangle'
+  }
+};
+
+/* ============================================================
+   3) ÜRETİM ÇEKİRDEĞİ (DOM'suz, saf)
+   2 dakikalık benzersiz partisyon → zaman etiketli olay listesi
+============================================================ */
+
+function snapToChord(idx,deg){
+  var tones=[deg,deg+2,deg+4,deg+6], best=idx, bd=1e9;
+  for(var i=0;i<tones.length;i++){
+    for(var o=-2;o<=2;o++){
+      var cand=tones[i]+o*7, d=Math.abs(cand-idx);
+      if(d<bd){ bd=d; best=cand; }
+    }
+  }
+  return best;
+}
+/* ---- 5LİLER ÇEMBERİ: her adım çemberde komşu akora (akıcı, uyumlu) ---- */
+var CIRC=[0,3,6,2,5,1,4]; /* diyatonik çember: I→IV→vii→iii→vi→ii→V→(I) */
+function circleProg(rnd,len,trigDegs){
+  /* TETİKLEYİCİ + MOMENTUMLU ASİMETRİK YÜRÜYÜŞ: yön devamlılığı (%62)
+     organik sürüklenme verir; çift sekme kilidi A-B-A-B'yi yasaklar;
+     palindrom ayna eğilimi yok; uzunluk rastgele; daima tetikleyiciye çözülür. */
+  var opts=(trigDegs&&trigDegs.length)?trigDegs:[0];
+  var tDeg=opts[(rnd()*opts.length)|0];
+  var posMap={0:0,3:1,4:6};
+  var st=(posMap[tDeg]!==undefined)?posMap[tDeg]:0;
+  var out=[CIRC[st]];
+  var pos=st, guard=0, prevCand=0, lastRev=false;
+  var minLen=4+((rnd()*3)|0), maxLen=Math.min(10,Math.max(len,6)+((rnd()*4)|0));
+  function step(bias){
+    var cand;
+    if(bias!==0&&rnd()<0.62) cand=bias; else cand=rnd()<0.5?1:-1;
+    if(prevCand!==0&&cand===-prevCand&&lastRev) cand=-cand;   /* çift sekme kilidi */
+    var nxt=((pos+cand)%7+7)%7;
+    var early=false;
+    if(out.length<4&&nxt===st){ cand=-cand; nxt=((pos+cand)%7+7)%7; early=true; }
+    lastRev=(prevCand!==0&&cand===-prevCand&&!early);
+    prevCand=cand;
+    pos=nxt; out.push(CIRC[pos]);
+  }
+  while(guard++<26){
+    var mom=(prevCand!==0)?prevCand:((rnd()<0.5)?1:-1);
+    step(mom);
+    if(pos===st&&out.length>=minLen) return out;
+    if(out.length>=maxLen) break;
+  }
+  while(pos!==st&&guard++<50){                      /* momentum'lu eve dönüş fazı */
+    step(prevCand||1);
+    if(pos===st) return out;
+    if(out.length>=12) break;                        /* toplam uzunluk tavanı */
+  }
+  while(pos!==st){                                  /* garantili kapanış: en kısa yay */
+    var d=((st-pos)%7+7)%7;
+    pos=((pos+(d<=3?1:-1))%7+7)%7;
+    out.push(CIRC[pos]);
+  }
+  return out;
+}
+/* Voice-leading: en az hareket eden inversiyon/oktav seçimi */
+function voiceLead(notes,prev){
+  var best=null, bs=1e9;
+  for(var r=0;r<notes.length;r++){
+    var rot=notes.slice(r).concat(notes.slice(0,r).map(function(n){return n+12;}));
+    for(var sh=-1;sh<=0;sh++){
+      var v=rot.map(function(n){return n+sh*12;});
+      var d = prev ? v.reduce(function(a,n,i){return a+Math.abs(n-prev[i]);},0)/v.length : v[0];
+      var spread=v[v.length-1]-v[0];
+      var score=d+Math.abs(spread-15)*0.3;
+      if(score<bs){ bs=score; best=v; }
+    }
+  }
+  return best;
+}
+
+function generatePiece(opts){
+  var style=STYLES[opts.styleId];
+  var rnd=mulberry32(opts.seed);
+  /* sd: uyku modu derinliği (null = normal mod, 0→1 Beta→Delta soyulması) */
+  var sd=(opts.sleepDepth==null)?null:clamp(opts.sleepDepth,0,1);
+  var bpm=opts.bpm || Math.round(lerp(style.bpm[0],style.bpm[1],rnd()));
+  if(sd!=null) bpm=Math.max(44,Math.round(bpm*lerp(1,0.62,sd)));
+  var S=SCALES[style.scales[(rnd()*style.scales.length)|0]];
+  var rootMidi=60+opts.keyPc;                 /* C4 tabanlı tonalite */
+  /* tetikleyici adayları: yalnızca bu ölçede MAJÖR istif veren dereceler */
+  var trigDegs=[0,3,4].filter(function(d){var c=stackChord(S,rootMidi,d,4);return (c[1]-c[0])===4;});
+  if(!trigDegs.length) trigDegs=[0];
+  /* ŞEKİL SAYAÇLI SEÇİM: 7 aday yürüyüş üretilir, defterde EN AZ çalınan
+     şekiller havuzlanır ve içlerinden RASTGELE biri seçilir.
+     forceProg verilirse (WAV yeniden üretimi) sayaçlar devre dışı: birebir aynı. */
+  var prog;
+  if(opts.forceProg&&opts.forceProg.length){
+    prog=opts.forceProg.slice();
+  }else{
+    var cRnd=mulberry32((opts.seed^0x9E3779B9)>>>0);  /* adaylar ayrı akıştan: ana rnd tüketilmez */
+    var cands=[];
+    for(var cq=0;cq<7;cq++) cands.push(circleProg(cRnd,style.progLen||4,trigDegs));
+    function isPalin(c){                              /* UZUN ayna (gidiş-dönüş) reddi:
+        kısa dalmalar (5-6 adım) müzikaldır ve serbest; ≥7 adımlı
+        tam ayna şekiller aday havuzundan elenir. */
+      if(c.length<7) return false;
+      for(var i2=0;i2<c.length;i2++){ if(c[i2]!==c[c.length-1-i2]) return false; }
+      return true;
+    }
+    var nonPal=cands.filter(function(c){return !isPalin(c);});
+    var pool0=nonPal.length?nonPal:cands;
+    var bestC=1e9;
+    for(cq=0;cq<pool0.length;cq++){
+      var csc=(LEDGER.prog[opts.styleId+'|'+S.name+'|'+pool0[cq].join('-')]||0);
+      if(csc<bestC) bestC=csc;
+    }
+    var pool=pool0.filter(function(c){return (LEDGER.prog[opts.styleId+'|'+S.name+'|'+c.join('-')]||0)===bestC;});
+    prog=pool[(cRnd()*pool.length)|0];
+  }
+  var spb=60/bpm, barLen=4*spb;               /* saniye / vuruş, saniye / ölçü */
+  var duration=120;                           /* her kompozisyon TAM 2 dakika */
+  var bars=Math.max(16,Math.floor(duration/barLen));
+  var bpc=style.chordsPerBar||1;              /* kaç ölçüde bir akor değişir */
+  if(sd!=null) bpc=(sd<0.34)?1:((sd<0.67)?2:4); /* derinleşince akorlar pedal gibi uzar */
+  var swingOff=style.swing*spb*0.5;
+
+  /* --- form: Giriş → A → B → Nefes → A′ → Kapanış --- */
+  var nIntro=Math.max(2,Math.round(bars*0.10));
+  var nOutro=Math.max(2,Math.round(bars*0.10));
+  var nBreak=Math.max(2,Math.round(bars*0.10));
+  var mid=Math.max(6,bars-nIntro-nOutro-nBreak);
+  var nA=Math.max(2,Math.round(mid*0.34));
+  var nB=Math.max(2,Math.round(mid*0.34));
+  var nA2=Math.max(2,mid-nA-nB);
+  var secs=[], b=0;
+  function push(name,len,layers){ secs.push({name:name,from:b,len:len,full:!!layers.full}); var s=secs[secs.length-1];
+    s.pad=layers.pad; s.bass=layers.bass; s.arp=layers.arp; s.mel=layers.mel; s.drum=layers.drum; s.sparkle=layers.sparkle; b+=len; }
+  push('Giriş',nIntro,{pad:1,sparkle:1});
+  push('A',nA,{pad:1,bass:1,arp:1});
+  push('B',nB,{pad:1,bass:1,arp:1,mel:1,drum:1});
+  push('Nefes',nBreak,{pad:1,mel:0.5,sparkle:1});
+  push('A′',nA2,{pad:1,bass:1,arp:1,mel:1,drum:1,full:1});
+  push('Kapanış',nOutro,{pad:1,sparkle:1});
+
+  var ev=[], chordAt=[], prevVoicing=null;
+  var melAnchor=8+((rnd()*3)|0);
+  var recentCores=[];
+  var prevBarCores=[],curCores=[];
+  var physSig=[];                            /* granül fiziği imzası (defter için) */
+
+  for(var bar=0;bar<bars;bar++){
+    var sec=secs.find(function(s){return bar>=s.from && bar<s.from+s.len;});
+    var deg=prog[Math.floor(bar/bpc)%prog.length];
+    if(bar===bars-1) deg=prog[0];   /* kapanış: daima TETİKLEYİCİYE çözülme */
+    var chord=stackChord(S,rootMidi,deg,4);
+    chordAt[bar]={name:chordName(chord),notes:chord,deg:deg,sec:sec.name};
+    var t0=bar*barLen;
+    var usedSlots={};   /* bu ölçüde işgal edilen 8'lik slotlar — çarpışma engeli */
+
+    /* ---- PAD: yumuşak akor yastığı (voice-leading ile) ---- */
+    if(sec.pad && bar%bpc===0){
+      prevVoicing=voiceLead(chord,prevVoicing);
+      var freqs=prevVoicing.map(mtof);
+      var offs=freqs.map(function(){return rnd()*0.12;}); /* rastgele çalım sırası aralıkları */
+      ev.push({k:'pad',t:t0,d:barLen*bpc*1.05,f:freqs,v:sec.full?0.10:0.08,cut:style.padCut*(sec.drum?1.1:1),
+               offs:offs,pan:(rnd()*2-1)*0.10});
+    }
+    /* ---- BASS: rastgele slot/sıra/süre + null suslar (tok, kısa adımlar) ---- */
+    if(sec.bass){
+      var low=style.bassStyle==='pulse'?12:24;
+      var bRoot=chord[0]-low, fifth=bRoot+7;
+      var slots=shuffle([0,1.5,2,2.5,3,3.5],rnd);
+      var nSt= style.bassStyle==='pulse'? 3+((rnd()*2)|0) : (style.bassStyle==='drone'?1:(2+((rnd()*2)|0)));
+      var used=slots.slice(0,nSt).sort(function(a,b){return a-b;});
+      for(var bi=0;bi<used.length;bi++){
+        if(bi>0 && rnd()<0.16) continue;          /* NULL SUS: nefes boşluğu */
+        var bSlot=used[bi];
+        var bMidi= bi===0? bRoot : (rnd()<0.55?(rnd()<0.5?fifth:bRoot+12):bRoot);
+        var bDur=spb*(0.8+rnd()*1.0);
+        ev.push({k:'bass',t:t0+bSlot*spb+(bSlot%1?swingOff:0),d:bDur,f:mtof(bMidi),
+                 v:bi===0?0.42:0.32});
+      }
+    }
+    /* ---- ARPEJ: her ölçüde RASTGELE sıra + NULL SUSLAR + rastgele süre ---- */
+    if(sec.arp && !(sd!=null && sd>0.62)){
+      var tones=chord.map(function(n){return n+12;});
+      var order=shuffle([0,1,2,3],rnd);           /* standart desen yok */
+      var oi=0;
+      var arpDen=style.arpDensity*(sec.full?1:0.82)*(sd==null?1:Math.max(0.12,1-sd));
+      for(var sl=0;sl<8;sl++){
+        if(rnd()<0.20) continue;                  /* NULL SUS: sessiz slot */
+        if(rnd()>arpDen) continue;
+        var oct=rnd()<0.10?12:0;
+        var mA=Math.min(98,tones[order[oi++%order.length]]+oct);
+        var tA=t0+sl*spb*0.5+(sl%2?swingOff:0)+(rnd()-0.5)*0.01;
+        ev.push({k:'pluck',t:tA,d:spb*(0.34+rnd()*0.42),f:mtof(mA),v:0.17*(0.7+0.6*rnd()),
+                 m:mA,w:style.pluckWave,pan:(sl%2?0.42:-0.42)*(0.7+rnd()*0.6)});
+        usedSlots[sl]=1;
+      }
+    }
+    /* ---- GRANÜL FİZİK MOTORU: tetiklenen akorun triadı tanelere ayrılır;
+            atom çekimi MERGE kütleler kurar, çarpışma şiddetine göre
+            yeniden granülleşme ve parçalanma; tesadüfler serbest ---- */
+    if(sec.mel && (sd==null || sd<0.55)){
+      var gTri3=[chord[0],chord[1],chord[2]];
+      var pfArr=[];
+      for(var gs2=0;gs2<8;gs2++){ if(!usedSlots[gs2]) pfArr.push(gs2); }
+      if(pfArr.length>=2){
+        shuffle(pfArr,rnd);
+        var spawnN=Math.max(2,Math.min(pfArr.length,3+((rnd()*3)|0)-Math.floor((sd||0)*3)));
+        var parts3=[];
+        for(var pn2=0;pn2<spawnN;pn2++){
+          var gM3=gTri3[(rnd()*3)|0]+(rnd()<0.7?12:24);
+          while(gM3>98) gM3-=12;
+          parts3.push({slot:pfArr[pn2],M:gM3,x:(rnd()*2-1)*0.9,m:0.6+rnd()*0.8});
+        }
+        physSig.push('s'+spawnN);
+        /* ATOM ÇEKİMİ: yaklaşan taneler MERGE olur (kütleler birleşir) */
+        var dead={};
+        for(var pa=0;pa<parts3.length;pa++){
+          if(dead[pa]) continue;
+          for(var pb2=pa+1;pb2<parts3.length;pb2++){
+            if(dead[pb2]) continue;
+            if(Math.abs(parts3[pa].x-parts3[pb2].x)<0.55 && rnd()<0.45){
+              parts3[pa].m+=parts3[pb2].m*0.8;
+              parts3[pa].x=(parts3[pa].x+parts3[pb2].x)/2;
+              dead[pb2]=1; physSig.push('M');
+            }
+          }
+        }
+        /* MERGE KÜTLELER: melodik çekirdek — tetiklenen triaddan tesadüfi ton */
+        for(var pm=0;pm<parts3.length;pm++){
+          var pt3=parts3[pm];
+          if(dead[pm] || pt3.m<=1.02) continue;
+          if(usedSlots[pt3.slot]) continue;
+          usedSlots[pt3.slot]=1;
+          melAnchor=snapToChord(melAnchor,deg);
+          var mM3=Math.min(98,scaleNote(S,rootMidi,melAnchor)+12);
+          if(rnd()<0.30){ mM3+=12; while(mM3>98) mM3-=12; }     /* oktav renk çeşitliliği */
+          /* TEKRAR YASAĞI v2: önceki ölçünün dizisini izleyen aday kaydırılır,
+             son 3 çekirdek içindeki tonlar da engellenir */
+          var guard=0;
+          while(guard<4){
+            var prefixSame=(curCores.length>0 && prevBarCores.length===curCores.length+1);
+            if(prefixSame){
+              for(var gc=0;gc<curCores.length;gc++){ if(curCores[gc]!==prevBarCores[gc]){prefixSame=false;break;} }
+              if(prefixSame && prevBarCores[curCores.length]!==mM3) prefixSame=false;
+            }
+            if(!prefixSame && recentCores.slice(-3).indexOf(mM3)<0) break;
+            melAnchor=clamp(melAnchor+(rnd()<0.5?2:-3),4,15);
+            mM3=Math.min(98,scaleNote(S,rootMidi,melAnchor)+12);
+            if(rnd()<0.30){ mM3+=12; while(mM3>98) mM3-=12; }
+            guard++;
+          }
+          curCores.push(mM3);
+          recentCores.push(mM3); if(recentCores.length>8) recentCores.shift();
+          ev.push({k:'keys',t:t0+pt3.slot*spb*0.5+(pt3.slot%2?swingOff:0)+(rnd()-0.5)*0.006,
+                   d:spb*(0.9+0.35*pt3.m),f:mtof(mM3),v:0.27*(0.8+0.3*rnd()),m:mM3,
+                   pan:clamp(pt3.x,-0.6,0.6)});
+          physSig.push('K'+mM3);   /* çekirdek ezgi defteri: aynı melodi en az sayılır */
+        }
+        /* PARÇACIKLAR: birleşme şiddetiyle kırmızıya kayar; şiddetli kütle
+            yeniden granüle olup 1-2 çocuk tane saçlar (TEKRAR PARÇALANMA) */
+        for(var pq=0;pq<parts3.length;pq++){
+          var pt4=parts3[pq];
+          if(dead[pq] || usedSlots[pt4.slot]) continue;
+          usedSlots[pt4.slot]=1;
+          var inten=clamp(pt4.m-0.6,0,1);
+          var gF3=mtof(pt4.M)*(1-0.055*inten)*(1+(rnd()-0.5)*0.006);
+          ev.push({k:'grain',t:t0+pt4.slot*spb*0.5+(pt4.slot%2?swingOff:0),
+                   d:clamp(0.20-0.06*inten,0.08,0.20), f:gF3,
+                   v:0.07*(1-0.3*inten), pan:clamp(pt4.x,-0.95,0.95),
+                   lp:6500-4300*inten, zs:inten});
+          physSig.push('g');
+          if(inten>0.5){
+            var kids=rnd()<0.5?1:2;
+            for(var kc=0;kc<kids;kc++){
+              var fs3=null;
+              for(var f4=0;f4<pfArr.length;f4++){ if(!usedSlots[pfArr[f4]]){ fs3=pfArr[f4]; break; } }
+              if(fs3==null) break;
+              usedSlots[fs3]=1;
+              var cM2=gTri3[(rnd()*3)|0]+12; if(cM2>98)cM2-=12;
+              ev.push({k:'grain',t:t0+fs3*spb*0.5+(fs3%2?swingOff:0),
+                       d:0.09+rnd()*0.05, f:mtof(cM2)*(1+(rnd()-0.5)*0.006),
+                       v:0.05, pan:clamp(pt4.x+(kc?0.38:-0.38),-0.95,0.95),
+                       lp:5200, zs:0.35});
+              physSig.push('P');
+            }
+          }
+          if(rnd()<0.10) physSig.push('A');   /* TESADÜF kaydı */
+        }
+      }
+    }
+      /* TEKRAR YASAĞI: ölçü sonu — dizi el değiştirir, çapa güçlü göçer */
+      prevBarCores=curCores; curCores=[];
+      melAnchor=clamp(melAnchor+[-5,-4,-3,-2,2,3,4,5][(rnd()*8)|0],4,15);
+    /* ---- PIRILTI: yüksek, uzak "yıldız" notaları ---- */
+    if(sec.sparkle && (sd==null||sd<0.5) && rnd()<0.16){
+      var mS=Math.min(98,chord[(rnd()*chord.length)|0]+12);
+      ev.push({k:'spark',t:t0+rnd()*barLen,d:1.6,f:mtof(mS),v:0.07,m:mS});
+    }
+    /* ---- KALP ATIŞI METRONOMU: en dipten, ızgaraya kilitli lub-dub ---- */
+    ev.push({k:'heart',t:t0,v:0.45});
+    ev.push({k:'heart',t:t0+0.75*spb,v:0.27});
+    /* ---- EN ALTTA: zamanı (bölüm anları) ve mekânı (pan çiftleri) veren çok hafif tok tom ---- */
+    if(sd==null || sd<0.4){
+      if(sec.name!=='Giriş' && bar===sec.from){
+        var tSide=(bar%4<2)?0.34:-0.34;
+        ev.push({k:'tom',t:t0,v:0.20,pan:tSide});
+        if(rnd()<0.45) ev.push({k:'tom',t:t0+3.5*spb,v:0.13,pan:-tSide});
+      } else if(rnd()<0.16){
+        var ts=(rnd()*8)|0;
+        ev.push({k:'tom',t:t0+ts*spb*0.5,v:0.09+rnd()*0.05,pan:(rnd()<0.5?0.30:-0.30)});
+      }
+    }
+    /* ---- DAVUL DOKUSU (kick YOK — nabzı kalp taşır) ---- */
+    if(sec.drum && sd==null){
+      switch(style.drums){
+        case 'lofi':
+          ev.push({k:'snare',t:t0+2*spb,v:0.5});
+          for(var hs=0;hs<8;hs++){
+            if(rnd()<0.8) ev.push({k:'hat',t:t0+hs*spb*0.5+(hs%2?swingOff:0),v:(hs%2?0.5:0.8)*(0.7+0.6*rnd())});
+          }
+          break;
+        case 'soft4':
+          for(var o4=0;o4<4;o4++) ev.push({k:'hat',t:t0+(o4+0.5)*spb+(o4%2?swingOff:0),v:0.45});
+          if(rnd()<0.3) ev.push({k:'snare',t:t0+2*spb,v:0.15});
+          break;
+        case 'shaker':
+          for(var ss=0;ss<8;ss++) ev.push({k:'shaker',t:t0+ss*spb*0.5+(ss%2?swingOff:0),v:(ss%2?0.45:0.7)*(0.7+0.5*rnd())});
+          break;
+      }
+    }
+  }
+  /* uyku modu: tüm olayları yumuşat (hacim ↓, pad filtresi kapanır) */
+  if(sd!=null){
+    var vMul=1-0.35*sd, cutMul=lerp(1,0.5,sd);
+    for(var vi=0;vi<ev.length;vi++){
+      var ve=ev[vi];
+      if(ve.v!=null) ve.v*=vMul;
+      if(ve.k==='pad') ve.cut*=cutMul;
+    }
+  }
+  ev.sort(function(a,b2){return a.t-b2.t;});
+
+  var isHept=S.steps.length===7;
+  return {
+    events:ev, secs:secs, chordAt:chordAt,
+    duration:duration, bpm:bpm, bars:bars,
+    meta:{
+      seed:opts.seed>>>0,
+      bpm:bpm,
+      styleId:opts.styleId, keyPc:opts.keyPc, styleLabel:style.label, source:style.source,
+      keyName:NOTE_NAMES[opts.keyPc], scaleName:S.name,
+      progRoman: isHept ? prog.map(function(d){return romanOf(S,rootMidi,d);}).join(' – ') : null,
+      progChords: prog.map(function(d){return chordName(stackChord(S,rootMidi,d,4));}).join(' · '),
+      progSig:prog.join('-'),
+      motifSigs:physSig,
+      sleepDepth:sd
+    }
+  };
+}
+
+/* ============================================================
+   4) SENTEZ — enstrümanlar (ctx-bağımsız; canlı + offline ortak)
+============================================================ */
+function makeNoiseBuf(ctx,secs){
+  var sr=ctx.sampleRate, b=ctx.createBuffer(1,Math.max(1,(sr*secs)|0),sr), d=b.getChannelData(0);
+  for(var i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+  return b;
+}
+function makeIR(ctx,secs){ /* üretilmiş impulse response → convolution reverb */
+  var sr=ctx.sampleRate, len=Math.max(1,(sr*secs)|0), b=ctx.createBuffer(2,len,sr);
+  for(var ch=0;ch<2;ch++){
+    var d=b.getChannelData(ch), last=0;
+    for(var i=0;i<len;i++){
+      var e=Math.pow(1-i/len,2.4), w=Math.random()*2-1;
+      last=last*0.72+w*0.28;
+      d[i]=last*e*0.6;
+    }
+  }
+  return b;
+}
+function noiseHit(ctx,dest,t,dur,vel,type,freq,q){
+  if(!noiseHit._b) noiseHit._b=new WeakMap();
+  var b=noiseHit._b.get(ctx);
+  if(!b){ b=makeNoiseBuf(ctx,1.2); noiseHit._b.set(ctx,b); }
+  var src=ctx.createBufferSource(); src.buffer=b;
+  var f=ctx.createBiquadFilter(); f.type=type; f.frequency.value=freq; f.Q.value=q;
+  var g=ctx.createGain();
+  g.gain.setValueAtTime(vel,t);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  src.connect(f); f.connect(g); g.connect(dest);
+  src.start(t); src.stop(t+dur+0.05);
+}
+function playPad(ctx,dest,t,dur,freqs,vel,cut,offs){
+  var g=ctx.createGain();
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.linearRampToValueAtTime(vel,t+Math.min(2.2,dur*0.4));
+  g.gain.setValueAtTime(vel,t+dur*0.72);
+  g.gain.linearRampToValueAtTime(0.0001,t+dur+2.2);
+  var f=ctx.createBiquadFilter(); f.type='lowpass'; f.Q.value=0.4;
+  f.frequency.value=cut;   /* sabit yumuşak filtre — süpürme/LFO yapaylığı yok */
+  f.connect(g); g.connect(dest);
+  freqs.forEach(function(fr,i){   /* i: strum offset indeksi */
+    [[ 'sawtooth',-7],['sawtooth',7],['sine',0]].forEach(function(cfg){
+      var o=ctx.createOscillator(); o.type=cfg[0]; o.frequency.value=fr; o.detune.value=cfg[1];
+      var og=ctx.createGain(); og.gain.value=(cfg[0]==='sine'?0.55:1)/(freqs.length*3.4);
+      o.connect(og); og.connect(f);
+      var so=(offs&&offs[i])?offs[i]:0;           /* rastgele strum: standart sıra yok */
+      o.start(t+so); o.stop(t+dur+2.5);
+      analogDrift(ctx,o,t+so,dur+2.5,7);   /* pad: yavaş, geniş analog sürüklenme */
+    });
+  });
+  var sub=ctx.createOscillator(); sub.type='sine'; sub.frequency.value=freqs[0]/2;
+  var sg=ctx.createGain();
+  sg.gain.setValueAtTime(0.0001,t);
+  sg.gain.linearRampToValueAtTime(0.05,t+2);
+  sg.gain.setValueAtTime(0.05,t+dur*0.7);
+  sg.gain.linearRampToValueAtTime(0.0001,t+dur+1.5);
+  sub.connect(sg); sg.connect(dest);
+  sub.start(t); sub.stop(t+dur+2);
+}
+var SAT_CURVE=null;
+function satCurve(){ /* yumuşak tanh doygunluk — küçük hoparlörde duyulur, bum yapmaz */
+  if(SAT_CURVE) return SAT_CURVE;
+  SAT_CURVE=new Float32Array(257);
+  for(var i=0;i<257;i++){ var x=i/128-1; SAT_CURVE[i]=Math.tanh(1.6*x)/Math.tanh(1.6); }
+  return SAT_CURVE;
+}
+function playBass(ctx,dest,t,dur,freq,vel){
+  /* TOK BASS: 14 ms yumuşak atak + perde oturma eğrisi + doygunluk + kısa kuyruk */
+  var g=ctx.createGain();
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.linearRampToValueAtTime(vel,t+0.014);
+  g.gain.exponentialRampToValueAtTime(Math.max(vel*0.62,0.001),t+Math.max(dur*0.75,0.25));
+  g.gain.linearRampToValueAtTime(0.0001,t+dur+0.16);
+  var f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=320; f.Q.value=0.5;
+  var sh=ctx.createWaveShaper(); sh.curve=satCurve(); sh.oversample='2x';
+  var o1=ctx.createOscillator(); o1.type='sine';
+  o1.frequency.setValueAtTime(freq*1.05,t);
+  o1.frequency.exponentialRampToValueAtTime(freq,t+0.08);
+  var o2=ctx.createOscillator(); o2.type='triangle'; o2.frequency.value=freq; o2.detune.value=5;
+  var g2=ctx.createGain(); g2.gain.value=0.32;
+  o1.connect(f); o2.connect(g2); g2.connect(f);
+  f.connect(sh); sh.connect(g); g.connect(dest);
+  o1.start(t); o2.start(t); o1.stop(t+dur+0.3); o2.stop(t+dur+0.3);
+  analogDrift(ctx,o1,t,dur+0.3,4); analogDrift(ctx,o2,t,dur+0.3,4);  /* bas: tok ve sıcak */
+}
+function playPluck(ctx,dest,t,dur,freq,vel,wave){
+  var g=ctx.createGain();
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.linearRampToValueAtTime(vel,t+0.005);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  var f=ctx.createBiquadFilter(); f.type='lowpass'; f.Q.value=0.7;
+  f.frequency.setValueAtTime(1900,t);
+  f.frequency.exponentialRampToValueAtTime(600,t+dur);
+  var o=ctx.createOscillator(); o.type=wave; o.frequency.value=freq;
+  var o2=ctx.createOscillator(); o2.type='sine'; o2.frequency.value=freq*2;
+  var g2=ctx.createGain(); g2.gain.value=0.3;
+  o.connect(f); o2.connect(g2); g2.connect(f);
+  f.connect(g); g.connect(dest);
+  o.start(t); o2.start(t); o.stop(t+dur+0.05); o2.stop(t+dur+0.05);
+  analogDrift(ctx,o,t,dur+0.05,5); analogDrift(ctx,o2,t,dur+0.05,5); /* pluck: telli organiklik */
+}
+function playKeys(ctx,dest,t,dur,freq,vel){
+  var g=ctx.createGain();
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.linearRampToValueAtTime(vel,t+0.012);
+  g.gain.exponentialRampToValueAtTime(Math.max(vel*0.3,0.001),t+Math.max(dur,0.4));
+  g.gain.linearRampToValueAtTime(0.0001,t+dur+0.45);
+  var f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=2500;
+  var o1=ctx.createOscillator(); o1.type='sine'; o1.frequency.value=freq;
+  var o2=ctx.createOscillator(); o2.type='triangle'; o2.frequency.value=freq; o2.detune.value=4;
+  var g2=ctx.createGain(); g2.gain.value=0.5;
+  /* vibrato: 0.15 sn sonra devreye giren hafif perde salınımı */
+  var vib=ctx.createOscillator(); vib.frequency.value=4.6;
+  var vg=ctx.createGain(); vg.gain.setValueAtTime(0,t);
+  vg.gain.linearRampToValueAtTime(7,t+0.45);
+  vib.connect(vg); vg.connect(o1.detune); vg.connect(o2.detune);
+  o1.connect(f); o2.connect(g2); g2.connect(f);
+  f.connect(g); g.connect(dest);
+  o1.start(t); o2.start(t); vib.start(t);
+  o1.stop(t+dur+0.6); o2.stop(t+dur+0.6); vib.stop(t+dur+0.6);
+  analogDrift(ctx,o1,t,dur+0.6,4); analogDrift(ctx,o2,t,dur+0.6,4);  /* keys: piyano dışı sıcaklık */
+}
+function playSpark(ctx,dest,t,dur,freq,vel){
+  var g=ctx.createGain();
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.linearRampToValueAtTime(vel,t+0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  var o=ctx.createOscillator(); o.type='sine'; o.frequency.value=freq;
+  var o2=ctx.createOscillator(); o2.type='sine'; o2.frequency.value=freq*2;
+  var g2=ctx.createGain(); g2.gain.value=0.25;
+  o.connect(g); o2.connect(g2); g2.connect(g); g.connect(dest);
+  o.start(t); o2.start(t); o.stop(t+dur+0.05); o2.stop(t+dur+0.05);
+  analogDrift(ctx,o,t,dur+0.05,6);   /* pırıltı: uzak, yumuşak */
+}
+function playTom(ctx,dest,t,vel,pan){
+  /* çok hafif tok tom: 100→64 Hz — zamanı ve mekânı işaretler */
+  var p=panned(ctx,dest,pan);
+  var o=ctx.createOscillator(); o.type='sine';
+  o.frequency.setValueAtTime(100,t);
+  o.frequency.exponentialRampToValueAtTime(64,t+0.18);
+  var g=ctx.createGain();
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.linearRampToValueAtTime(vel,t+0.006);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+0.34);
+  o.connect(g); g.connect(p);
+  o.start(t); o.stop(t+0.4);
+  analogDrift(ctx,o,t,0.4,2);
+}
+function playGrain(ctx,dest,t,dur,freq,vel,pan,lp){
+  /* granül taneciği: uzaklaştıkça panda açılır, alçak geçiren kapanır */
+  var pn=null;
+  if(ctx.createStereoPanner){
+    pn=ctx.createStereoPanner();
+    pn.pan.setValueAtTime(clamp(pan,-0.95,0.95),t);
+    pn.connect(dest);
+  }
+  var out=pn||dest;
+  var f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=lp||6500;
+  var g=ctx.createGain();
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.linearRampToValueAtTime(vel,t+0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  var o=ctx.createOscillator(); o.type='sine'; o.frequency.value=freq;
+  o.connect(f); f.connect(g); g.connect(out);
+  o.start(t); o.stop(t+dur+0.05);
+}
+function playHeart(ctx,dest,t,vel){
+  /* kalp atışı metronomu: 58→40 Hz sinüs lub-dub, ızgaraya kilitli, insanlaşma yok */
+  [[0,vel],[0.14,vel*0.55]].forEach(function(cfg,idx){
+    var tt=t+cfg[0];   /* lub-dub arası gerçek 0.14 sn */
+    var o=ctx.createOscillator(); o.type='sine';
+    o.frequency.setValueAtTime(58,tt);
+    o.frequency.exponentialRampToValueAtTime(40,tt+0.16);
+    var g=ctx.createGain();
+    g.gain.setValueAtTime(0.0001,tt);
+    g.gain.linearRampToValueAtTime(cfg[1]*0.5,tt+0.02);   /* noise yok: saf yumuşak sinüs */
+    g.gain.exponentialRampToValueAtTime(0.0001,tt+0.34);
+    o.connect(g); g.connect(dest);
+    o.start(tt); o.stop(tt+0.4);
+    analogDrift(ctx,o,tt,0.4,1.5);   /* kalp: canlı nabız mikro-oynaması */
+  });
+}
+
+/* Olay → ses (canlı ve offline render aynı yolu kullanır) */
+function playEvent(ctx,dest,e,when,log){
+  switch(e.k){
+    case 'pad':    playPad(ctx,panned(ctx,dest,e.pan||0),when,e.d,e.f,e.v,e.cut,e.offs); break;
+    case 'bass':   playBass(ctx,dest,when,e.d,e.f,e.v); break;   /* bas merkezde: denge */
+    case 'pluck':  playPluck(ctx,panned(ctx,dest,e.pan||0),when,e.d,e.f,e.v,e.w); if(log)pushLog(e); break;
+    case 'keys':   playKeys(ctx,panned(ctx,dest,e.pan||0),when,e.d,e.f,e.v); if(log)pushLog(e); break;
+    case 'spark':  playSpark(ctx,dest,when,e.d,e.f,e.v); if(log)pushLog(e); break;
+    case 'grain':  playGrain(ctx,dest,when,e.d,e.f,e.v,e.pan,e.lp); break;
+    case 'tom':    playTom(ctx,dest,when,e.v,e.pan); break;
+    case 'heart':  playHeart(ctx,dest,when,e.v); break;
+    case 'snare':  noiseHit(ctx,dest,when,0.14,e.v*0.28,'bandpass',1700,0.9);
+                   noiseHit(ctx,dest,when,0.05,e.v*0.1,'lowpass',300,0.5); break;
+    case 'hat':    noiseHit(ctx,dest,when,e.v>0.6?0.07:0.045,e.v*0.11,'highpass',7500,0.7); break;
+    case 'shaker': noiseHit(ctx,dest,when,0.08,e.v*0.12,'bandpass',5500,1); break;
+  }
+}
+
+/* ============================================================
+   5) SES GRAFIĞİ KURULUMU
+============================================================ */
+/* ---- ANALOGLAŞTIRMA: dijital sesi analog karaktere yaklaştıran katman ---- */
+function panned(ctx,dest,pan){ /* 3D dengeli stereo: eş-güç pan (yoksa passthrough) */
+  if(ctx.createStereoPanner && pan){
+    var pn=ctx.createStereoPanner();
+    pn.pan.value=clamp(pan,-0.95,0.95);
+    pn.connect(dest); return pn;
+  }
+  return dest;
+}
+function makeTapeCurve(){ /* teyp doygunluğu: yumuşak tanh + hafif asimetri (çift harmonikler) */
+  var c=new Float32Array(257), i;
+  for(i=0;i<257;i++){
+    var x=i/128-1;
+    var y=Math.tanh(1.25*x)/Math.tanh(1.25);
+    y=0.97*(y+0.035*x*x);   /* asimetri → analog çift-harmonik sıcaklık */
+    c[i]=y;
+  }
+  return c;
+}
+var TAPE_CURVE=null;
+function analogDrift(ctx,o,t,dur,cents){
+  /* osilatör sürüklenmesi: analog devrelerde perde birkaç cent gezer;
+     her performans mikro-seviyede farklıdır (otomasyon, ekstra node yok) */
+  if(!o||!o.detune) return;
+  var pts=2+((Math.random()*3)|0), i;
+  o.detune.setValueAtTime((Math.random()*2-1)*cents*0.5,t);
+  for(i=1;i<=pts;i++) o.detune.linearRampToValueAtTime((Math.random()*2-1)*cents,t+dur*(i/pts));
+}
+function makeBus(ctx){
+  /* MASTERING ZİNCİRİ: EQ → tiz kesme → kompresyon → master → TEYP → limitör */
+  var input=ctx.createGain(); input.gain.value=1;
+  var bassShelf=ctx.createBiquadFilter(); bassShelf.type='lowshelf'; bassShelf.frequency.value=90;
+  var mudPeak=ctx.createBiquadFilter(); mudPeak.type='peaking'; mudPeak.frequency.value=220; mudPeak.Q.value=0.9;
+  var airShelf=ctx.createBiquadFilter(); airShelf.type='highshelf'; airShelf.frequency.value=9000;
+  var toneLP=ctx.createBiquadFilter(); toneLP.type='lowpass'; toneLP.frequency.value=20000; toneLP.Q.value=0.3;
+  var comp=ctx.createDynamicsCompressor();
+  comp.threshold.value=-20; comp.knee.value=24; comp.ratio.value=2.5;
+  comp.attack.value=0.006; comp.release.value=0.3;
+  var master=ctx.createGain(); master.gain.value=0.8;
+  var limiter=ctx.createDynamicsCompressor();
+  limiter.threshold.value=-8; limiter.knee.value=0; limiter.ratio.value=12;
+  limiter.attack.value=0.002; limiter.release.value=0.12;
+  var tapeWS=ctx.createWaveShaper();
+  tapeWS.curve=TAPE_CURVE||(TAPE_CURVE=makeTapeCurve());
+  tapeWS.oversample='2x';
+  input.connect(bassShelf); bassShelf.connect(mudPeak); mudPeak.connect(airShelf);
+  airShelf.connect(toneLP); toneLP.connect(comp); comp.connect(master);
+  master.connect(tapeWS); tapeWS.connect(limiter);   /* analog teyp aşaması */
+  var analyser=null;
+  if(ctx.createAnalyser){
+    analyser=ctx.createAnalyser(); analyser.fftSize=1024; analyser.smoothingTimeConstant=0.85;
+    limiter.connect(analyser); analyser.connect(ctx.destination);
+  } else limiter.connect(ctx.destination);
+  return {input:input,master:master,limiter:limiter,analyser:analyser,
+          bassShelf:bassShelf,mudPeak:mudPeak,airShelf:airShelf,toneLP:toneLP};
+}
+/* Slider değerlerini (state.eq) bir bus'a uygula — canlı ve offline render ortak */
+function applyEq(b){
+  if(!b) return;
+  var t=b.master.context.currentTime;
+  b.master.gain.setTargetAtTime((parseInt(state.eq.vol,10)||0)/100,t,0.03);
+  b.bassShelf.gain.value=state.eq.bass;
+  b.mudPeak.gain.value=state.eq.warmth;
+  b.airShelf.gain.value=state.eq.air;
+  b.toneLP.frequency.value=state.eq.tone;
+}
+function makePieceChain(ctx,bus,style){
+  var gain=ctx.createGain(); gain.gain.value=0;
+  var dry=ctx.createGain(); dry.gain.value=1;
+  var conv=ctx.createConvolver(); conv.buffer=makeIR(ctx,1.5+style.reverb*3.2);
+  var wet=ctx.createGain(); wet.gain.value=clamp(style.reverb*0.9*(state.eq.rev/35),0,1.4);
+  gain.connect(dry); dry.connect(bus.input);
+  gain.connect(conv); conv.connect(wet); wet.connect(bus.input);
+  return {gain:gain,wet:wet};
+}
+
+/* ============================================================
+   5.5) UYKU MODU MOTORU — insan nöro frekans eşleştirmesi
+   • Binaural  : L/R'e saf sinüs (OM taşıyıcı 136.1 Hz ± hedefΔ/2);
+                 beyin iki frekansın FARKI kadar (Δ Hz) bir ritim duyar.
+   • İzokronik : müzik verisi hedef Hz'de nazik genlik modülasyonu.
+   • Kademeler : BETA→ALFA→TETA→DELTA; frekans aşağı süzülür,
+                 müzik eşzamanlı soyulur (BPM↓ katman↓ filtre↓).
+============================================================ */
+var SLEEP_STAGES=[
+  {id:'stBeta', name:'BETA', hz:[14,12],   w:0.06, col:['#60a5fa','#3b82f6']},
+  {id:'stAlpha',name:'ALFA', hz:[10,7.5],  w:0.30, col:['#5eead4','#2dd4bf']},
+  {id:'stTheta',name:'TETA', hz:[7,4],     w:0.34, col:['#a78bfa','#8b5cf6']},
+  {id:'stDelta',name:'DELTA',hz:[2.5,0.8], w:0.30, col:['#818cf8','#6366f1']}
+];
+var SLEEP_NOMINAL=1800;   /* ∞ mod için kademe çizelgesi (sn) */
+var SLEEP_EPOCH=0;        /* eski timeout'ların yeni zinciri bozmaması için */
+var sleepSt=null;
+function sleepDepthNow(){ return sleepSt? clamp(sleepSt.depth,0,1) : null; }
+function startSleepEngine(){
+  SLEEP_EPOCH++;
+  var epoch=SLEEP_EPOCH;
+  stopSleepEngine(0.4);
+  sleepSt={start:AC.currentTime,depth:0,ending:false,
+           lenMin:state.sleep.lenMin,mode:state.sleep.mode,epoch:epoch};
+  sleepSt.sched=sleepSt.lenMin>0? sleepSt.lenMin*60 : SLEEP_NOMINAL;
+  /* müzik zinciri: master → uyku filtresi → izokronik AM → çıkış */
+  bus.master.disconnect();
+  sleepSt.filt=AC.createBiquadFilter();
+  sleepSt.filt.type='lowpass'; sleepSt.filt.frequency.value=16000; sleepSt.filt.Q.value=0.4;
+  sleepSt.iso=AC.createGain(); sleepSt.iso.gain.value=1;
+  bus.master.connect(sleepSt.filt);
+  sleepSt.filt.connect(sleepSt.iso);
+  sleepSt.iso.connect(bus.limiter);
+  /* binaural çift: kanal merger ile sert L/R ayrımı */
+  var mg=AC.createGain(); mg.gain.value=0.0001;
+  mg.gain.setTargetAtTime(0.07,AC.currentTime,5);
+  var merger=AC.createChannelMerger(2);
+  var oL=AC.createOscillator(); oL.type='sine';
+  var oR=AC.createOscillator(); oR.type='sine';
+  oL.frequency.value=136.1-5; oR.frequency.value=136.1+5;
+  oL.connect(merger,0,0); oR.connect(merger,0,1);
+  merger.connect(mg); mg.connect(sleepSt.filt);
+  oL.start(); oR.start();
+  sleepSt.oL=oL; sleepSt.oR=oR; sleepSt.mg=mg;
+  /* izokronik LFO: müzik genliği hedef Hz'de nefes alır */
+  var lfo=AC.createOscillator(); lfo.type='sine'; lfo.frequency.value=8;
+  var lfoG=AC.createGain(); lfoG.gain.value=0;
+  lfo.connect(lfoG); lfoG.connect(sleepSt.iso.gain);
+  lfo.start();
+  sleepSt.lfo=lfo; sleepSt.lfoG=lfoG;
+  applySleepModeMix();
+  document.body.classList.add('sleeping');
+}
+function applySleepModeMix(){
+  if(!sleepSt) return;
+  var t=AC.currentTime, m=sleepSt.mode;
+  sleepSt.mg.gain.setTargetAtTime(m==='izo'?0.0001:0.07,t,3);
+  sleepSt.lfoG.gain.setTargetAtTime(m==='binaural'?0:0.055,t,3);
+}
+function stopSleepEngine(fadeSec){
+  if(!sleepSt) return;
+  var s=sleepSt; sleepSt=null;
+  var t=AC?AC.currentTime:0, f=Math.max(0.2,fadeSec||0.5);
+  try{
+    s.mg.gain.cancelScheduledValues(t);
+    s.mg.gain.setValueAtTime(Math.max(s.mg.gain.value,0.0001),t);
+    s.mg.gain.linearRampToValueAtTime(0.0001,t+f);
+    s.iso.gain.cancelScheduledValues(t);
+    s.iso.gain.setValueAtTime(s.iso.gain.value,t);
+    s.iso.gain.linearRampToValueAtTime(1,t+f);
+  }catch(e){}
+  setTimeout(function(){
+    try{ s.oL.stop(); s.oR.stop(); s.lfo.stop(); }catch(e){}
+    /* zincir yalnızca hâlâ en güncel oturum ise geri kurulur */
+    if(s.epoch===SLEEP_EPOCH && AC && bus){
+      try{
+        bus.master.disconnect();
+        bus.master.connect(bus.limiter);
+        s.filt.disconnect(); s.iso.disconnect(); s.mg.disconnect();
+      }catch(e){}
+    }
+  },(f+0.5)*1000);
+  document.body.classList.remove('sleeping');
+  setSleepUI(-1);
+}
+function updateSleepTick(now){
+  if(!sleepSt) return;
+  var el=now-sleepSt.start;
+  var sched=sleepSt.sched||SLEEP_NOMINAL;
+  var p=clamp(el/sched,0,1);
+  var acc=0, stIdx=SLEEP_STAGES.length-1, local=1;
+  for(var i=0;i<SLEEP_STAGES.length;i++){
+    if(p<acc+SLEEP_STAGES[i].w){ stIdx=i; local=(p-acc)/SLEEP_STAGES[i].w; break; }
+    acc+=SLEEP_STAGES[i].w;
+  }
+  var stage=SLEEP_STAGES[stIdx];
+  var hz=lerp(stage.hz[0],stage.hz[1],clamp(local,0,1));
+  sleepSt.depth=clamp(el/(sched*0.92),0,1);
+  if(sleepSt.oL){
+    sleepSt.oL.frequency.setTargetAtTime(136.1-hz/2,now,1.5);
+    sleepSt.oR.frequency.setTargetAtTime(136.1+hz/2,now,1.5);
+  }
+  if(sleepSt.lfo) sleepSt.lfo.frequency.setTargetAtTime(clamp(hz,0.5,20),now,1.5);
+  if(sleepSt.filt) sleepSt.filt.frequency.setTargetAtTime(lerp(16000,1500,Math.pow(sleepSt.depth,1.25)),now,4);
+  var total=sleepSt.lenMin>0? sleepSt.lenMin*60 : sched;
+  if(ui.slFill) ui.slFill.style.width=(clamp(el/total,0,1)*100).toFixed(1)+'%';
+  setSleepUI(stIdx);
+  if(ui.slReadout) ui.slReadout.textContent='Δ '+hz.toFixed(1)+' Hz · '+stage.name+' · L '+(136.1-hz/2).toFixed(1)+' Hz / R '+(136.1+hz/2).toFixed(1)+' Hz · '+fmtT(el)+' / '+(sleepSt.lenMin>0?fmtT(total):'∞');
+  /* süreli seans bitti: 90 sn yumuşak fade-out ve tam duruş */
+  if(sleepSt.lenMin>0 && !sleepSt.ending && el>=total){
+    sleepSt.ending=true;
+    bus.master.gain.cancelScheduledValues(now);
+    bus.master.gain.setValueAtTime(Math.max(bus.master.gain.value,0.0001),now);
+    bus.master.gain.linearRampToValueAtTime(0.0001,now+90);
+    sleepSt.mg.gain.cancelScheduledValues(now);
+    sleepSt.mg.gain.setValueAtTime(Math.max(sleepSt.mg.gain.value,0.0001),now);
+    sleepSt.mg.gain.linearRampToValueAtTime(0.0001,now+90);
+    if(ui.slReadout) ui.slReadout.textContent='seans tamam · müzik 90 saniyede yumuşakça sönecek 🌙';
+    setTimeout(function(){
+      if(!sleepSt||!sleepSt.ending) return;
+      sessionActive=false; setPlayUI(false);
+      stopSleepEngine(1.5);
+      live.forEach(function(l2){try{l2.chain.gain.disconnect();}catch(e2){}});
+      live.length=0; front=null;
+      if(AC){
+        bus.master.gain.cancelScheduledValues(AC.currentTime);
+        bus.master.gain.setValueAtTime((parseInt(state.eq.vol,10)||80)/100,AC.currentTime);
+        AC.suspend();
+      }
+      if(ui.slFill) ui.slFill.style.width='0%';
+      if(ui.slReadout) ui.slReadout.textContent='seans bitti · iyi uykular 🌙';
+    },92000);
+  }
+}
+function setSleepUI(stIdx){
+  for(var i=0;i<SLEEP_STAGES.length;i++){
+    var el=document.getElementById(SLEEP_STAGES[i].id);
+    if(!el) continue;
+    var on=(i===stIdx);
+    el.classList.toggle('on',on);
+    el.style.background=on?('linear-gradient(135deg,'+SLEEP_STAGES[i].col[0]+','+SLEEP_STAGES[i].col[1]+')'):'';
+    el.style.color=on?'#0b1020':'';
+  }
+}
+
+/* ============================================================
+   5.7) ÇEŞİTLİLİK DEFTERİ — "en az çalınanlar" garantisi
+   Her kompozisyonun progresyon/motif/akor imzaları sayılır;
+   yeni kompozisyon, aday seed'ler içinde defterde EN AZ geçeni
+   seçer → her parça bir öncekinden farklı kurularak ilerler.
+============================================================ */
+var LEDGER={chord:{},prog:{},motif:{},ok:(function(){try{localStorage.setItem('_clt','1');localStorage.removeItem('_clt');return true;}catch(e){return false;}})()};
+function ledLoad(){ if(!LEDGER.ok) return; try{ var raw=localStorage.getItem('calmLedger'); if(raw){ var o=JSON.parse(raw); if(o&&o.chord){ LEDGER.chord=o.chord||{}; LEDGER.prog=o.prog||{}; LEDGER.motif=o.motif||{}; } } }catch(e){} }
+function ledSave(){ if(!LEDGER.ok) return; try{ localStorage.setItem('calmLedger',JSON.stringify({chord:LEDGER.chord,prog:LEDGER.prog,motif:LEDGER.motif})); }catch(e){} }
+function ledBump(dict,key,w){ if(!key) return; dict[key]=(dict[key]||0)+w; if(dict[key]>60){ for(var k in dict) dict[k]=Math.ceil(dict[k]/2); } }
+function registerUsage(piece){
+  if(!piece||!piece.meta) return;
+  var m=piece.meta,i;
+  ledBump(LEDGER.prog,(m.styleId||'')+'|'+(m.scaleName||'')+'|'+(m.progSig||''),6);
+  if(m.motifSigs) for(i=0;i<m.motifSigs.length;i++) ledBump(LEDGER.motif,(m.styleId||'')+'|'+m.motifSigs[i],2);
+  var seen={};
+  for(i=0;i<piece.chordAt.length;i++){ var nm=piece.chordAt[i].name; if(!seen[nm]){ seen[nm]=1; ledBump(LEDGER.chord,(m.keyName||'')+'|'+nm,1); } }
+  ledSave(); updateLedgerUI();
+}
+function usageScoreOf(piece){
+  var m=piece.meta,sc=0,i;
+  sc+=(LEDGER.prog[(m.styleId||'')+'|'+(m.scaleName||'')+'|'+(m.progSig||'')]||0)*5;
+  if(m.motifSigs) for(i=0;i<m.motifSigs.length;i++) sc+=(LEDGER.motif[(m.styleId||'')+'|'+m.motifSigs[i]]||0)*2;
+  var seen={};
+  for(i=0;i<piece.chordAt.length;i++){ var nm=piece.chordAt[i].name; if(!seen[nm]){ seen[nm]=1; sc+=(LEDGER.chord[(m.keyName||'')+'|'+nm]||0); } }
+  return sc;
+}
+var RECENT_PROGS=[];   /* son 5 progresyon şekli — TAM YASAK liste */
+function pickFreshComposition(){
+  ledLoad();
+  var best=null;
+  for(var t=0;t<8;t++){
+    var seed=(Math.random()*0xFFFFFFFF)>>>0;
+    var comp=rollComposition(seed);
+    var p=generatePiece({seed:seed,styleId:comp.styleId,keyPc:comp.keyPc,bpm:comp.bpm,sleepDepth:sleepDepthNow()});
+    var sc=usageScoreOf(p);
+    if(RECENT_PROGS.indexOf(p.meta.progSig)>=0) sc+=1000;   /* yasaklı şekil: eleme */
+    if(!best||sc<best.sc) best={seed:seed,sc:sc,sig:p.meta.progSig};
+    if(sc===0) break;
+  }
+  if(best&&best.sig){ RECENT_PROGS.push(best.sig); if(RECENT_PROGS.length>5) RECENT_PROGS.shift(); }
+  return best.seed;
+}
+function updateLedgerUI(){
+  if(!ui.ledgerInfo) return;
+  ui.ledgerInfo.textContent='🧮 '+(LEDGER.ok?'kalıcı defter':'oturum defteri')+' · '+
+    Object.keys(LEDGER.motif).length+' motif · '+Object.keys(LEDGER.prog).length+' progresyon · '+
+    Object.keys(LEDGER.chord).length+' akor kaydı — her parça en az çalınan adaylardan kurulur';
+}
+
+/* ============================================================
+   6) OYNATICI DURUM MAKİNESİ (sonsuz crossfade dahil)
+============================================================ */
+var AC=null, bus=null;
+var state={seed:(Math.random()*0xFFFFFFFF)>>>0, infinite:true,
+           eq:{vol:80,bass:3,warmth:-2,air:-1,tone:16000,rev:35},
+           sleep:{on:false,lenMin:30,mode:'both'}};
+var live=[], front=null, sessionActive=false;
+var LOOK=1.4, OVERLAP=8;
+
+/* Her kompozisyon: seed'den rastgele stil + tonalite + tempo türetilir
+   (progresyon da generatePiece içinde seed'den rastgele seçilir) */
+function rollComposition(seed){
+  var rnd=mulberry32((seed^0x5F3759DF)>>>0);
+  var ids=Object.keys(STYLES);
+  var styleId=ids[(rnd()*ids.length)|0];
+  var keyPc=(rnd()*12)|0;
+  var bpm=Math.round(lerp(STYLES[styleId].bpm[0],STYLES[styleId].bpm[1],rnd()));
+  return {styleId:styleId,keyPc:keyPc,bpm:bpm};
+}
+function startPiece(seed,when){
+  var comp=rollComposition(seed);
+  var piece=generatePiece({seed:seed,styleId:comp.styleId,keyPc:comp.keyPc,bpm:comp.bpm,
+                           sleepDepth:sleepDepthNow()});
+  var chain=makePieceChain(AC,bus,STYLES[comp.styleId]);
+  chain.gain.gain.setValueAtTime(0.0001,when);
+  chain.gain.gain.linearRampToValueAtTime(1,when+6);   /* SOFT START: 6 sn yumuşak giriş */
+  var lp={piece:piece,chain:chain,start:when,ptr:0,next:false,fading:false,styleId:comp.styleId};
+  live.push(lp);
+  front=lp;
+  updateDNA(piece);
+  registerUsage(piece);          /* deftere işle: sonraki parçalar farklı kursun */
+  resetLog();
+  return lp;
+}
+function tick(){
+  try{ tickInner(); }catch(e){ softErr('tick',e); }
+}
+function tickInner(){
+  if(!sessionActive||!AC) return;
+  var now=AC.currentTime;
+  for(var i=0;i<live.length;i++){
+    var lp=live[i], piece=lp.piece;
+    while(lp.ptr<piece.events.length){
+      var e=piece.events[lp.ptr], at=lp.start+e.t;
+      if(at<now+LOOK){ playEvent(AC,lp.chain.gain,e,Math.max(at,now+0.02),lp===front); lp.ptr++; }
+      else break;
+    }
+    var end=lp.start+piece.duration;
+    if(now>end-4.5 && !lp.fading){
+      lp.fading=true;
+      var gn=lp.chain.gain.gain;
+      gn.setValueAtTime(Math.max(gn.value,0.0001),now);
+      gn.linearRampToValueAtTime(0.0001,end+0.8);
+    }
+  }
+  for(var j=live.length-1;j>=0;j--){
+    if(now>live[j].start+live[j].piece.duration+3){
+      try{ live[j].chain.gain.disconnect(); }catch(err){}
+      live.splice(j,1);
+    }
+  }
+  if(front){
+    var f=front;
+    if(state.infinite && !f.next && !(sleepSt&&sleepSt.ending) && now>f.start+f.piece.duration-OVERLAP){
+      f.next=true;
+      var ns=pickFreshComposition();
+      startPiece(ns,f.start+f.piece.duration);
+      ui.xfade.style.display='block';
+      setTimeout(function(){ui.xfade.style.display='none';},9000);
+    }
+    if(!state.infinite && !(sleepSt&&sleepSt.ending) && now>f.start+f.piece.duration+0.15){
+      sessionActive=false; setPlayUI(false);
+      setTimeout(function(){
+        if(!sessionActive&&AC){
+          live.forEach(function(l2){try{l2.chain.gain.disconnect();}catch(e2){}});
+          live.length=0; front=null; AC.suspend();
+        }
+      },1200);
+    }
+    updateHUD(f,now);
+  }
+  if(sleepSt) updateSleepTick(now);
+}
+function startPlayback(){
+  if(!AC){
+    var Ctor=window.AudioContext||window.webkitAudioContext;
+    AC=new Ctor();
+    bus=makeBus(AC);
+    applyEq(bus);
+    setInterval(tick,150);
+  }
+  if(AC.state==='suspended') AC.resume();
+  sessionActive=true;
+  setPlayUI(true);
+  if(state.sleep.on && !sleepSt) startSleepEngine(); /* seans sonrası yeniden başlatma */
+  state.seed=pickFreshComposition();
+  startPiece(state.seed,AC.currentTime+0.08);
+}
+function crossfadeToNewSeed(){
+  state.seed=pickFreshComposition();
+  if(!sessionActive||!AC){ previewDNA(); return; }
+  if(AC.state==='suspended') AC.resume();
+  var now=AC.currentTime;
+  live.forEach(function(lp){
+    var g=lp.chain.gain.gain;
+    g.setValueAtTime(Math.max(g.value,0.0001),now);
+    g.linearRampToValueAtTime(0.0001,now+1.6);
+    lp.fading=true;
+  });
+  var old=live.slice();
+  setTimeout(function(){ old.forEach(function(lp){try{lp.chain.gain.disconnect();}catch(e){}}); },2200);
+  live.length=0;
+  startPiece(state.seed,now+0.05);
+  sessionActive=true; setPlayUI(true);
+}
+function togglePlay(){
+  if(!sessionActive){ startPlayback(); return; }
+  if(AC.state==='running'){ AC.suspend(); setPlayUI(false); }
+  else { AC.resume(); setPlayUI(true); }
+}
+function setPlayUI(playing){
+  ui.btnPlay.innerHTML = playing ? '⏸ Duraklat' : '▶ Oynat';
+}
+
+/* ============================================================
+   7) HUD / DNA / NOTA AKIŞI / GÖRSELLEŞTİRİCİ
+============================================================ */
+var ui={};
+var logArr=[], logDirty=false, lastLogRender=0;
+function pushLog(e){
+  logArr.push({t:e.t,name:nn(e.m),f:mtof(e.m)});
+  if(logArr.length>40) logArr.shift();
+  logDirty=true;
+}
+function resetLog(){ logArr.length=0; logDirty=true; }
+function renderLog(){
+  if(!logDirty) return;
+  logDirty=false;
+  var html='';
+  for(var i=logArr.length-1;i>=Math.max(0,logArr.length-10);i--){
+    var L=logArr[i];
+    html+='<div class="logline"><span class="t">'+fmtT(L.t)+'</span><span class="n">♪ '+L.name+'</span><span class="h">'+L.f.toFixed(2)+' Hz</span></div>';
+  }
+  ui.logBox.innerHTML=html||'<div class="logline dim">…</div>';
+}
+function updateDNA(piece){
+  var m=piece.meta;
+  setAccent(m.styleId);
+  if(ui.curStyle){
+    ui.curStyle.textContent=m.styleLabel;
+    ui.curKey.textContent=m.keyName+' '+m.scaleName;
+    ui.curBpm.textContent=m.bpm+' BPM';
+    ui.curProg.textContent=m.progRoman||m.progChords;
+    ui.curHeart.textContent=m.bpm+' atım/dk · lub-dub';
+  }
+  ui.dSeed.textContent=hex(m.seed)+'  ·  '+m.styleLabel;
+  ui.seedBadge.textContent='seed '+hex(m.seed);
+  ui.dKey.textContent=m.keyName+' '+m.scaleName+'  ('+m.keyName+' merkezi, C4 taban)';
+  ui.dProg.textContent=(m.progRoman? m.progRoman+'   →   ':'')+m.progChords;
+  ui.dBpm.textContent=m.bpm+' BPM  ·  '+fmtT(piece.duration)+' ('+piece.bars+' ölçü)';
+  ui.dStyle.textContent=m.styleLabel;
+  ui.dSource.textContent=m.source;
+  var st='';
+  piece.secs.forEach(function(s){
+    st+='<span class="schip" data-from="'+s.from+'" data-len="'+s.len+'">'+s.name+' · '+s.len+'</span>';
+  });
+  ui.dStruct.innerHTML=st;
+  /* ölçü işaretleri */
+  var mk='';
+  piece.secs.forEach(function(s){
+    if(s.from>0) mk+='<div class="mark" style="left:'+(s.from/piece.bars*100)+'%"></div>';
+  });
+  ui.secMarks.innerHTML=mk;
+  ui.pieceTitle.textContent='Calm Seans #'+hex(m.seed).slice(0,4)+' · '+m.keyName+' '+m.scaleName+' · '+m.bpm+' BPM · '+m.styleLabel;
+}
+function previewDNA(){
+  state.seed=pickFreshComposition();
+  var comp=rollComposition(state.seed);
+  var p=generatePiece({seed:state.seed,styleId:comp.styleId,keyPc:comp.keyPc,bpm:comp.bpm,
+                       sleepDepth:(sleepSt?clamp(sleepSt.depth,0,1):null)});
+  updateDNA(p);
+  ui.timeLbl.textContent='0:00 / '+fmtT(p.duration);
+  ui.progFill.style.width='0%';
+  ui.chordName.textContent='—';
+  ui.chordFreqs.textContent='hazır: "'+p.meta.styleLabel+'" profili · seed '+hex(p.meta.seed);
+  ui.pieceTitle.textContent='Calm Seans #'+hex(p.meta.seed).slice(0,4)+' · '+p.meta.keyName+' '+p.meta.scaleName+' · '+p.meta.bpm+' BPM · '+p.meta.styleLabel;
+  updateLedgerUI();
+}
+function updateHUD(lp,now){
+  var piece=lp.piece, rel=now-lp.start;
+  if(rel<0){ ui.xfade.style.display='block'; return; }
+  var p2=clamp(rel/piece.duration,0,1);
+  ui.progFill.style.width=(p2*100).toFixed(1)+'%';
+  ui.timeLbl.textContent=fmtT(rel)+' / '+fmtT(piece.duration);
+  var bar=clamp(Math.floor(rel/piece.duration*piece.bars),0,piece.bars-1);
+  var ch=piece.chordAt[bar];
+  if(ch){
+    ui.chordName.textContent=ch.name;
+    ui.chordFreqs.textContent=ch.notes.map(function(n){return mtof(n).toFixed(2);}).join(' · ')+' Hz';
+  }
+  var secName=ch?ch.sec:'—';
+  ui.secLbl.textContent='bölüm: '+secName;
+  var chips=ui.dStruct.children, idx=0;
+  for(var i=0;i<piece.secs.length;i++){
+    var s=piece.secs[i];
+    if(bar>=s.from&&bar<s.from+s.len) idx=i;
+  }
+  for(var j2=0;j2<chips.length;j2++) chips[j2].classList.toggle('on',j2===idx);
+}
+
+/* --- görselleştirici --- */
+var parts=[];
+for(var pi=0;pi<46;pi++){
+  parts.push({x:Math.random(),y:Math.random(),r:Math.random()*1.8+0.6,v:Math.random()*0.06+0.02,ph:Math.random()*6.28});
+}
+var lastRms=0;
+function draw(){
+  requestAnimationFrame(draw);
+  try{ drawInner(); }catch(e){ softErr('viz',e); }
+}
+function drawInner(){
+  var cv=ui.viz; if(!cv)return;
+  var dpr=window.devicePixelRatio||1;
+  var W=cv.clientWidth,H=cv.clientHeight;
+  if(cv.width!==W*dpr||cv.height!==H*dpr){ cv.width=W*dpr; cv.height=H*dpr; }
+  var g=cv.getContext('2d');
+  g.setTransform(dpr,0,0,dpr,0,0);
+  g.clearRect(0,0,W,H);
+  var grd=g.createLinearGradient(0,0,W,H);
+  grd.addColorStop(0,'rgba(10,14,26,.2)');grd.addColorStop(1,'rgba(10,14,26,.6)');
+  g.fillStyle=grd; g.fillRect(0,0,W,H);
+
+  var rms=lastRms*0.94;
+  var td=null;
+  if(bus&&bus.analyser&&sessionActive){
+    var n=bus.analyser.frequencyBinCount;
+    td=new Uint8Array(n);
+    bus.analyser.getByteTimeDomainData(td);
+    var sum=0;
+    for(var i=0;i<n;i++){ var v=(td[i]-128)/128; sum+=v*v; }
+    rms=Math.sqrt(sum/n)*3.2;
+    rms=Math.min(1,rms);
+  }
+  lastRms=rms;
+
+  var cx=W/2, cy=H/2, R0=Math.min(W,H)*0.22*(1+rms*0.25);
+  var t=performance.now()/1000;
+  for(var p=0;p<parts.length;p++){
+    var pt=parts[p];
+    pt.y-=pt.v*(0.3+rms*2.2)*0.016*10;
+    if(pt.y<-0.05){pt.y=1.05;pt.x=Math.random();}
+    var px=pt.x*W+Math.sin(t*0.7+pt.ph)*14;
+    var py=pt.y*H;
+    g.beginPath();
+    g.arc(px,py,pt.r*(1+rms),0,6.283);
+    g.fillStyle='rgba(199,210,254,'+(0.10+rms*0.35)+')';
+    g.fill();
+  }
+  var rg=g.createRadialGradient(cx,cy,R0*0.2,cx,cy,R0*2.2);
+  rg.addColorStop(0,'rgba(255,255,255,'+(0.05+rms*0.10)+')');
+  rg.addColorStop(1,'rgba(255,255,255,0)');
+  g.fillStyle=rg;
+  g.fillRect(0,0,W,H);
+  g.beginPath();
+  var N=td?td.length:180;
+  for(var i2=0;i2<=N;i2++){
+    var ang=i2/N*6.283-Math.PI/2;
+    var amp=td?((td[i2%N]-128)/128)*Math.min(W,H)*0.16:(Math.sin(i2*0.3+t*2)*4);
+    var rr=R0+amp;
+    var x=cx+Math.cos(ang)*rr, y=cy+Math.sin(ang)*rr;
+    if(i2===0)g.moveTo(x,y); else g.lineTo(x,y);
+  }
+  g.strokeStyle='rgba(94,234,212,'+(0.5+rms*0.4)+')';
+  g.lineWidth=1.6;
+  g.stroke();
+  g.beginPath();
+  g.arc(cx,cy,R0*0.55,0,6.283);
+  g.strokeStyle='rgba(255,255,255,'+(0.12+rms*0.3)+')';
+  g.lineWidth=1;
+  g.stroke();
+  renderLog();
+}
+/* ============================================================
+   8) WAV DIŞA AKTARMA (OfflineAudioContext ile 2 dk render)
+============================================================ */
+function encodeWav(buffer){
+  var nCh=2, sr=buffer.sampleRate, len=buffer.length;
+  var bytes=44+len*nCh*2;
+  var ab=new ArrayBuffer(bytes), dv=new DataView(ab);
+  function ws(o,s){ for(var i=0;i<s.length;i++) dv.setUint8(o+i,s.charCodeAt(i)); }
+  ws(0,'RIFF'); dv.setUint32(4,bytes-8,true); ws(8,'WAVE'); ws(12,'fmt ');
+  dv.setUint32(16,16,true); dv.setUint16(20,1,true); dv.setUint16(22,nCh,true);
+  dv.setUint32(24,sr,true); dv.setUint32(28,sr*nCh*2,true);
+  dv.setUint16(32,nCh*2,true); dv.setUint16(34,16,true);
+  ws(36,'data'); dv.setUint32(40,len*nCh*2,true);
+  var off=44, L=buffer.getChannelData(0), R=buffer.numberOfChannels>1?buffer.getChannelData(1):L;
+  for(var i=0;i<len;i++){
+    var a=clamp(L[i],-1,1), b2=clamp(R[i],-1,1);
+    dv.setInt16(off,a<0?a*32768:a*32767,true); off+=2;
+    dv.setInt16(off,b2<0?b2*32768:b2*32767,true); off+=2;
+  }
+  return new Blob([ab],{type:'audio/wav'});
+}
+async function exportWav(){
+  if(!window.OfflineAudioContext&&!window.webkitOfflineAudioContext){
+    ui.wavStatus.textContent='tarayıcı offline render desteklemiyor'; return;
+  }
+  ui.btnWav.disabled=true;
+  ui.wavStatus.textContent='render ediliyor… (birkaç saniye)';
+  await new Promise(function(r){setTimeout(r,30);});
+  try{
+    var seed,styleId,keyPc,bpm,forceP=null;
+    if(front){ var m0=front.piece.meta; seed=m0.seed; styleId=m0.styleId; keyPc=m0.keyPc; bpm=m0.bpm;
+               forceP=m0.progSig.split('-').map(Number); }
+    else{ var c0=rollComposition(state.seed); seed=state.seed; styleId=c0.styleId; keyPc=c0.keyPc; bpm=c0.bpm; }
+    var piece=generatePiece({seed:seed,styleId:styleId,keyPc:keyPc,bpm:bpm,
+                             sleepDepth:(sleepSt?clamp(sleepSt.depth,0,1):null),forceProg:forceP});
+    var style=STYLES[styleId];
+    var sr=44100, tail=5;
+    var OC=window.OfflineAudioContext||window.webkitOfflineAudioContext;
+    var oc=new OC(2,Math.ceil(sr*(piece.duration+tail)),sr);
+    var lbus=makeBus(oc);
+    applyEq(lbus);
+    var lchain=makePieceChain(oc,lbus,style);
+    lchain.gain.gain.setValueAtTime(0.0001,0);
+    lchain.gain.gain.linearRampToValueAtTime(1,5);          /* soft start */
+    lchain.gain.gain.setValueAtTime(1,piece.duration-4);
+    lchain.gain.gain.linearRampToValueAtTime(0.0001,piece.duration+2.5); /* soft end */
+    for(var i=0;i<piece.events.length;i++){
+      var e=piece.events[i];
+      playEvent(oc,lchain.gain,e,e.t+0.05,false);
+    }
+    var buf=await oc.startRendering();
+    var blob=encodeWav(buf);
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='calm-'+styleId+'-'+hex(seed)+'.wav';
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},4000);
+    ui.wavStatus.textContent='indirildi: '+fmtT(piece.duration)+' · '+hex(seed);
+  }catch(err){
+    ui.wavStatus.textContent='hata: '+err.message;
+  }
+  ui.btnWav.disabled=false;
+}
+
+/* ============================================================
+   9) UI BAĞLARI
+============================================================ */
+function fillGenreBars(){
+  var max=1;
+  SCRAPE.genres.forEach(function(g){max=Math.max(max,g.n);});
+  ui.genreBars.innerHTML=SCRAPE.genres.map(function(g){
+    return '<div class="gbar"><span class="nm">'+g.name+'</span><span class="tr"><span class="fl" style="width:'+(g.n/max*100)+'%"></span></span><span class="ct">'+g.n+'</span></div>';
+  }).join('');
+}
+function setAccent(styleId){
+  var st=STYLES[styleId];
+  document.documentElement.style.setProperty('--ac1',st.ac1);
+  document.documentElement.style.setProperty('--ac2',st.ac2);
+}
+function initUI(){
+  ui.btnPlay=document.getElementById('btnPlay');
+  ui.btnNew=document.getElementById('btnNew');
+  ui.btnWav=document.getElementById('btnWav');
+  ui.infChk=document.getElementById('infChk');
+  ui.seedBadge=document.getElementById('seedBadge');
+  ui.curStyle=document.getElementById('curStyle');
+  ui.curKey=document.getElementById('curKey');
+  ui.curBpm=document.getElementById('curBpm');
+  ui.curProg=document.getElementById('curProg');
+  ui.curHeart=document.getElementById('curHeart');
+  ui.mxVol=document.getElementById('mxVol');
+  ui.mxBass=document.getElementById('mxBass');
+  ui.mxWarm=document.getElementById('mxWarm');
+  ui.mxAir=document.getElementById('mxAir');
+  ui.mxTone=document.getElementById('mxTone');
+  ui.mxRev=document.getElementById('mxRev');
+  ui.progFill=document.getElementById('progFill');
+  ui.secMarks=document.getElementById('secMarks');
+  ui.timeLbl=document.getElementById('timeLbl');
+  ui.secLbl=document.getElementById('secLbl');
+  ui.wavStatus=document.getElementById('wavStatus');
+  ui.chordName=document.getElementById('chordName');
+  ui.chordFreqs=document.getElementById('chordFreqs');
+  ui.xfade=document.getElementById('xfade');
+  ui.pieceTitle=document.getElementById('pieceTitle');
+  ui.dSeed=document.getElementById('dSeed');
+  ui.dKey=document.getElementById('dKey');
+  ui.dProg=document.getElementById('dProg');
+  ui.dBpm=document.getElementById('dBpm');
+  ui.dStyle=document.getElementById('dStyle');
+  ui.dSource=document.getElementById('dSource');
+  ui.ledgerInfo=document.getElementById('ledgerInfo');
+  ui.dStruct=document.getElementById('dStruct');
+  ui.genreBars=document.getElementById('genreBars');
+  ui.logBox=document.getElementById('logBox');
+  ui.viz=document.getElementById('viz');
+  ui.slChk=document.getElementById('slChk');
+  ui.slLen=document.getElementById('slLen');
+  ui.slMode=document.getElementById('slMode');
+  ui.slFill=document.getElementById('slFill');
+  ui.slReadout=document.getElementById('slReadout');
+
+  fillGenreBars();
+  previewDNA();          /* rastgele ilk kompozisyonu hazırla ve göster */
+  requestAnimationFrame(draw);
+
+  ui.btnPlay.addEventListener('click',togglePlay);
+  ui.btnNew.addEventListener('click',crossfadeToNewSeed);
+  ui.btnWav.addEventListener('click',exportWav);
+  ui.infChk.addEventListener('change',function(){state.infinite=ui.infChk.checked;});
+  /* ---- master & filtre slider'ları: ses kapalıyken bile state'e yazılır,
+          AudioParam varsa canlı uygulanır (hatasız gain) ---- */
+  function bindMx(id,key,lblFn){
+    var el=ui[id]; if(!el) return;
+    var lbl=document.getElementById(id+'Val');
+    el.addEventListener('input',function(){
+      var v=parseFloat(el.value);
+      state.eq[key]=v;
+      if(lbl) lbl.textContent=lblFn(v);
+      if(!AC||!bus) return;
+      if(key==='vol'){ bus.master.gain.setTargetAtTime(v/100,AC.currentTime,0.03); }
+      else if(key==='rev'){ live.forEach(function(lp){ if(lp.chain&&lp.chain.wet) lp.chain.wet.gain.setTargetAtTime(clamp(STYLES[lp.styleId].reverb*0.9*(v/35),0,1.4),AC.currentTime,0.1); }); }
+      else{
+        var n= key==='bass'?bus.bassShelf : key==='warmth'?bus.mudPeak : key==='air'?bus.airShelf : bus.toneLP;
+        (key==='tone'?n.frequency:n.gain).setTargetAtTime(v,AC.currentTime,0.05);
+      }
+    });
+  }
+  bindMx('mxVol','vol',function(v){return String(v);});
+  bindMx('mxBass','bass',function(v){return (v>0?'+':'')+v+' dB';});
+  bindMx('mxWarm','warmth',function(v){return (v>0?'+':'')+v+' dB';});
+  bindMx('mxAir','air',function(v){return (v>0?'+':'')+v+' dB';});
+  bindMx('mxTone','tone',function(v){return (v/1000).toFixed(1)+' kHz';});
+  bindMx('mxRev','rev',function(v){return String(v);});
+  /* ---- uyku modu bağları ---- */
+  ui.slChk.addEventListener('change',function(){
+    state.sleep.on=ui.slChk.checked;
+    if(state.sleep.on){
+      if(!sessionActive) startPlayback();   /* toggle tıklaması = kullanıcı jesti */
+      startSleepEngine();
+      crossfadeToNewSeed();                 /* uykuya uygun soyulmuş parçaya geç */
+      if(ui.slReadout) ui.slReadout.textContent='uyku modu açık · kademeler başlıyor…';
+    }else{
+      stopSleepEngine(1.2);
+      if(AC&&bus){ /* olası seans fade-out'unu iptal et, seviyeyi geri getir */
+        bus.master.gain.cancelScheduledValues(AC.currentTime);
+        bus.master.gain.setValueAtTime((parseInt(state.eq.vol,10)||80)/100,AC.currentTime);
+      }
+      if(ui.slFill) ui.slFill.style.width='0%';
+      if(ui.slReadout) ui.slReadout.textContent='uyku modu kapalı';
+      if(sessionActive) crossfadeToNewSeed();
+    }
+  });
+  ui.slLen.addEventListener('change',function(){
+    state.sleep.lenMin=parseInt(ui.slLen.value,10)||0;
+    if(sleepSt){
+      sleepSt.lenMin=state.sleep.lenMin;
+      sleepSt.sched=sleepSt.lenMin>0? sleepSt.lenMin*60 : SLEEP_NOMINAL;
+    }
+  });
+  ui.slMode.addEventListener('change',function(){
+    state.sleep.mode=ui.slMode.value;
+    if(sleepSt){ sleepSt.mode=state.sleep.mode; applySleepModeMix(); }
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.code==='Space'&&!/INPUT|SELECT|BUTTON/.test(e.target.tagName)){
+      e.preventDefault(); togglePlay();
+    }
+  });
+}
+if(typeof document!=='undefined'&&document.getElementById('app')){
+  initUI();
+}
+if(typeof module!=='undefined'&&module.exports){
+  module.exports={generatePiece:generatePiece,STYLES:STYLES,SCALES:SCALES,mtof:mtof,nn:nn,
+    circleProg:circleProg,LEDGER:LEDGER,RECENT_PROGS:RECENT_PROGS,
+    usageScoreOf:usageScoreOf,registerUsage:registerUsage,pickFreshComposition:pickFreshComposition};
+}
+})();
+</script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a34028c3fd125e63',t:'MTc4ODIyMjU1MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
