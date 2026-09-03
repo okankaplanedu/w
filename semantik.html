@@ -1,0 +1,1295 @@
+<html lang="tr"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML Editor  </title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&amp;display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-white: #ffffff;
+  --bg-gray: #e8e8e8;
+  --bg-dark: #1a1a1a;
+  --accent-yellow: #ffde59;
+  --accent-pink: #ff6b9d;
+  --accent-cyan: #00f0ff;
+  --accent-lime: #b4ff39;
+  --accent-purple: #a855f7;
+  --black: #000000;
+  --border-thick: 4px;
+  --hard-shadow: 6px 6px 0px #000;
+  --hard-shadow-sm: 3px 3px 0px #000;
+  --hard-shadow-lg: 10px 10px 0px #000;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Space Grotesk', sans-serif;
+
+  height: 100vh;
+}
+
+/* Light Theme */
+body.light-theme {
+  background-color: var(--bg-gray);
+  color: var(--black);
+  --bg-body: var(--bg-gray);
+  --bg-element: var(--bg-white);
+  --text-body: var(--black);
+  --text-element: var(--black);
+  --border-element: var(--black);
+}
+
+/* Dark Theme */
+body.dark-theme {
+  background-color: var(--bg-dark);
+  color: var(--bg-white);
+  --bg-body: var(--bg-dark);
+  --bg-element: #2a2a2a;
+  --text-body: var(--bg-white);
+  --text-element: var(--bg-white);
+  --border-element: #444;
+}
+
+/* Navbar -  */
+.navbar {
+  border-bottom: var(--border-thick) solid var(--black) !important;
+  padding: 1rem 2rem !important;
+  box-shadow: 0 6px 0 var(--black) !important;
+  z-index: 1000;
+}
+
+.navbar-brand {
+  font-size: 1.5rem !important;
+  font-weight: 800 !important;
+  text-transform: uppercase;
+  letter-spacing: -1px;
+  padding: 0.5rem 1rem !important;
+  border: 3px solid var(--black) !important;
+  background: var(--accent-yellow) !important;
+  color: var(--black) !important;
+  box-shadow: var(--hard-shadow-sm) !important;
+  transition: all 0.15s;
+}
+
+.navbar-brand:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 var(--black) !important;
+}
+
+/* Buttons -  */
+.btn {
+  border: 3px solid var(--black) !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  font-size: 0.85rem !important;
+  padding: 0.5rem 1rem !important;
+  transition: all 0.15s !important;
+  box-shadow: var(--hard-shadow-sm) !important;
+  font-family: 'Space Grotesk', sans-serif !important;
+}
+
+.btn:hover {
+  transform: translate(-2px, -2px) !important;
+  box-shadow: 5px 5px 0 var(--black) !important;
+}
+
+.btn:active {
+  transform: translate(3px, 3px) !important;
+  box-shadow: 1px 1px 0 var(--black) !important;
+}
+
+.btn-primary {
+  background: var(--accent-cyan) !important;
+  color: var(--black) !important;
+}
+
+.btn-secondary {
+  background: var(--bg-white) !important;
+  color: var(--black) !important;
+}
+
+.btn-success {
+  background: var(--accent-lime) !important;
+  color: var(--black) !important;
+}
+
+.btn-outline-primary {
+  background: var(--bg-white) !important;
+  color: var(--black) !important;
+}
+
+.btn-outline-secondary {
+  background: var(--bg-gray) !important;
+  color: var(--black) !important;
+}
+
+.btn-danger {
+  background: var(--accent-pink) !important;
+  color: var(--black) !important;
+}
+
+.btn-sm {
+  padding: 0.4rem 0.8rem !important;
+  font-size: 0.75rem !important;
+}
+
+/* Form Controls */
+.form-control {
+  border: 3px solid var(--black) !important;
+  font-family: 'Space Grotesk', sans-serif !important;
+  font-weight: 600 !important;
+  padding: 0.75rem !important;
+  background: var(--bg-element) !important;
+  color: var(--text-element) !important;
+  box-shadow: inset 2px 2px 0 rgba(0,0,0,0.1) !important;
+  transition: all 0.15s !important;
+}
+
+.form-control:focus {
+  border-color: var(--accent-cyan) !important;
+  box-shadow: inset 2px 2px 0 rgba(0,0,0,0.1), var(--hard-shadow-sm) !important;
+  transform: translate(-2px, -2px);
+  outline: none !important;
+}
+
+textarea.form-control {
+  font-family: 'Space Grotesk', monospace !important;
+  font-size: 16px !important;
+  line-height: 1.6 !important;
+  resize: none !important;
+}
+
+.form-range {
+  height: 8px !important;
+  border: 2px solid var(--black) !important;
+  background: var(--bg-white) !important;
+}
+
+.form-range::-webkit-slider-thumb {
+  width: 24px !important;
+  height: 24px !important;
+  background: var(--accent-yellow) !important;
+  border: 3px solid var(--black) !important;
+  box-shadow: 2px 2px 0 var(--black) !important;
+}
+
+/* Tabs -  */
+.nav-tabs {
+  border-bottom: 3px solid var(--black) !important;
+  gap: 0.5rem;
+}
+
+.nav-tabs .nav-link {
+  border: 3px solid var(--black) !important;
+  background: var(--bg-white) !important;
+  color: var(--black) !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  font-size: 0.85rem !important;
+  padding: 0.6rem 1rem !important;
+  margin-bottom: -3px !important;
+  box-shadow: 2px 2px 0 var(--black) !important;
+  transition: all 0.15s !important;
+}
+
+.nav-tabs .nav-link:hover {
+  background: var(--accent-yellow) !important;
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 var(--black) !important;
+}
+
+.nav-tabs .nav-link.active {
+  background: var(--accent-cyan) !important;
+  border-bottom-color: transparent !important;
+  transform: translate(-2px, -2px);
+  box-shadow: 3px 3px 0 var(--black) !important;
+  font-weight: 800 !important;
+}
+
+/* Offcanvas -  */
+.offcanvas {
+  border-right: 5px solid var(--black) !important;
+  box-shadow: 10px 0 20px rgba(0,0,0,0.3) !important;
+}
+
+.offcanvas-header {
+  border-bottom: 3px solid var(--black) !important;
+  background: var(--accent-yellow) !important;
+  padding: 1.5rem !important;
+}
+
+.offcanvas-title {
+  font-weight: 800 !important;
+  text-transform: uppercase;
+  width: 100%;
+}
+
+.btn-close {
+  background: var(--bg-white) !important;
+  border: 3px solid var(--black) !important;
+  opacity: 1 !important;
+  width: 32px !important;
+  height: 32px !important;
+  box-shadow: 2px 2px 0 var(--black) !important;
+}
+
+.btn-close:hover {
+  background: var(--accent-pink) !important;
+  transform: rotate(90deg);
+}
+
+.offcanvas-body {
+  padding: 1rem !important;
+  background: var(--bg-gray) !important;
+}
+
+/* List Group Items -  */
+.list-group-item {
+  border: 3px solid var(--black) !important;
+  margin-bottom: 0.5rem !important;
+  font-weight: 700 !important;
+  padding: 0.75rem 1rem !important;
+  background: var(--bg-white) !important;
+  color: var(--black) !important;
+  box-shadow: 2px 2px 0 var(--black) !important;
+  transition: all 0.15s !important;
+}
+
+.list-group-item:hover {
+  background: var(--accent-yellow) !important;
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 var(--black) !important;
+}
+
+.list-group-item.active {
+  background: var(--accent-cyan) !important;
+  color: var(--black) !important;
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 var(--black) !important;
+}
+
+.list-group-item.highlight {
+  background: var(--accent-lime) !important;
+}
+
+/* Panels / Divs */
+#leftDiv, #centerDiv, #rightDiv {
+  border-right: 4px solid var(--black) !important;
+  background: var(--bg-element);
+}
+
+#rightDiv {
+  border-right: none !important;
+}
+
+/* Panel Headers */
+h6 {
+  font-weight: 800 !important;
+  text-transform: uppercase;
+  padding: 0.75rem 1rem;
+  background: var(--accent-yellow);
+  border: 3px solid var(--black);
+  box-shadow: var(--hard-shadow-sm);
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+/* Rich Editor */
+#rich-editor {
+  border: 3px solid var(--black) !important;
+  padding: 1rem !important;
+  font-family: 'Space Grotesk', sans-serif !important;
+  background: var(--bg-element) !important;
+  color: var(--text-element) !important;
+  box-shadow: inset 2px 2px 0 rgba(0,0,0,0.1) !important;
+}
+
+#rich-editor:focus {
+  outline: 3px solid var(--accent-cyan) !important;
+  outline-offset: -3px;
+}
+
+/* Semantic View */
+#semanticView {
+  background: var(--bg-element);
+  padding: 1rem !important;
+}
+
+#semanticView div {
+  border: 3px dashed  ;
+  padding: 0.6rem !important;
+  margin: 0.55rem !important;
+ 
+}
+
+#semanticView strong {
+  background: var(--accent-yellow);
+  padding: 0.25rem 0.5rem;
+  border: 2px solid var(--black);
+  font-weight: 800;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+/* Structure Accordion */
+#structureAccordion {
+  background: var(--bg-element);
+  padding: 1rem !important;
+}
+
+#structureAccordion div {
+  margin: 0.35rem 0;
+  padding: 0.4rem;
+  border-left: 1px solid  ;
+  padd,ng-left:1px;
+  font-family: 'Space Grotesk', monospace;
+}
+
+#structureAccordion div:hover {
+ 
+}
+
+/* Iframe */
+iframe {
+  border: 4px solid var(--black) !important;
+  box-shadow: var(--hard-shadow) !important;
+  background: white;
+}
+
+/* Modal -  */
+.modal-content {
+  border: 5px solid var(--black) !important;
+  box-shadow: var(--hard-shadow-lg) !important;
+}
+
+.modal-header {
+  border-bottom: 3px solid var(--black) !important;
+  background: var(--accent-pink) !important;
+  padding: 1.5rem !important;
+}
+
+.modal-title {
+  font-weight: 800 !important;
+  text-transform: uppercase;
+  font-size: 1.5rem !important;
+}
+
+.modal-body {
+  background: var(--bg-gray) !important;
+  padding: 2rem !important;
+}
+
+.modal-footer {
+  border-top: 3px solid var(--black) !important;
+  background: var(--bg-white) !important;
+  padding: 1.5rem !important;
+}
+
+/* Scrollbar -  */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-gray);
+  border: 2px solid var(--black);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--black);
+  border: 2px solid var(--black);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-cyan);
+}
+
+/* Font Size Display */
+#fontSizeValue {
+  background: var(--accent-yellow);
+  padding: 0.25rem 0.75rem;
+  border: 2px solid var(--black);
+  font-weight: 800;
+  box-shadow: 2px 2px 0 var(--black);
+}
+
+/* Container Fluid */
+.container-fluid {
+
+}
+
+/* Full Screen Buttons */
+.position-absolute.btn {
+  z-index: 10;
+}
+
+/* Dark Theme Adjustments */
+body.dark-theme .navbar {
+  background-color: #1a1a1a !important;
+  color: var(--bg-white) !important;
+}
+
+body.dark-theme .navbar-brand {
+  background: var(--accent-cyan) !important;
+}
+
+body.dark-theme h6 {
+  background: var(--accent-purple);
+  color: var(--bg-white);
+}
+
+body.dark-theme .nav-tabs .nav-link {
+  background: #2a2a2a !important;
+  color: var(--bg-white) !important;
+  border-color: #444 !important;
+}
+
+body.dark-theme .nav-tabs .nav-link.active {
+  background: var(--accent-cyan) !important;
+  color: var(--black) !important;
+}
+
+body.dark-theme .list-group-item {
+  background: #2a2a2a !important;
+  color: var(--bg-white) !important;
+  border-color: #444 !important;
+}
+
+body.dark-theme .list-group-item.active {
+  background: var(--accent-cyan) !important;
+  color: var(--black) !important;
+}
+
+body.dark-theme .offcanvas {
+  background: #1a1a1a !important;
+}
+
+body.dark-theme .offcanvas-body {
+  background: #2a2a2a !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0.75rem 1rem !important;
+  }
+  
+  .navbar-brand {
+    font-size: 1.2rem !important;
+  }
+  
+  .btn {
+    font-size: 0.75rem !important;
+    padding: 0.4rem 0.8rem !important;
+  }
+  
+  h6 {
+    font-size: 0.9rem !important;
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.list-group-item {
+  animation: slideIn 0.3s ease;
+}
+
+/* Focus States */
+*:focus {
+  outline: none !important;
+}
+
+.form-control:focus,
+.btn:focus,
+.nav-link:focus {
+  box-shadow: 0 0 0 3px var(--accent-yellow) !important;
+}
+
+/* Additional Neo-Brutalist Touches */
+.border-thick {
+  border-width: 4px !important;
+  border-style: solid !important;
+  border-color: var(--black) !important;
+}
+
+.shadow-hard {
+  box-shadow: var(--hard-shadow) !important;
+}
+
+.shadow-hard-sm {
+  box-shadow: var(--hard-shadow-sm) !important;
+}
+
+/* Navbar adjustments for mobile */
+@media (max-width: 992px) {
+  .navbar .d-flex {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+}
+
+/* Fix for textarea in modal */
+#modalFullHtmlTextarea {
+  font-family: 'Space Grotesk', monospace !important;
+  font-size: 16px !important;
+  line-height: 1.6 !important;
+}
+.logo {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--black);
+  text-transform: uppercase;
+  letter-spacing: -1px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.logo:hover {
+  transform: translate(-3px, -3px);
+}
+
+.logo-icon {
+  width: 48px;
+  height: 48px;
+  background: var(--accent-yellow);
+  border: var(--border-thick) solid var(--black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 800;
+  box-shadow: var(--hard-shadow-sm);
+  transform: rotate(-5deg);
+}
+
+</style>
+</head>
+
+<body class="light-theme">
+
+<!-- Navbar -->
+
+
+<!-- Sidebar -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasSidebar">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title w-100">
+      <input type="text" id="searchDoc" placeholder="🔍 Search lessons..." class="form-control">
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body" id="sidebar"><button class="list-group-item list-group-item-action">🚀 Lesson 1</button><button class="list-group-item list-group-item-action">🚀 Lesson 2</button></div>
+</div>
+
+<div class="d-flex align-items-center gap-2 flex-wrap" style="margin:5px">
+      <div class="logo" id="logo">
+    <div class="logo-icon">⚡</div>
+    <span>csplit Okan Kaplan 2026</span>
+  </div> 
+
+ <input type="file" id="htmlFileInput" accept=".html" class="form-control" style="width:200px;">
+
+
+
+
+        <button class="btn btn-secondary" id="reloadFileBtn" style="display:none;">🔄 Reload</button>
+        <button class="btn btn-outline-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasSidebar">
+          📚 Lessons
+        </button>
+        <button class="btn btn-outline-secondary" id="toggleThemeBtn">🌓 Theme</button>
+      <input type="range" id="fontSizeRange" min="10" max="32" value="14" class="form-range flex-grow-1"  style="display:none;">
+	  
+	  
+	  <span id="fontSizeValue"  style="display:none;">20px</span></div><!-- Container -->
+<div class="container-fluid h-100 d-flex p-0">
+
+  <!-- Left: Full HTML -->
+  <div class="flex-column p-3 position-relative" id="leftDiv" style="width: 25%; overflow: auto; display: flex; flex: 0 0 25%;">
+    <button class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-2" onclick="toggleFullScreen('leftDiv')">
+      ⛶ Full
+    </button>
+    <h6>📄 Full HTML</h6>
+    <div class="d-flex gap-2 mb-2">
+      <button class="btn btn-sm btn-primary" onclick="openFullHtmlModal()">✏️ Edit</button>
+      <button class="btn btn-sm btn-success" id="downloadHtmlBtn">⬇️ Download</button>
+    </div>
+    <textarea class="form-control h-100" id="fullTextarea" readonly="" style="height: 100%;"></textarea>
+  </div>
+
+  <!-- Center: Tabs -->
+  <div class="flex-column p-3 position-relative" id="centerDiv" style="width: 50%; overflow: hidden; display: flex; flex: 0 0 50%;">
+    <button class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-2" onclick="toggleFullScreen('centerDiv')">
+      ⛶ Full
+    </button>
+    <ul class="nav nav-tabs" id="editorTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#headerTab" aria-selected="false" tabindex="-1" role="tab">Header</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#htmlTab" aria-selected="true" role="tab">HTML</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#cssTab" aria-selected="false" role="tab" tabindex="-1">CSS</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#jsTab" aria-selected="false" role="tab" tabindex="-1">JS</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#scriptTab" aria-selected="false" role="tab" tabindex="-1">Scripts</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#semanticTab" aria-selected="false" role="tab" tabindex="-1">Semantic</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#structureTab" aria-selected="false" role="tab" tabindex="-1">Structure</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#richTab" aria-selected="false" role="tab" tabindex="-1">Rich</button>
+      </li>
+    </ul>
+
+    <div class="tab-content mt-2 h-100">
+      <div class="tab-pane fade h-100 active show" id="htmlTab" role="tabpanel">
+        <textarea class="form-control h-100" id="htmlTextarea" style="font-size: 20px; height: 100%;"></textarea>
+      </div>
+      <div class="tab-pane fade h-100" id="cssTab" role="tabpanel">
+        <textarea class="form-control h-100" id="cssTextarea" style="font-size: 20px; height: 100%;"></textarea>
+      </div>
+      <div class="tab-pane fade h-100" id="jsTab" role="tabpanel">
+        <textarea class="form-control h-100" id="jsTextarea" style="font-size: 20px; height: 100%;"></textarea>
+      </div>
+      <div class="tab-pane fade h-100" id="scriptTab" role="tabpanel">
+        <textarea class="form-control h-100" id="scriptTextarea" style="font-size: 20px; height: 100%;"></textarea>
+      </div>
+      <div class="tab-pane fade h-100" id="semanticTab" role="tabpanel">
+        <div id="semanticView" class="p-2" style="overflow:auto; height:100%;"><div><div><strong>DIV</strong><div><div>Composition #0: Waiting for Smart Start...</div></div></div><div><strong>DIV</strong><div><div>Load instruments to see chord usage analytics.</div></div></div><div><strong>DIV</strong><div></div></div><div><strong>DIV</strong><div></div></div><div><strong>DIV</strong><div><div><strong>BUTTON</strong><div><div>▶ Start Orchestra</div></div></div><div><strong>BUTTON</strong><div><div>■ Stop</div></div></div><div><strong>DIV</strong><div><div><strong>LABEL</strong><div><div>Tempo:</div><div><strong>SPAN</strong><div><div>50</div></div></div><div>BPM</div></div></div><div><strong>BR</strong><div></div></div><div><strong>INPUT</strong><div></div></div></div></div><div><strong>DIV</strong><div><div><strong>LABEL</strong><div><div>Master Gain:</div><div><strong>SPAN</strong><div><div>15</div></div></div><div>dB</div></div></div><div><strong>BR</strong><div></div></div><div><strong>INPUT</strong><div></div></div></div></div><div><strong>DIV</strong><div><div><strong>LABEL</strong><div><div>Low-pass Filter:</div><div><strong>SPAN</strong><div><div>15000</div></div></div><div>Hz</div></div></div><div><strong>BR</strong><div></div></div><div><strong>INPUT</strong><div></div></div></div></div></div></div><div><strong>FOOTER</strong><div><div>© Okan Kaplan 2026 - AI Assisted Infinite Orchestra</div></div></div></div></div>
+      </div>
+      <div class="tab-pane fade h-100" id="structureTab" role="tabpanel">
+        <div id="structureAccordion" style="overflow:auto; height:100%;">
+		
+		<div style="font-weight: bold;">&lt;!DOCTYPE html&gt;</div><div style="margin-left: 0px; padding: 2px 0px;"><div style="cursor: pointer; user-select: none;"><span style="margin-right: 6px;">▶</span><span style="font-weight: bold;">&lt;html lang="en"&gt;</span></div><div style="display: none; margin-left: 15px;"><div style="margin-left: 20px; padding: 2px 0px;"><div style="cursor: pointer; user-select: none;"><span style="margin-right: 6px;">▶</span><span style="font-weight: bold;">&lt;head&gt;</span></div><div style="display: none; margin-left: 15px;"><div style="margin-left: 40px; padding: 2px 0px;"><div style="cursor: pointer; user-select: none;"><span style="margin-right: 6px;"> </span><span style="font-weight: bold;">&lt;meta charset="UTF-8" /&gt;</span></div><div style="display: none; margin-left: 15px;"></div></div><div style="margin-left: 40px; padding: 2px 0px;"><div style="cursor: pointer; user-select: none;"><span style="margin-right: 6px;"> </span><span style="font-weight: bold;">&lt;meta name="viewport" content="width=device-width, initial-scale=1.0" /&gt;</span></div><div style="display: none; margin-left: 15px;"></div></div><div style="margin-left: 40px; padding: 2px 0px;"><div style="cursor: pointer; user-select: none;"><span style="margin-right: 6px;">▶</span><span style="font-weight: bold;">&lt;title&gt;</span></div><div style="display: none; margin-left: 15px;"><div style="margin-left: 60px;">Soft Emotion Orchestra Composer - Smart Chord Logic</div><div style="margin-left: 40px;">&lt;/title&gt;</div></div></div><div style="margin-left: 40px; padding: 2px 0px;"><div style="cursor: pointer; user-select: none;"><span style="margin-right: 6px;">▶</span><span style="font-weight: bold;">&lt;script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.39/Tone.js"&gt;</span></div><div style="display: none; margin-left: 15px;"><div style="margin-left: 40px;">&lt;/script&gt;</div></div></div><div style="margin-left: 40px; padding: 2px 0px;"><div style="cursor: pointer; user-select: none;"><span style="margin-right: 6px;">▶</span><span style="font-weight: bold;">&lt;style&gt;</span></div><div style="display: none; margin-left: 15px;"><div style="margin-left: 60px;">
+		
+
+
+</div><div style="margin-left: 40px;">&lt;/script&gt;</div></div></div><div style="margin-left: 20px;">&lt;/body&gt;</div></div></div><div style="margin-left: 0px;">&lt;/html&gt;</div></div></div></div>
+      </div>
+      <div class="tab-pane fade h-100" id="richTab" role="tabpanel">
+        <div class="mb-2 d-flex gap-2">
+          <button class="btn btn-sm btn-outline-secondary" data-cmd="bold"><b>B</b></button>
+          <button class="btn btn-sm btn-outline-secondary" data-cmd="italic"><i>I</i></button>
+          <button class="btn btn-sm btn-outline-secondary" data-cmd="underline"><u>U</u></button>
+          <button class="btn btn-sm btn-outline-secondary" data-cmd="insertOrderedList">OL</button>
+          <button class="btn btn-sm btn-outline-secondary" data-cmd="insertUnorderedList">UL</button>
+        </div>
+        <div id="rich-editor" contenteditable="true" style="height: calc(100% - 50px); overflow: auto; font-size: 20px;">
+
+<div id="compositionInfo">Composition #0: Waiting for Smart Start...</div>
+<div id="chordStats">Load instruments to see chord usage analytics.</div>
+<div id="phaseList"></div>
+<div id="instrumentsList"></div>
+
+<div class="controls">
+<button id="startBtn">▶ Start Orchestra</button>
+<button id="stopBtn">■ Stop</button> 
+<div>
+<label>Tempo: <span id="tempoDisplay">50</span> BPM</label><br>
+<input type="range" id="tempoSlider" min="30" max="80" value="50">
+</div>
+<div>
+<label>Master Gain: <span id="gainDisplay">15</span> dB</label><br>
+<input type="range" id="gainSlider" min="-30" max="30" value="15">
+</div>
+<div>
+<label>Low-pass Filter: <span id="filterDisplay">15000</span> Hz</label><br>
+<input type="range" id="filterSlider" min="200" max="20000" value="15000">
+</div>
+</div>
+
+<footer>© Okan Kaplan 2026 - AI Assisted Infinite Orchestra</footer>
+
+
+
+</div>
+      </div>
+      <div class="tab-pane fade h-100" id="headerTab" role="tabpanel">
+        <textarea class="form-control h-100" id="headerTextarea" style="font-size: 20px; height: 100%;"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Preview -->
+  <div class="flex-column p-3 position-relative" id="rightDiv" style="width: 25%; overflow: auto; display: flex; flex: 0 0 25%;">
+    <button class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-2" onclick="toggleFullScreen('rightDiv')">
+      ⛶ Full
+    </button>
+    <h6>👁️ Preview</h6>
+    <iframe class="w-100 h-100" id="previewIframe" style="height: 100%;"></iframe>
+  </div>
+
+</div>
+
+<!-- Full HTML Modal -->
+<div class="modal fade" id="fullHtmlModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">📝 Edit Full HTML</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <textarea id="modalFullHtmlTextarea" class="form-control" style="height:70vh; width:100%;"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" id="clearFullHtmlBtn">🗑️ Clear All</button>
+        <button type="button" class="btn btn-primary" id="saveFullHtmlBtn">💾 Save</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">✖️ Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+
+let currentHTML = '';
+let lastLoadedHTML = '';
+
+// Sidebar JSON
+const curriculum = {
+  categories: [
+    {
+      icon: '🚀',
+      lessons: [
+        {
+          title: 'Lesson 1',
+          code: `<!DOCTYPE html>
+<html>
+<head>
+  <title>First Page</title>
+</head>
+<body>
+  <h1>Hello World!</h1>
+</body>
+</html>`
+        },
+        {
+          title: 'Lesson 2',
+          code: `<!DOCTYPE html>
+<html>
+<head>
+  <title>Styled Page</title>
+  <style>
+    body { background: #f0f0f0; padding: 20px; }
+    h1 { color: #333; }
+  </style>
+</head>
+<body>
+  <h1>Styled Content</h1>
+</body>
+</html>`
+        }
+      ]
+    }
+  ]
+};
+
+// Sidebar
+function renderSidebar(){
+  const container = document.getElementById('sidebar');
+  container.innerHTML='';
+  curriculum.categories.forEach(cat=>{
+    cat.lessons.forEach(lesson=>{
+      const btn=document.createElement('button');
+      btn.className='list-group-item list-group-item-action';
+      btn.textContent=`${cat.icon} ${lesson.title}`;
+      btn.addEventListener('click',()=>loadLesson(lesson,btn));
+      container.appendChild(btn);
+    });
+  });
+}
+
+// Doc Search
+document.getElementById('searchDoc').addEventListener('input',()=>{
+  const filter=document.getElementById('searchDoc').value.toLowerCase();
+  document.querySelectorAll('#sidebar .list-group-item').forEach(item=>{
+    item.style.display=item.textContent.toLowerCase().includes(filter)?'block':'none';
+    item.classList.remove('highlight');
+    if(filter && item.textContent.toLowerCase().includes(filter)) item.classList.add('highlight');
+  });
+});
+
+// Load lesson
+function loadLesson(lesson, btn){
+  document.querySelectorAll('#sidebar .list-group-item').forEach(i=>i.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  parseAndRenderHTML(lesson.code);
+  lastLoadedHTML=lesson.code;
+}
+
+function parseAndRenderHTML(htmlString = '') {
+    currentHTML = htmlString;
+
+    document.getElementById('fullTextarea').value = htmlString;
+
+    if (!htmlString.trim()) {
+        ['headerTextarea', 'cssTextarea', 'htmlTextarea', 'jsTextarea', 'scriptTextarea', 'rich-editor'].forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            if (id === 'rich-editor') el.innerHTML = '';
+            else el.value = '';
+        });
+        renderPreview();
+        renderSemanticView();
+        updateStructure();
+        return;
+    }
+
+    try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(currentHTML, 'text/html');
+
+        document.getElementById('headerTextarea').value = Array.from(doc.head.querySelectorAll('meta,link')).map(e => e.outerHTML).join('\n');
+
+        document.getElementById('cssTextarea').value = Array.from(doc.querySelectorAll('style')).map(s => s.innerHTML).join('\n');
+
+        const bodyClone = doc.body.cloneNode(true);
+        bodyClone.querySelectorAll('nav, .navbar').forEach(e => e.remove());
+        bodyClone.querySelectorAll('script').forEach(s => s.remove());
+
+        document.getElementById('htmlTextarea').value = bodyClone.innerHTML;
+        document.getElementById('rich-editor').innerHTML = bodyClone.innerHTML;
+
+        document.getElementById('jsTextarea').value = Array.from(doc.body.querySelectorAll('script:not([src])')).map(s => s.innerHTML).join('\n');
+
+        document.getElementById('scriptTextarea').value = Array.from(doc.body.querySelectorAll('script[src]')).map(s => s.outerHTML).join('\n');
+
+        renderPreview();
+        renderSemanticView();
+        updateStructure();
+    } catch (e) {
+        console.error('HTML parse error:', e);
+        ['headerTextarea', 'cssTextarea', 'htmlTextarea', 'jsTextarea', 'scriptTextarea', 'rich-editor'].forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            if (id === 'rich-editor') el.innerHTML = '';
+            else el.value = '';
+        });
+        renderPreview();
+        renderSemanticView();
+        updateStructure();
+    }
+}
+
+// Semantic View
+function renderSemanticView(){
+  const parser=new DOMParser();
+  const doc=parser.parseFromString(document.getElementById('htmlTextarea').value,'text/html');
+  function wrapSemantic(el){
+    const children=[];
+    el.childNodes.forEach(c=>{
+      if(c.nodeType===1){
+        const wrapper=document.createElement('div');
+        wrapper.innerHTML=`<strong>${c.tagName}</strong>`;
+        wrapper.appendChild(wrapSemantic(c));
+        children.push(wrapper);
+      } else if(c.nodeType===3 && c.textContent.trim()){
+        const textNode=document.createElement('div');
+        textNode.textContent=c.textContent.trim();
+        children.push(textNode);
+      }
+    });
+    const container=document.createElement('div');
+    children.forEach(ch=>container.appendChild(ch));
+    return container;
+  }
+  const semanticContainer=document.getElementById('semanticView');
+  semanticContainer.innerHTML='';
+  semanticContainer.appendChild(wrapSemantic(doc.body));
+}
+
+function renderPreview(){
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(document.getElementById('fullTextarea').value,'text/html');
+
+    const styleTag = document.createElement('style');
+    styleTag.innerHTML = document.getElementById('cssTextarea').value;
+    doc.head.appendChild(styleTag);
+
+    const previewBody = doc.body.cloneNode(true);
+    previewBody.querySelectorAll('nav, .navbar').forEach(e => e.remove());
+    previewBody.innerHTML = document.getElementById('htmlTextarea').value;
+
+    doc.body.innerHTML = previewBody.innerHTML;
+
+    const scriptInline = document.createElement('script');
+    scriptInline.innerHTML = document.getElementById('jsTextarea').value;
+    doc.body.appendChild(scriptInline);
+
+    const tmp = document.createElement('div');
+    tmp.innerHTML = document.getElementById('scriptTextarea').value;
+    tmp.querySelectorAll('script[src]').forEach(s => doc.body.appendChild(s));
+
+    const iframe = document.getElementById('previewIframe');
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+    iframeDoc.open();
+    iframeDoc.write('<!DOCTYPE html>\n' + doc.documentElement.outerHTML);
+    iframeDoc.close();
+}
+
+// Rich Editor
+function initRichEditor(){
+  document.querySelectorAll('#richTab button[data-cmd]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.execCommand(btn.dataset.cmd,false,null);
+      document.getElementById('htmlTextarea').value=document.getElementById('rich-editor').innerHTML;
+      renderPreview();
+      updateStructure();
+      renderSemanticView();
+    });
+  });
+
+  document.getElementById('rich-editor').addEventListener('input',()=>{
+    document.getElementById('htmlTextarea').value=document.getElementById('rich-editor').innerHTML;
+    renderPreview();
+    updateStructure();
+    renderSemanticView();
+  });
+}
+
+// Textarea Sync
+function initTextareaSync(){
+  ['headerTextarea','cssTextarea','htmlTextarea','jsTextarea','scriptTextarea'].forEach(id=>{
+    document.getElementById(id).addEventListener('input',()=>{
+      if(id==='htmlTextarea'){ renderSemanticView(); }
+      renderPreview();
+      updateStructure();
+    });
+  });
+}
+
+// Structure
+function updateStructure(){
+  const container=document.getElementById('structureAccordion');
+  container.innerHTML='';
+  const htmlContent=document.getElementById('fullTextarea').value || '<!DOCTYPE html><html><head></head><body></body></html>';
+  const parser=new DOMParser();
+  const doc=parser.parseFromString(htmlContent,'text/html');
+  const selfClosingTags=['area','base','br','col','embed','hr','img','input','link','meta','source','track','wbr','doctype'];
+
+  const doctypeDiv=document.createElement('div');
+  doctypeDiv.textContent='<!DOCTYPE html>';
+  doctypeDiv.style.fontWeight='bold';
+  container.appendChild(doctypeDiv);
+
+  function createAccordion(node,level=0){
+    const indent=level*20;
+    if(node.nodeType===1){
+      const tag=node.tagName.toLowerCase();
+      const isSelfClosing=selfClosingTags.includes(tag);
+
+      const wrapper=document.createElement('div');
+      wrapper.style.marginLeft=indent+'px';
+      wrapper.style.padding='2px 0';
+
+      const title=document.createElement('div');
+      title.style.cursor='pointer';
+      title.style.userSelect='none';
+
+      const emoji=document.createElement('span');
+      emoji.textContent=isSelfClosing?' ':'▶';
+      emoji.style.marginRight='6px';
+      title.appendChild(emoji);
+
+      const textNode=document.createElement('span');
+      textNode.textContent=`<${tag}${node.attributes.length? ' '+Array.from(node.attributes).map(a=>`${a.name}="${a.value}"`).join(' '):''}${isSelfClosing?' /':''}>`;
+      textNode.style.fontWeight='bold';
+      title.appendChild(textNode);
+
+      wrapper.appendChild(title);
+
+      const childrenContainer=document.createElement('div');
+      childrenContainer.style.display='none';
+      childrenContainer.style.marginLeft='15px';
+      wrapper.appendChild(childrenContainer);
+
+      if(!isSelfClosing){
+        title.addEventListener('click',()=>{
+          const isOpen=childrenContainer.style.display==='block';
+          childrenContainer.style.display=isOpen?'none':'block';
+          emoji.textContent=isOpen?'▶':'▼';
+        });
+
+        node.childNodes.forEach(child=>{
+          const childAcc=createAccordion(child,level+1);
+          if(childAcc) childrenContainer.appendChild(childAcc);
+        });
+
+        const closeDiv=document.createElement('div');
+        closeDiv.textContent=`</${tag}>`;
+        closeDiv.style.marginLeft=indent+'px';
+        childrenContainer.appendChild(closeDiv);
+      }
+      return wrapper;
+    } else if(node.nodeType===3 && node.textContent.trim()){
+      const textDiv=document.createElement('div');
+      textDiv.textContent=node.textContent.trim();
+      textDiv.style.marginLeft=indent+'px';
+      return textDiv;
+    }
+    return null;
+  }
+
+  const rootAcc=createAccordion(doc.documentElement,0);
+  if(rootAcc) container.appendChild(rootAcc);
+}
+
+// File Input
+const fileInput=document.getElementById('htmlFileInput');
+const reloadBtn=document.getElementById('reloadFileBtn');
+
+fileInput.addEventListener('change',function(e){
+  const file=e.target.files[0];
+  if(file && file.type==='text/html'){
+    reloadBtn.style.display='inline-block';
+    const reader=new FileReader();
+    reader.onload=function(evt){
+      parseAndRenderHTML(evt.target.result);
+      lastLoadedHTML=evt.target.result;
+    };
+    reader.readAsText(file);
+  } else {
+    reloadBtn.style.display='none';
+    alert('Please select a valid HTML file.');
+  }
+});
+
+reloadBtn.addEventListener('click',()=>{
+  const file=fileInput?.files[0];
+  if(file && file.type==='text/html'){
+    const reader=new FileReader();
+    reader.onload=function(evt){
+      parseAndRenderHTML(evt.target.result);
+      lastLoadedHTML=evt.target.result;
+    };
+    reader.readAsText(file);
+  } else if(lastLoadedHTML){
+    parseAndRenderHTML(lastLoadedHTML);
+  } else {
+    alert('No HTML to reload or valid file selected.');
+  }
+});
+
+// Full Screen Toggle
+let currentFullScreen = null;
+
+window.toggleFullScreen = function(id){
+  const left = document.getElementById('leftDiv');
+  const center = document.getElementById('centerDiv');
+  const right = document.getElementById('rightDiv');
+
+  const allDivs = [left, center, right];
+
+  if(currentFullScreen === id){
+    left.style.display = 'flex';
+    left.style.flex = '0 0 25%';
+    center.style.display = 'flex';
+    center.style.flex = '0 0 50%';
+    right.style.display = 'flex';
+    right.style.flex = '0 0 25%';
+    currentFullScreen = null;
+  } else {
+    allDivs.forEach(d=>{
+      if(d.id === id){
+        d.style.display='flex';
+        d.style.flex='1';
+      } else {
+        d.style.display='none';
+      }
+    });
+    currentFullScreen = id;
+  }
+
+  setTimeout(()=>{
+    ['htmlTextarea','cssTextarea','jsTextarea','scriptTextarea','headerTextarea','fullTextarea'].forEach(tid=>{
+      const el = document.getElementById(tid);
+      if(el) el.style.height = '100%';
+    });
+
+    const rich = document.getElementById('rich-editor');
+    if(rich) rich.style.height = 'calc(100% - 50px)';
+
+    const iframe = document.getElementById('previewIframe');
+    if(iframe) iframe.style.height = '100%';
+  },50);
+};
+
+// Full HTML Modal
+window.openFullHtmlModal = function(){
+  const modalTextarea=document.getElementById('modalFullHtmlTextarea');
+  modalTextarea.value=document.getElementById('fullTextarea').value;
+  const modal=new bootstrap.Modal(document.getElementById('fullHtmlModal'));
+  modal.show();
+}
+
+document.getElementById('saveFullHtmlBtn').addEventListener('click',()=>{
+  const updatedHtml=document.getElementById('modalFullHtmlTextarea').value;
+  document.getElementById('fullTextarea').value = updatedHtml;
+  parseAndRenderHTML(updatedHtml);
+
+  const modalEl=document.getElementById('fullHtmlModal');
+  const modal=bootstrap.Modal.getInstance(modalEl);
+  modal.hide();
+
+  ['htmlTextarea','cssTextarea','jsTextarea','scriptTextarea','headerTextarea','rich-editor'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el && id==='rich-editor'){
+      el.innerHTML = document.getElementById('htmlTextarea').value;
+    } else if(el){
+      el.value = id==='htmlTextarea' ? document.getElementById('htmlTextarea').value :
+                 id==='cssTextarea'  ? document.getElementById('cssTextarea').value  :
+                 id==='jsTextarea'   ? document.getElementById('jsTextarea').value   :
+                 id==='scriptTextarea'? document.getElementById('scriptTextarea').value :
+                 id==='headerTextarea'? document.getElementById('headerTextarea').value : '';
+    }
+  });
+
+  renderPreview();
+  renderSemanticView();
+  updateStructure();
+});
+
+// Font size
+const fontSizeRange=document.getElementById('fontSizeRange');
+const fontSizeValue=document.getElementById('fontSizeValue');
+const textareas=[
+  document.getElementById('headerTextarea'),
+  document.getElementById('htmlTextarea'),
+  document.getElementById('cssTextarea'),
+  document.getElementById('jsTextarea'),
+  document.getElementById('scriptTextarea')
+];
+
+fontSizeRange.addEventListener('input',()=>{
+  const size=fontSizeRange.value+'px';
+  fontSizeValue.textContent=size;
+  textareas.forEach(ta=>ta.style.fontSize=size);
+  document.getElementById('rich-editor').style.fontSize=size;
+});
+
+// Download HTML
+document.getElementById('downloadHtmlBtn').addEventListener('click', () => {
+  const htmlContent = document.getElementById('fullTextarea').value;
+  const blob = new Blob([htmlContent], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'index.html';
+  a.click();
+
+  URL.revokeObjectURL(url);
+});
+
+// Theme Toggle
+document.body.classList.add('light-theme');
+
+const toggleThemeBtn = document.getElementById('toggleThemeBtn');
+
+toggleThemeBtn.addEventListener('click', () => {
+  document.body.classList.toggle('dark-theme');
+  document.body.classList.toggle('light-theme');
+
+  const isDark = document.body.classList.contains('dark-theme');
+
+  const navbar = document.querySelector('.navbar');
+  navbar.classList.toggle('navbar-dark', isDark);
+  navbar.classList.toggle('navbar-light', !isDark);
+  navbar.classList.toggle('bg-dark', isDark);
+  navbar.classList.toggle('bg-light', !isDark);
+
+  const editorElems = [
+    'headerTextarea','cssTextarea','htmlTextarea',
+    'jsTextarea','scriptTextarea','fullTextarea','rich-editor'
+  ];
+  editorElems.forEach(id => {
+    const el = document.getElementById(id);
+    if(el){
+      el.style.backgroundColor = getComputedStyle(document.body).getPropertyValue('--bg-element');
+      el.style.color = getComputedStyle(document.body).getPropertyValue('--text-element');
+      el.style.borderColor = getComputedStyle(document.body).getPropertyValue('--border-element');
+    }
+  });
+
+  const iframe = document.getElementById('previewIframe');
+  if(iframe.contentDocument){
+    const doc = iframe.contentDocument;
+    doc.body.style.backgroundColor = getComputedStyle(document.body).getPropertyValue('--bg-body');
+    doc.body.style.color = getComputedStyle(document.body).getPropertyValue('--text-body');
+    const elements = doc.querySelectorAll('div,h1,h2,h3,h4,h5,h6,p,li,ul,ol,.card,textarea');
+    elements.forEach(el=>{
+      el.style.backgroundColor = getComputedStyle(document.body).getPropertyValue('--bg-element');
+      el.style.color = getComputedStyle(document.body).getPropertyValue('--text-element');
+      el.style.borderColor = getComputedStyle(document.body).getPropertyValue('--border-element');
+    });
+  }
+});
+
+// Clear Full HTML
+document.getElementById('clearFullHtmlBtn').addEventListener('click', () => {
+    const modalTextarea = document.getElementById('modalFullHtmlTextarea');
+    modalTextarea.value = '';
+
+    const fullTextarea = document.getElementById('fullTextarea');
+    fullTextarea.value = '';
+
+    parseAndRenderHTML('');
+
+    const editors = ['htmlTextarea','cssTextarea','jsTextarea','scriptTextarea','headerTextarea','rich-editor'];
+    editors.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (id === 'rich-editor') el.innerHTML = '';
+        else el.value = '';
+    });
+
+    renderPreview();
+    renderSemanticView();
+    updateStructure();
+});
+
+// Init
+renderSidebar();
+initRichEditor();
+initTextareaSync();
+loadLesson(curriculum.categories[0].lessons[0]);
+
+});
+
+console.log('%c⚡ HTML Editor - ', 'font-size: 24px; font-weight: bold; color: #00f0ff;');
+console.log('%cBuilt with bold design & powerful features', 'font-size: 14px; color: #ffde59;');
+</script>
+
+
+
+</body></html>
