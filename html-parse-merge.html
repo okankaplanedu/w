@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dinamik Accordion Editor + Preview + Download</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
+  #container { display: flex; gap: 20px; height: 90vh; }
+  #leftPanel { flex: 0 0 59%; display: flex; flex-direction: column; }
+  #rightPanel { flex: 0 0 41%; display: flex; flex-direction: column; }
+  #fullHtmlInput { flex: 1; width: 100%;  font-size: 14px; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; resize: none; }
+  .accordion { margin-top: 10px; overflow-y: auto; max-height: 40vh; border: 1px solid #ccc; border-radius: 5px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  .accordion-item { border-bottom: 1px solid #ccc; }
+  .accordion-header { background: #007bff; color: white; padding: 10px 15px; cursor: pointer; user-select: none; font-weight: 600; font-size: 16px; border-radius: 5px 5px 0 0; outline: none; }
+  .accordion-header[contenteditable="true"] { user-select: text; cursor: text; }
+  .accordion-content { display: none; padding: 10px 15px 15px 15px; }
+  .accordion-content textarea { height: 150px;  font-size: 14px; width: 100%; box-sizing: border-box; border-radius: 4px; border: 1px solid #ccc; resize: vertical; }
+  iframe { width: 100%; height: 100%; border: 1px solid #ccc; background: white; border-radius: 5px; box-shadow: 0 0 5px rgba(0,0,0,0.1); flex-grow: 1; }
+  h2 { color: #222; margin-bottom: 8px; }
+  p small { color: #555; }
+  #downloadBtn { margin-top: 10px; padding: 10px 15px; font-size: 16px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; user-select: none; transition: background-color 0.3s ease; }
+  #downloadBtn:hover { background: #218838; }
+</style>
+</head>
+<body>
+
+<h2> HTML PARSE & MERGE </h2>
+<input type="file" id="fileInput" accept=".html,.htm,.txt" style="margin-top: 10px;" />
+<div id="container">
+  <div id="leftPanel">
+    <textarea id="fullHtmlInput" spellcheck="false" placeholder="Full HTML kodunu buraya yapıştırın ve seçin. Seçtikten sonra klavyeden 'A' tuşuna basarak seçili kod parçasını kesip alt menüye ekleyin..."></textarea>
+    <p><small>Metin seçin ve <b>'A'</b> tuşuna basarak seçili kod parçasını kesip aşağıdaki Accordion'a ekleyebilirsiniz.</small></p>
+
+    <div class="accordion" id="accordionContainer">
+      <!-- Accordion itemlar buraya eklenecek -->
+    </div>
+
+    <button id="downloadBtn" title="Tüm içeriği HTML olarak indir">İndir</button>
+  </div>
+
+  <div id="rightPanel">
+    
+    <iframe id="previewFrame" sandbox="allow-same-origin allow-scripts"></iframe>
+  </div>
+</div>
+
+<script>
+  const fullHtmlInput = document.getElementById('fullHtmlInput');
+const fileInput = document.getElementById('fileInput');
+
+fileInput.addEventListener('change', event => {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    fullHtmlInput.value = e.target.result;
+    updateIframeContent();
+  };
+  reader.readAsText(file);
+});
+  const accordionContainer = document.getElementById('accordionContainer');
+  const previewFrame = document.getElementById('previewFrame');
+  const downloadBtn = document.getElementById('downloadBtn');
+
+  let accordionCount = 0;
+
+ 
+  function escapeHtml(text) {
+    return text.replace(/[&<>"']/g, m => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[m]);
+  }
+ 
+  function createAccordionItem(content, title) {
+    accordionCount++;
+    const item = document.createElement('div');
+    item.className = 'accordion-item';
+
+    const header = document.createElement('div');
+    header.className = 'accordion-header';
+    header.textContent = title || `particle ${accordionCount}`;
+    header.spellcheck = false;
+
+    let editing = false;
+
+    header.addEventListener('dblclick', () => {
+      editing = true;
+      header.contentEditable = "true";
+      header.focus();
+      const range = document.createRange();
+      range.selectNodeContents(header);
+      range.collapse(false);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    });
+
+    header.addEventListener('keydown', e => {
+      if (editing && e.key === 'Enter') {
+        e.preventDefault();
+        header.contentEditable = "false";
+        editing = false;
+        header.blur();
+      }
+    });
+
+    header.addEventListener('blur', () => {
+      if (editing) {
+        header.contentEditable = "false";
+        editing = false;
+      }
+    });
+
+    header.addEventListener('click', () => {
+      if (!editing) {
+        const contentDiv = item.querySelector('.accordion-content');
+        contentDiv.style.display = contentDiv.style.display === 'block' ? 'none' : 'block';
+      }
+    });
+
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'accordion-content';
+
+    const ta = document.createElement('textarea');
+    ta.value = content;
+
+    ta.addEventListener('input', updateIframeContent);
+
+    contentDiv.appendChild(ta);
+    item.appendChild(header);
+    item.appendChild(contentDiv);
+
+    return item;
+  }
+
+ 
+  function updateIframeContent() {
+    const allTexts = [...accordionContainer.querySelectorAll('textarea')]
+      .map(ta => ta.value)
+      .join('\n');
+    previewFrame.srcdoc = allTexts;
+  }
+
+ 
+  fullHtmlInput.addEventListener('keydown', e => {
+    if (e.key.toLowerCase() === 'a') {
+      const textarea = fullHtmlInput;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+
+      if (start === end) return; // seçim yok
+
+      e.preventDefault();
+
+      const selectedText = textarea.value.substring(start, end);
+
+      // Seçili metni çıkar
+      textarea.value = textarea.value.slice(0, start) + textarea.value.slice(end);
+      textarea.selectionStart = textarea.selectionEnd = start;
+
+      const newTitle = `Particle ${accordionCount + 1}`;
+      const accordionItem = createAccordionItem(selectedText, newTitle);
+      accordionContainer.appendChild(accordionItem);
+
+      updateIframeContent();
+    }
+  });
+
+ 
+  downloadBtn.addEventListener('click', () => {
+    const itemsData = [...accordionContainer.querySelectorAll('.accordion-item')].map(item => {
+      const header = item.querySelector('.accordion-header');
+      const textarea = item.querySelector('textarea');
+      return {
+        title: header.textContent,
+        content: textarea.value
+      };
+    });
+
+    const remainingFullHtml = fullHtmlInput.value;
+
+ const htmlTemplate = `<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8" /> <title>Live HTML Code Editor – Particle-Based Visual Builder | © Okan Kaplan 2025 livehtml.net</title> <meta name="description" content="Create and preview HTML/CSS/JS code live using a particle-based block editor. Perfect for developers and educators. Intuitive, responsive, and beginner-friendly."> <meta name="keywords" content="live HTML editor, code preview, visual HTML builder, particle editor, block-based code editor, LiveHTML"> <meta name="author" content="LiveHTML Team"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <meta property="og:title" content="Live Code Editor – Particle-Based HTML Builder"> <meta property="og:description" content="Build and preview code in real-time using a modular particle interface. Ideal for teaching, learning, and rapid prototyping."> <meta property="og:image" content="https://livehtml.net/assets/preview-image.png"> <!-- Replace with real image --> <meta property="og:url" content="https://livehtml.net/code_particle.html"> <meta property="og:type" content="website"> <meta property="og:site_name" content="LiveHTML"> <meta name="twitter:card" content="summary_large_image"> <meta name="twitter:title" content="Live Code Editor – Particle-Based HTML Builder"> <meta name="twitter:description" content="Instant HTML/CSS/JS preview with an intuitive block-based interface. Build faster with Particle."> <meta name="twitter:image" content="https://livehtml.net/assets/preview-image.png">  <meta name="twitter:site" content="@KonuLive">  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet"> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">  <style>  body, input, textarea, button, select { font-family: 'Montserrat', sans-serif;  } body{font-family:'Montserrat',sans-serif;margin:0;padding:0;background:#f2f4f8;display:flex;flex-direction:column;height:100vh;color:#333}header,footer{background:#fbf3e8;color:#333;padding:15px 20px;text-align:center;border:none;border-radius:0;box-shadow:0 2px 4px rgba(0,0,0,0.05)}.main-content{display:flex;flex:1;flex-direction:row;overflow:hidden;width:100% !important} #accordionContainer{width:30%;padding:20px;overflow-y:auto;background:#e9eedf;box-shadow:2px 4px 12px rgba(0,0,0,0.06); margin:5px;border-radius:10px 0 0 10px;border:none}#previewFrame{width:70%;border:none;background:#fff;height:100%;box-shadow:-2px 4px 12px rgba(0,0,0,0.06);border-radius:10px;margin:5px}.accordion-item{margin-bottom:12px;background:#f8f9fb;border-radius:10px;border:none;box-shadow:0 2px 6px rgba(0,0,0,0.05)}.accordion-header{background:#64a2a5;color:#fff;padding:12px 16px;cursor:pointer;font-weight:600;border-radius:10px 10px 0 0;transition:background 0.3s}.accordion-header:hover{background:#64a2a5}.accordion-header[contenteditable="true"]{user-select:text;cursor:text}.accordion-content{display:none;padding:12px 16px;background:#fff;border-radius:0 0 10px 10px} .accordion-content textarea {  width: 100%; min-height: 50px; resize: none;  overflow: hidden;   box-sizing: border-box; font-size: 17px;font-weight:bold; border: none; border-radius: 10px;  padding: 10px;  box-shadow: inset 0 1px 4px rgba(0,0,0,0.08); background: #f1f3f5; } @media(max-width:768px){.main-content{flex-direction:column;width:100% !important}#accordionContainer,#previewFrame{width:100%;height:50vh;border-radius:10px}}textarea{width:96% !important}.custom-header{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background-color:#fbf4e4;border-bottom:2px solid #ccc}.logo-text-container{display:flex;align-items:center;flex:1}.logo{height:50px;margin-right:15px}.header-title{font-weight:bold;font-size:1.5em;text-align:center;width:100%}.social-icons{display:flex;gap:15px}.social-icons a{color:#333;font-size:1.5em;text-decoration:none} .accordion-header { padding: 10px 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: bold; } .accordion-item.active .accordion-content { display: block; } .accordion-item .fa { transition: transform 0.3s ease; } .accordion-item.active .fa { transform: rotate(180deg); } </style> </head><body> <header class="custom-header" style=" display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); "> <div class="logo-text-container" style="display: flex; align-items: center; gap: 10px;"> <img src="https://www.livehtml.net/logo.jpg" alt="liveHTML Logo" class="logo" style="height: 40px; width: auto;"> <h1 class="header-title" style="font-size: 1.5rem; margin: 0; white-space: nowrap;">liveHTML Code Particle</h1> </div> <div class="social-icons" style="display: flex; align-items: center; gap: 16px;"> <a href="https://www.youtube.com/@livehtmlcode" target="_blank" aria-label="YouTube" style="color: #64a2a5; font-size: 24px;"> <i class="fab fa-youtube"></i> </a> <a href="https://www.linkedin.com/in/canvasor/" target="_blank" aria-label="LinkedIn" style="color: #64a2a5; font-size: 24px;"> <i class="fab fa-linkedin"></i> </a> <input type="text" value="example"  id="filenameInput"   placeholder="example"  style="  border: none;  border-radius: 5px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);  padding: 6px 10px;  font-size: 16px; outline: none; width: 180px;  "  /> <button id="downloadBtn" title="dwn"  style=" border: none; border-radius: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);  background-color: #64a2a5; color: white;  padding: 6px 12px; font-size: 16px; cursor: pointer;  display: flex; align-items: center; gap: 6px;  " > <i class="fa-solid fa-download" style="font-size: 20px;"></i> </button> </div> </header> <div class="main-content"> <div id="accordionContainer"> ${itemsData.map((item, i) => ` <div class="accordion-item">  <div class="accordion-header">${escapeHtml(item.title)}  <i class="fa fa-chevron-down"></i> </div> <div class="accordion-content">  <textarea>${escapeHtml(item.content)}</textarea> </div>  </div> `).join('')} </div> <iframe id="previewFrame" sandbox="allow-same-origin allow-scripts"></iframe> </div> <footer style="  display: flex;  justify-content: center; align-items: center;  padding: 10px 20px; font-size: 14px; background-color: #f5f5f5;  color: #333; position: relative; ">  <div style="position: absolute; right: 20px;"> <a href="mailto:hello@livehtml.net" style="color: inherit; text-decoration: none;">hello@livehtml.net</a> </div> <div>© Okan Kaplan 2025 livehtml.net</div> </footer> <script>const container = document.getElementById('accordionContainer');  const iframe = document.getElementById('previewFrame'); function updateIframe() { const allTexts = [...container.querySelectorAll('textarea')] .map(ta => ta.value) .join('');  iframe.srcdoc = allTexts;  } downloadBtn.addEventListener('click', () => { let filename = filenameInput.value.trim();  if (!filename) {  alert('file name'); return; }  if (!filename.toLowerCase().endsWith('.html')) {  filename += '.html';   } const content = iframe.srcdoc || ''; const blob = new Blob([content], { type: 'text/html' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; a.click();  URL.revokeObjectURL(url); }); container.querySelectorAll('.accordion-header').forEach(header => { header.addEventListener('click', () => { const contentDiv = header.nextElementSibling; contentDiv.style.display = contentDiv.style.display === 'block' ? 'none' : 'block'; });  header.addEventListener('dblclick', () => { });  header.addEventListener('keydown', e => {  if (e.key === 'Enter') { e.preventDefault(); header.contentEditable = "false";  header.blur(); } }); header.addEventListener('blur', () => { header.contentEditable = "false";  });  }); container.querySelectorAll('textarea').forEach(ta => { ta.addEventListener('input', updateIframe); }); updateIframe();  document.querySelectorAll('.accordion-header').forEach(header =>  {  header.addEventListener('click', () => { const item = header.parentElement; item.classList.toggle('active');   });  }); document.querySelectorAll('.accordion-content textarea').forEach(textarea => {  const autoResize = () => {  const scrollY = window.scrollY; textarea.style.height = 'auto'; textarea.style.height = textarea.scrollHeight + 'px';  window.scrollTo({ top: scrollY }); };  textarea.addEventListener('input', autoResize); window.addEventListener('load', autoResize); autoResize(); });  document.querySelectorAll('.accordion-header').forEach(header => {  header.addEventListener('click', () => { setTimeout(() => {  document.querySelectorAll('.accordion-content textarea').forEach(t => { const scrollY = window.scrollY;  t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px';  window.scrollTo({ top: scrollY });  });  }, 200); }); });  <\/script> </body> </html>`;
+
+    const blob = new Blob([htmlTemplate], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'livehtml_particle_lesson_.html';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+ 
+  updateIframeContent();
+</script>
+
+</body>
+</html>
