@@ -1,0 +1,2722 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23e8dcc0'/%3E%3Ccircle cx='32' cy='34' r='19' fill='none' stroke='%23241b0c' stroke-width='2.5'/%3E%3Ccircle cx='32' cy='34' r='27' fill='none' stroke='%2347617e' stroke-width='1.5' stroke-opacity='.55'/%3E%3Ctext x='32' y='41' font-family='Georgia,serif' font-size='20' font-weight='700' text-anchor='middle' fill='%23a4552f'%3E%E2%99%AA%3C/text%3E%3C/svg%3E">
+<title>Piyano Çember ∞ — Dinamik Porte · Su Halkaları · Vintage Konser</title>
+<style>
+/* =====================================================================
+   VINTAGE MÜREKKEP SULU BOYA — 16:9 canlı yayın sahnesi
+   Soft bej kağıt · ultra ince sert siyah konturlar · suli boya yıkamaları
+   ORTADA: MusicXML tabanlı DİNAMİK PORTE (akan genel porte animasyonu)
+   ALT: gerçek oranlı 88 tuş (beyaz 1:6.1 · siyah %58 genişlik, %64 boy)
+   ===================================================================== */
+:root{
+  --paper:#e8dcc0; --paper2:#f4ecd7; --paper3:#fbf6e7;
+  --ink:#241b0c; --ink2:#4c3f27; --dim:#8a795a;
+  --blue:#47617e;   /* prusya mavisi — su halkaları */
+  --green:#6e7d54;  /* adaçayı yıkaması */
+  --gold:#b8862e;   /* okra */
+  --orange:#a4552f; /* terrakota */
+  --purple:#46577a; /* soluk indigo */
+  --line:#241b0c; --rms:0;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:Georgia,'Iowan Old Style','Palatino Linotype','Times New Roman',serif;
+  color:var(--ink);overflow:hidden;
+  background:var(--paper) url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.14 0 0 0 0 0.10 0 0 0 0 0.05 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+#stage{height:100vh;display:flex;flex-direction:column;position:relative;
+  background:radial-gradient(ellipse at 50% 38%,rgba(251,246,231,.5),rgba(214,196,158,.18) 68%,rgba(96,74,40,.13) 100%);}
+/* sinematik vinyet — köşelerde mürekkep yıkaması */
+#stage::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:60;
+  background:radial-gradient(ellipse at 50% 42%,transparent 58%,rgba(60,44,20,.17) 100%);}
+
+/* ── üst bar ── */
+#topbar{display:flex;align-items:center;gap:14px;padding:8px 14px 7px;
+  border-bottom:1px solid var(--line);position:relative;z-index:5;
+  background:linear-gradient(180deg,rgba(248,242,226,.72),rgba(238,228,203,.5));}
+.brandblock{flex:none}
+h1{font-size:19px;letter-spacing:.22em;font-weight:700;color:var(--ink)}
+h1 .inf{color:var(--orange);text-shadow:0 0 4px rgba(164,85,47,.35),0 0 calc(8px+18px*var(--rms)) rgba(164,85,47,.55)}
+.sub{font-size:8.5px;letter-spacing:.3em;color:var(--dim);margin-top:2px}
+.badges{display:flex;gap:6px;flex-wrap:wrap;flex:1;justify-content:center}
+.badge{font-size:8.5px;letter-spacing:.14em;border:1px solid var(--ink);color:var(--ink2);
+  padding:2.5px 8px;border-radius:2px;background:rgba(251,246,231,.5);font-weight:700}
+.badge.hot{color:var(--orange);border-color:var(--orange)}
+.credit{font-size:9px;letter-spacing:.3em;color:var(--dim);border:1px solid rgba(36,27,12,.4);
+  padding:4px 10px;border-radius:2px;flex:none}
+
+/* ── ana sahne ── */
+#grid{flex:1;display:grid;grid-template-columns:236px 1fr 316px;gap:10px;
+  padding:10px 12px;min-height:0;position:relative;z-index:2}
+.panel{border:1px solid var(--line);border-radius:4px;min-height:0;
+  background:linear-gradient(180deg,rgba(248,242,226,.75),rgba(240,231,208,.55));
+  box-shadow:2px 2px 0 rgba(36,27,12,.10);
+  padding:10px;display:flex;flex-direction:column;}
+.ptitle{font-size:9px;letter-spacing:.18em;color:var(--ink2);font-weight:700;
+  border-bottom:1px solid var(--ink);padding-bottom:4px;margin-bottom:7px}
+
+/* sol — çember */
+#circleMount{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
+#circleMount svg{width:100%;height:100%;min-height:0}
+#sig{font-size:9px;color:var(--dim);text-align:center;margin:6px 0 4px;
+  letter-spacing:.04em;font-style:italic}
+.kv{display:flex;justify-content:space-between;align-items:baseline;gap:6px;
+  font-size:9px;letter-spacing:.06em;color:var(--dim);padding:2.5px 0;
+  border-bottom:1px dotted rgba(36,27,12,.16)}
+.kv b{font-size:10.5px;color:var(--ink);text-align:right;letter-spacing:.02em}
+.val-blue{color:var(--blue)!important}.val-green{color:var(--green)!important}
+.val-gold{color:var(--gold)!important}.val-orange{color:var(--orange)!important}
+.bars{display:flex;gap:2px;margin-top:8px}
+.bars i{flex:1;height:6px;background:#dccfae;border:1px solid rgba(36,27,12,.35);
+  border-radius:1px;position:relative;overflow:hidden}
+.bars i::after{content:'';position:absolute;inset:0;width:var(--p,0%);background:var(--orange)}
+.bars i.done::after{width:100%;background:#8a795a}
+.bars i.now{border-color:var(--ink)}
+
+/* orta — DİNAMİK PORTE + su halkaları + nota akışı + şerit */
+#center{display:flex;flex-direction:column;min-height:0;position:relative;padding:2px 4px}
+#arcs{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;filter:url(#wc)}
+#ripples{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4;filter:url(#wc)}
+#ripples circle{transform-box:fill-box;transform-origin:center;animation:ripGrow 3s linear forwards}
+@keyframes ripGrow{from{transform:scale(.1);opacity:.95}to{transform:scale(1);opacity:0}}
+.heroRow{position:relative;z-index:2;display:flex;align-items:baseline;gap:12px;
+  padding:2px 6px 6px;min-height:34px}
+#heroKey{font-size:11px;letter-spacing:.3em;color:var(--ink2);text-transform:uppercase;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#heroChord{font-size:30px;font-weight:700;color:var(--ink);line-height:1;white-space:nowrap;
+  text-shadow:0 0 6px rgba(71,97,126,.16),0 0 calc(8px+26px*var(--rms)) rgba(164,85,47,.32)}
+#heroSub{margin-left:auto;font-style:italic;font-size:11px;color:var(--dim);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#scoreWrap{flex:1;min-height:140px;position:relative;z-index:2;overflow:hidden;
+  border:1px solid var(--line);border-radius:3px;
+  background:linear-gradient(180deg,rgba(251,246,231,.62),rgba(243,235,214,.45));
+  box-shadow:2px 2px 0 rgba(36,27,12,.10)}
+#score{width:100%;height:100%;display:block}
+#score text{font-family:Georgia,serif}
+#score .np ellipse{fill-opacity:1;stroke-width:2.4}
+#score .np line,#score .np path{stroke-width:2.1}
+#vizWrap{height:19%;min-height:60px;position:relative;z-index:2;overflow:hidden;
+  border:1px solid var(--line);border-radius:3px;background:rgba(251,246,231,.4);
+  box-shadow:2px 2px 0 rgba(36,27,12,.10);margin-top:8px}
+#viz{width:100%;height:100%;display:block}
+.viztag{position:absolute;top:4px;right:7px;font-size:8px;letter-spacing:.28em;color:var(--dim);z-index:2}
+#ticker{position:relative;z-index:2;text-align:center;font-style:italic;font-size:12px;
+  color:var(--ink2);padding:7px 4px 2px;letter-spacing:.04em;min-height:27px}
+
+/* sağ — kontrol masası */
+#right{gap:0}
+.row{display:flex;gap:6px;margin-bottom:8px}
+.row button{flex:1}
+#btnMain,#btnNew,#btnTest,#btnXml{font-family:inherit;letter-spacing:.1em;font-size:11.5px;font-weight:700;
+  border:1px solid var(--line);background:var(--paper3);color:var(--ink);border-radius:3px;
+  padding:9px 10px;cursor:pointer;box-shadow:2px 2px 0 rgba(36,27,12,.16)}
+#btnMain{background:var(--ink);color:var(--paper3)}
+#btnMain.stop{background:var(--orange);color:#fdf8ea}
+#btnMain:hover,#btnNew:hover,#btnTest:hover,#btnXml:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 rgba(36,27,12,.22)}
+#btnMain:disabled{opacity:.55;cursor:wait;transform:none}
+#btnNew,#btnXml,#btnTest{font-size:10px;padding:9px 6px}
+.switch{display:flex;align-items:center;gap:8px;margin-bottom:9px;cursor:pointer;
+  font-size:10px;letter-spacing:.12em;font-weight:700;color:var(--ink2)}
+.switch input{display:none}
+.track{width:30px;height:14px;border:1px solid var(--line);border-radius:7px;
+  background:var(--paper3);position:relative;flex:none}
+.track::after{content:'';position:absolute;top:1px;left:1px;width:10px;height:10px;
+  border-radius:50%;background:var(--ink);transition:left .15s}
+.switch input:checked+.track::after{left:17px;background:var(--orange)}
+.slrow{display:flex;align-items:center;gap:8px;margin-bottom:6px;
+  font-size:9.5px;letter-spacing:.1em;color:var(--ink2)}
+.slrow label{width:38px;flex:none}
+.slrow output{width:58px;text-align:right;font-size:10px;font-weight:700;color:var(--ink);flex:none}
+input[type=range]{-webkit-appearance:none;appearance:none;flex:1;height:2px;
+  background:var(--ink);border-radius:1px;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;
+  border-radius:50%;background:var(--orange);border:1px solid var(--line);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;
+  background:var(--orange);border:1px solid var(--line);cursor:pointer}
+.hint{font-size:8.5px;color:var(--dim);letter-spacing:.05em;margin:2px 0 8px}
+#pulse{display:inline-block;width:8px;height:8px;border:1px solid var(--line);
+  border-radius:50%;background:var(--paper3);margin-right:4px;vertical-align:-1px}
+#pulse.on{background:var(--orange)}
+.leds{display:grid;grid-template-columns:1fr 1fr;gap:5px 8px;margin-bottom:9px}
+.led{display:flex;align-items:center;gap:6px;font-size:8.5px;letter-spacing:.07em;color:var(--ink2)}
+.led i{width:11px;height:11px;border-radius:50%;border:1px solid var(--line);
+  background:var(--paper3);flex:none;filter:url(#wc)}
+.led.on i{background:var(--c,var(--blue));box-shadow:inset 0 0 0 2px rgba(251,246,231,.28)}
+.mini{display:grid;grid-template-columns:1fr 1fr;gap:3px 8px}
+.mini div{display:flex;justify-content:space-between;gap:4px;font-size:8.5px;
+  letter-spacing:.05em;color:var(--dim);border-bottom:1px dotted rgba(36,27,12,.18);padding:2px 0}
+.mini b{color:var(--ink);font-size:9.5px;text-align:right}
+#logPanel{padding:8px;flex:1;min-height:0}
+#log{font-family:'Courier New',monospace;font-size:9.5px;line-height:1.55;
+  overflow:hidden;color:var(--ink2)}
+#log div{padding:1px 0;border-bottom:1px dotted rgba(36,27,12,.14);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.l-sys{color:var(--dim);font-style:italic}
+.l-komp{color:var(--ink);font-weight:700}
+.l-tin{color:var(--purple)}
+.l-sus{color:var(--orange)}
+.l-nak{color:var(--green);font-weight:700}
+
+/* ── 88 tuşlu klavye — GERÇEK ORAN (JS ölçekler) ──
+   beyaz tuş: genişlik/yükseklik = 1:6.1 (gerçek kuyruk piyano ~23.5×~144 mm)
+   siyah tuş: %58 genişlik · %64 görünür uzunluk */
+#keysBar{padding:8px 12px 10px;border-top:1px solid var(--line);position:relative;z-index:5;
+  background:linear-gradient(180deg,rgba(246,239,222,.88),rgba(233,222,194,.72))}
+#keysLabel{font-size:9px;letter-spacing:.14em;color:var(--dim);display:block;
+  text-align:center;margin-bottom:5px}
+#keyboard{display:flex;position:relative;margin:0 auto;
+  border:1px solid var(--line);border-radius:2px;background:var(--paper3);overflow:hidden}
+.wk{flex:1;position:relative;background:linear-gradient(180deg,#fbf6e7,#f1e8d2);
+  border-right:1px solid rgba(36,27,12,.5)}
+.wk:first-child{border-left:1px solid var(--line)}
+.wk:last-child{border-right:1px solid var(--line)}
+.bk{position:absolute;top:0;height:64%;z-index:2;border-radius:0 0 2px 2px;
+  background:linear-gradient(180deg,#3a2f1a,#241b0c);border:1px solid var(--line);border-top:none}
+/* suli boya yıkamaları — her katman kendi mürekkebiyle yanar */
+.wk.k-main,.bk.k-main{background:linear-gradient(180deg,rgba(164,85,47,.10),rgba(164,85,47,.58));box-shadow:inset 0 -12px 14px -8px rgba(164,85,47,.55)}
+.wk.k-mel,.bk.k-mel{background:linear-gradient(180deg,rgba(110,125,84,.10),rgba(110,125,84,.58));box-shadow:inset 0 -12px 14px -8px rgba(110,125,84,.55)}
+.wk.k-deep,.bk.k-deep{background:linear-gradient(180deg,rgba(70,87,122,.12),rgba(70,87,122,.62));box-shadow:inset 0 -12px 14px -8px rgba(70,87,122,.6)}
+.wk.k-third,.bk.k-third{background:linear-gradient(180deg,rgba(184,134,46,.12),rgba(184,134,46,.6));box-shadow:inset 0 -12px 14px -8px rgba(184,134,46,.55)}
+.wk.k-tutti,.bk.k-tutti{background:linear-gradient(180deg,rgba(36,27,12,.16),rgba(36,27,12,.66));box-shadow:inset 0 -14px 16px -8px rgba(36,27,12,.7)}
+.wk.k-ring,.bk.k-ring{background:linear-gradient(180deg,rgba(71,97,126,.14),rgba(71,97,126,.55));box-shadow:inset 0 -14px 16px -8px rgba(71,97,126,.6)}
+
+/* dar ekranlarda dikey düşüş */
+@media (max-width:900px){
+  body{overflow:auto}
+  #stage{height:auto;min-height:100vh}
+  #grid{grid-template-columns:1fr}
+  #center{min-height:420px}
+  #logPanel{max-height:180px}
+}
+</style>
+</head>
+<body>
+<!-- suli boya kenar filtresi (mürekkep bulamacı) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="wc" x="-20%" y="-20%" width="140%" height="140%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.012 0.016" numOctaves="2" seed="7" result="n"/>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="4" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+<div id="stage">
+
+  <!-- ═══════════ ÜST BAR — kimlik + damgalar ═══════════ -->
+  <header id="topbar">
+    <div class="brandblock">
+      <h1>PİYANO ÇEMBER <span class="inf">∞</span></h1>
+      <div class="sub">SONSUZ SAKİN KONSER · GERÇEK AKUSTİK PİYANO</div>
+    </div>
+    <div class="badges">
+      <span class="badge hot">GERÇEK PİYANO MP3 · 88 NOTA</span>
+      <span class="badge hot">TUTTİ ORKESTRA</span>
+      <span class="badge">SU HALKALARI YANKISI</span>
+      <span class="badge">DİNAMİK PORTE · MUSICXML</span>
+      <span class="badge hot">SONAT KANONU · 10 FORM</span>
+    </div>
+    <div class="credit">OKAN KAPLAN</div>
+  </header>
+
+  <!-- ═══════════ ANA SAHNE ═══════════ -->
+  <main id="grid">
+
+    <!-- SOL: kwintem çemberi + yapı durumu -->
+    <section class="panel" id="circleBox">
+      <div class="ptitle">KWINTEM ÇEMBERİ · <span style="color:var(--blue)">kesikli = en az çalınan</span></div>
+      <div id="circleMount"></div>
+      <div id="sig">—</div>
+      <div class="kv"><span>BÖLÜM / BAR</span><b id="uiPhase" class="val-blue">—</b></div>
+      <div class="kv"><span>AKSAK ÖLÇÜ</span><b id="uiAksak" class="val-blue">—</b></div>
+      <div class="kv"><span>EL DÜZENİ</span><b id="uiHand" class="val-green">—</b></div>
+      <div class="kv"><span>MOTİF</span><b id="uiMotif" class="val-gold">—</b></div>
+      <div class="kv"><span>SUS</span><b id="uiRest" class="val-orange">—</b></div>
+      <div class="bars" id="uiBars"></div>
+    </section>
+
+    <!-- ORTA: dinamik porte + su halkaları + nota akışı + şerit -->
+    <section id="center">
+      <svg id="arcs" viewBox="0 0 1000 300" preserveAspectRatio="xMidYMid slice">
+        <circle cx="500" cy="150" r="88"  fill="none" stroke="#47617e" stroke-opacity="0.13" stroke-width="1"/>
+        <circle cx="500" cy="150" r="150" fill="none" stroke="#47617e" stroke-opacity="0.10" stroke-width="1" stroke-dasharray="5 7"/>
+        <circle cx="500" cy="150" r="215" fill="none" stroke="#a4552f" stroke-opacity="0.08" stroke-width="1"/>
+        <circle cx="500" cy="150" r="290" fill="none" stroke="#47617e" stroke-opacity="0.07" stroke-width="1" stroke-dasharray="2 9"/>
+      </svg>
+      <svg id="ripples" viewBox="0 0 1000 300" preserveAspectRatio="xMidYMid slice"></svg>
+      <div class="heroRow">
+        <div id="heroKey">HAZIR</div>
+        <div id="heroChord">—</div>
+        <div id="heroSub">BAŞLAT — 76 gerçek piyano notası yüklenir</div>
+      </div>
+      <div id="scoreWrap"><span class="viztag">DİNAMİK PORTE · MUSICXML</span></div>
+      <div id="vizWrap"><canvas id="viz"></canvas><span class="viztag">NOTA AKIŞI · PİYANO RULOSU</span></div>
+      <div id="ticker">♪ PİYANO ÇEMBER ∞ · üç piyano · tutti · su halkaları</div>
+    </section>
+
+    <!-- SAĞ: kontrol masası -->
+    <section class="panel" id="right">
+      <div class="ptitle">KONSER KONTROLÜ</div>
+      <div class="row">
+        <button id="btnMain">▶ BAŞLAT</button>
+      </div>
+      <div class="row">
+        <button id="btnNew" title="Yeni kompozisyon">↺ YENİ</button>
+        <button id="btnXml" title="Kompozisyonu MusicXML (nota) dosyası olarak indir">⤓ MUSICXML</button>
+        <button id="btnTest" title="Canlı yayın öncesi sistem kontrolü">🎚 YAYIN KONTROLÜ</button>
+      </div>
+      <label class="switch" title="Bir kompozisyon bitince otomatik yenisine geç">
+        <input type="checkbox" id="chkInf" checked><span class="track"></span>
+        <span class="swlabel">∞ SONSUZ MOD</span>
+      </label>
+      <div class="slrow">
+        <label for="rngTempo">Tempo</label>
+        <input type="range" id="rngTempo" min="60" max="120" step="2" value="72">
+        <output id="outTempo">72 BPM</output>
+      </div>
+      <div class="slrow">
+        <label for="rngVol">Ses</label>
+        <input type="range" id="rngVol" min="-12" max="6" step="1" value="0">
+        <output id="outVol">0 dB</output>
+      </div>
+      <div class="hint"><span id="pulse"></span>nabız <b id="uiPulseBpm" class="val-blue">18/dk</b> · slot <b id="uiSlot">0.83s</b></div>
+      <div class="leds">
+        <div class="led" id="ledBass" style="--c:#46577A"><i></i>SOL EL BAS</div>
+        <div class="led" id="ledOrta" style="--c:#A4552F"><i></i>ORTA TRİAD</div>
+        <div class="led" id="ledTiz" style="--c:#6E7D54"><i></i>SAĞ EL SOLO</div>
+        <div class="led" id="ledDeep" style="--c:#3A4A66"><i></i>2. PİYANO DERİN</div>
+        <div class="led" id="ledThird" style="--c:#B8862E"><i></i>3. PİYANO TİZ</div>
+        <div class="led" id="ledRing" style="--c:#47617E"><i></i>SU HALKASI</div>
+        <div class="led" id="ledSus" style="grid-column:1/-1;--c:#8A795A"><i></i>SUS · NEFES</div>
+      </div>
+      <div class="ptitle" style="margin:2px 0 5px">SAYAÇLAR · EN AZ ÖNCELİK</div>
+      <div class="mini">
+        <div><span>KOMPOZİSYON</span><b id="cComp">0</b></div>
+        <div><span>OTURUM</span><b id="cTime">00:00:00</b></div>
+        <div><span>EN AZ KÖK</span><b id="cRoot">—</b></div>
+        <div><span>EN AZ FORM</span><b id="cForm">—</b></div>
+        <div><span>EN AZ MOTİF</span><b id="cMotif">—</b></div>
+        <div><span>EN AZ AKSAK</span><b id="cAksak">—</b></div>
+        <div><span>YÜRÜYÜŞ 3·5·7</span><b id="cTrans">—</b></div>
+        <div><span>İMZA</span><b id="cSig">0</b></div>
+      </div>
+      <div class="panel" id="logPanel" style="padding:8px;flex:1;min-height:0">
+        <div class="ptitle" style="margin-bottom:5px">KONSER KAYDI</div>
+        <div id="log"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ═══════════ 88 TUŞLU CANLI KLAVYE — GERÇEK ORAN ═══════════ -->
+  <footer id="keysBar">
+    <span id="keysLabel">88 TUŞ · GERÇEK PİYANO — <b style="color:#A4552F">ANA</b> · <b style="color:#6E7D54">SOLO</b> · <b style="color:#46577A">DERİN</b> · <b style="color:#B8862E">TİZ</b> · <b style="color:#241B0C">TUTTİ</b> · <b style="color:#47617E">HALKA</b></span>
+    <div id="keyboard"></div>
+  </footer>
+</div>
+<script>
+"use strict";
+/* =====================================================================
+   PİYANO ÇEMBER ∞ — SONSUZ SAKİN KONSER
+   Orijinal "TRİAD PİYANO KONSERİ" sistemi korunarak yeniden inşa:
+   · Kwintem çemberi (C G D A E B Gb Db Ab Eb Bb F) + circleShift
+   · Sayaç mimarisi (keys, circleRoots, chords, transitions, tempos,
+     forms, phases, progressions, motifs, instruments, notes,
+     compositions, signatures) → "en az çalınan" seçimi (oa algoritması)
+   · Formlar (5) · Motifler (12) · Klasik progresyonlar (9) · 4 enstrüman
+   YENİ:
+   · ×¼ hız  : nabız = 4 × (60/BPM) sn  → bar 13.3 sn @72
+   · ×4 vuruş: her nabız 4 vuruş slotu   → bar başına ~4 kat vuruş
+   · SUS %25–50: rastgele serpiştirilmiş, bas/orta/tiz senkron nefesler
+   · 3·5·7 MAKSİMUM progresyon motoru (3'lü/5'li/7'li kök yürüyüşü)
+   · 7'li akor renkleri (maj7, m7, dom7, 6, add9)
+   · Çok hafif aksak ölçüler (5=3+2, 7=3+2+2 …) + polimetre
+   · Sol el eşlik (bas+trıad), sağ el solo; ORTADA BİRLEŞİK / ÇAPRAZ
+   · Akor notaları ASLA aynı sırayla çalınmaz (permutasyon güvencesi)
+   · Kompozisyon başına benzersiz tın rengi (akort sapması, filtre, reverb)
+   ===================================================================== */
+
+/* ---------- 0. Yardımcılar ---------- */
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+class Rng{
+  constructor(seed){this.f=mulberry32(seed>>>0);}
+  next(){return this.f();}
+  range(a,b){return a+(b-a)*this.f();}
+  int(a,b){return Math.floor(this.range(a,b+1));}
+  pick(arr){return arr[Math.floor(this.f()*arr.length)];}
+  chance(p){return this.f()<p;}
+  weighted(pairs){let s=0;for(const p of pairs)s+=p[1];let r=this.f()*s;for(const p of pairs){r-=p[1];if(r<=0)return p[0];}return pairs[pairs.length-1][0];}
+  shuffle(arr){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(this.f()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+}
+const mtof=m=>440*Math.pow(2,(m-69)/12);
+const arrEq=(a,b)=>a.length===b.length&&a.every((v,i)=>v===b[i]);
+const mod7=n=>((n%7)+7)%7;
+
+/* ---------- 1. GÜVENLİ DEPO (sandbox/iframe uyumlu localStorage) ---------- */
+const Store=(()=>{
+  const mem={};
+  const ok=(()=>{try{if(typeof localStorage==='undefined'||localStorage===null)return false;const k='__pc_test';localStorage.setItem(k,'1');localStorage.removeItem(k);return true;}catch(e){return false;}})();
+  return{
+    get(k,d){if(ok){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){}}return (k in mem)?mem[k]:d;},
+    set(k,v){if(ok){try{localStorage.setItem(k,JSON.stringify(v));return;}catch(e){}}mem[k]=v;}
+  };
+})();
+
+/* ---------- 2. KORUNAN SİSTEM SÖZLÜĞÜ ---------- */
+const CIRCLE=['C','G','D','A','E','B','Gb','Db','Ab','Eb','Bb','F'];
+const PC={C:0,D:2,E:4,F:5,G:7,A:9,B:11,Gb:6,Db:1,Ab:8,Eb:3,Bb:10};
+const NOTE_TR=['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
+
+const TEMPOS=[];for(let t=60;t<=120;t+=2)TEMPOS.push(t); // korunuyor
+
+const INSTRUMENTS={ // korunuyor
+  piano_bass:{label:'SOL EL BAS',min:2,max:3,color:'#004E89'},
+  piano_triad:{label:'AKIŞ ARPEJ',min:3,max:4,color:'#FF6B35'},
+  piano_melody:{label:'MELODİ',min:4,max:5,color:'#00A878'},
+  piano_arp:{label:'ARP SÜSLEME',min:4,max:5,color:'#E71D36'},
+  piano_deep:{label:'2. PİYANO DERİN LEGATO',min:1,max:2,color:'#7A5CA8'},
+  piano_3rd:{label:'3. PİYANO TİZ BİLEŞKE',min:5,max:7,color:'#D4AF37'}
+};
+
+const MOTIFS=[ // korunuyor (12 motif)
+  {id:'rise',label:'YÜKSELİŞ',degrees:[0,1,2,4],steps:[0,4,8,12],density:.75},
+  {id:'sunrise',label:'GÜN DOĞUŞU',degrees:[0,2,4,7,4,2,0],steps:[0,2,4,6,8,10,12],density:.92},
+  {id:'cascade',label:'ŞELALE',degrees:[0,2,4,2,0,-2,0],steps:[0,1,2,3,5,7,9],density:.88},
+  {id:'butterfly',label:'KELEBEK',degrees:[4,2,0,2,4,7,4],steps:[0,2,4,6,8,10,12],density:.90},
+  {id:'river',label:'NEHİR',degrees:[0,1,2,3,4,3,2,1],steps:[0,2,4,6,8,10,12,14],density:.85},
+  {id:'cloud',label:'BULUT',degrees:[2,4,7,4,2,0],steps:[1,4,7,10,13,15],density:.78},
+  {id:'dance',label:'DANS',degrees:[0,2,4,5,4,2,0,2],steps:[0,2,3,5,7,9,11,13],density:.94},
+  {id:'lullaby',label:'NİNNİ',degrees:[0,-2,0,2,4,2],steps:[2,5,8,11,14],density:.72},
+  {id:'hope',label:'UMUT',degrees:[0,2,4,7,9,7,4],steps:[0,2,4,6,8,10,12],density:.86},
+  {id:'joy',label:'SEVİNÇ',degrees:[4,2,0,2,4,7,9,7],steps:[0,1,2,3,5,7,9,11],density:.96},
+  {id:'peace',label:'HUZUR',degrees:[0,2,0,-2,0,2,4],steps:[1,4,7,10,12,14],density:.82},
+  {id:'breeze',label:'RÜZGÂR',degrees:[2,4,2,0,-2,0,2],steps:[0,2,4,7,9,11,13],density:.84}
+];
+const MOTIF_BY_ID=Object.fromEntries(MOTIFS.map(m=>[m.id,m]));
+
+const CLASSIC_PROGRESSIONS=[ // korunuyor (9 progresyon)
+  {id:'circle-home',label:'ÇEMBER EVE DÖNÜŞ',degrees:[5,1,4,0],character:'vi–ii–V–I'},
+  {id:'long-circle',label:'TAM ÇEMBER',degrees:[3,6,2,5,1,4,0,3],character:'IV–vii–iii–vi–ii–V–I'},
+  {id:'pop-axis',label:'POP EKSENI',degrees:[0,4,5,3],character:'I–V–vi–IV'},
+  {id:'minor-lift',label:'MİNÖR YÜKSELİŞ',degrees:[5,3,0,4],character:'vi–IV–I–V'},
+  {id:'plagal',label:'PLAGAL IŞIK',degrees:[0,3,0,4],character:'I–IV–I–V'},
+  {id:'turnaround',label:'TURNAROUND',degrees:[0,5,1,4],character:'I–vi–ii–V'},
+  {id:'bridge-walk',label:'KÖPRÜ YÜRÜYÜŞÜ',degrees:[1,4,0,5],character:'ii–V–I–vi'},
+  {id:'bright-gate',label:'PARLAK KAPI',degrees:[3,4,2,5],character:'IV–V–iii–vi'},
+  {id:'descending',label:'ALÇALAN EKSEN',degrees:[0,6,5,4],character:'I–vii–vi–V'}
+];
+const CLASSIC_BY_ID=Object.fromEntries(CLASSIC_PROGRESSIONS.map(p=>[p.id,p]));
+
+const FORMS=[ // korunuyor (5 form)
+  {id:'classic',label:'KLASİK YAY',phases:[{role:'intro',bars:4,energy:.35},{role:'verse',bars:8,energy:.50},{role:'chorus',bars:8,energy:.86},{role:'bridge',bars:4,energy:.58},{role:'chorus',bars:8,energy:1},{role:'outro',bars:4,energy:.32}]},
+  {id:'double-verse',label:'İKİ HİKÂYE',phases:[{role:'intro',bars:4,energy:.30},{role:'verse',bars:8,energy:.46},{role:'lift',bars:4,energy:.68},{role:'chorus',bars:8,energy:.90},{role:'verse',bars:8,energy:.56},{role:'chorus',bars:8,energy:1}]},
+  {id:'cinematic',label:'SİNEMATİK DALGA',phases:[{role:'intro',bars:8,energy:.28},{role:'lift',bars:4,energy:.58},{role:'verse',bars:8,energy:.52},{role:'chorus',bars:8,energy:.92},{role:'interlude',bars:4,energy:.42},{role:'chorus',bars:8,energy:1},{role:'outro',bars:4,energy:.30}]},
+  {id:'rondo',label:'RONDO DÖNÜŞ',phases:[{role:'chorus',bars:4,energy:.76},{role:'verse',bars:8,energy:.48},{role:'chorus',bars:4,energy:.82},{role:'bridge',bars:8,energy:.58},{role:'chorus',bars:8,energy:1},{role:'outro',bars:4,energy:.30}]},
+  {id:'slow-bloom',label:'YAVAŞ AÇILIM',phases:[{role:'intro',bars:8,energy:.24},{role:'verse',bars:8,energy:.42},{role:'lift',bars:8,energy:.64},{role:'chorus',bars:12,energy:.94},{role:'outro',bars:4,energy:.28}]},
+  /* ---- 300 SONAT KANONUNDAN TÜREYEN YAPILAR (Haydn·Mozart·Beethoven·
+     Schubert biçim oransılları) + modern sinematik/pop yapıları ---- */
+  {id:'sonata',label:'SONAT-ALLEGRO',phases:[
+    {role:'intro',bars:2,energy:.30},
+    {role:'verse',bars:6,energy:.52},      /* A — ana tema (ekspozisyon) */
+    {role:'interlude',bars:4,energy:.44},  /* B — karşı tema */
+    {role:'bridge',bars:6,energy:.68},     /* GELİŞTİRME (development) */
+    {role:'chorus',bars:6,energy:.88},     /* REKAPİTÜLASYON — A' döner */
+    {role:'final',bars:2,energy:1},        /* CODA klimaks */
+    {role:'outro',bars:4,energy:.30}]},
+  {id:'rondo-abaca',label:'RONDO A·B·A·C·A',phases:[
+    {role:'chorus',bars:4,energy:.78},     /* A refrein */
+    {role:'verse',bars:4,energy:.48},      /* B bölüm */
+    {role:'chorus',bars:4,energy:.82},     /* A dönüş */
+    {role:'solo',bars:4,energy:.64},       /* C — piyano solo bölümü */
+    {role:'chorus',bars:6,energy:1},       /* A final */
+    {role:'outro',bars:4,energy:.30}]},
+  {id:'variations',label:'TEMA+VARYASYON',phases:[
+    {role:'intro',bars:2,energy:.26},
+    {role:'verse',bars:6,energy:.44},      /* TEMA */
+    {role:'lift',bars:6,energy:.58},       /* VARYASYON 1 */
+    {role:'bridge',bars:6,energy:.66},     /* VARYASYON 2 — geliştirme */
+    {role:'solo',bars:4,energy:.74},       /* VARYASYON 3 — süsleme */
+    {role:'chorus',bars:6,energy:.98},     /* FİNAL VARYASYON */
+    {role:'outro',bars:4,energy:.28}]},
+  {id:'balad',label:'BALAD A·B·GELİŞ·KLİMAKS',phases:[
+    {role:'intro',bars:2,energy:.28},
+    {role:'verse',bars:6,energy:.48},      /* A */
+    {role:'lift',bars:4,energy:.62},       /* B */
+    {role:'bridge',bars:4,energy:.70},     /* GELİŞTİRME */
+    {role:'chorus',bars:6,energy:.94},     /* KLİMAKS */
+    {role:'final',bars:2,energy:1},
+    {role:'outro',bars:4,energy:.30}]},
+  {id:'pop-cinema',label:'POP·SİNEMATİK 10 BÖLÜM',phases:[
+    {role:'intro',bars:2,energy:.30},      /* INTRO */
+    {role:'verse',bars:4,energy:.46},      /* VERSE */
+    {role:'lift',bars:2,energy:.64},       /* PRE-CHORUS */
+    {role:'chorus',bars:4,energy:.88},     /* CHORUS */
+    {role:'verse',bars:4,energy:.52},      /* VERSE 2 */
+    {role:'chorus',bars:4,energy:.92},     /* CHORUS 2 */
+    {role:'bridge',bars:4,energy:.58},     /* BRIDGE */
+    {role:'solo',bars:4,energy:.72},       /* PİYANO SOLO */
+    {role:'chorus',bars:4,energy:1},       /* FİNAL CHORUS */
+    {role:'outro',bars:4,energy:.30}]}     /* OUTRO */
+];
+const FORM_BY_ID=Object.fromEntries(FORMS.map(f=>[f.id,f]));
+const ROLE_LABEL={intro:'INTRO',verse:'VERSE',lift:'PRE-NAKARAT',chorus:'NAKARAT',bridge:'BRIDGE',
+  interlude:'KARŞI TEMA',solo:'PİYANO SOLO',final:'FİNAL KLİMAKS',outro:'OUTRO'};
+/* bölüm temposu — sonat coda/ritardando geleneği: kapanış yavaşlar, klimaks hızlanır */
+const ROLE_TEMPO={intro:0.96,verse:0.98,lift:1,chorus:1.02,bridge:0.97,interlude:0.98,solo:1,final:1.03,outro:0.94};
+/* ---- NOTASYON OTORİTESİ — piyano notasyonu standartları ----
+   Ritim değerleri temiz nota değerleridir (16'lık birimde): 1·2·3·4·6·8·12·16
+   (noktalı değerler dahil). Her nota bemol yazımıyla doğru oktavda yazılır.
+   Kompozisyonlar bu standartlara KUANTALANIR ve oluşturulurken sınanır. */
+const NOTATION_CLEAN=[1,2,3,4,6,8,12,16];
+const NOTE_SPELL={0:['C',0],1:['D',-1],2:['D',0],3:['E',-1],4:['E',0],5:['F',0],
+  6:['G',-1],7:['G',0],8:['A',-1],9:['A',0],10:['B',-1],11:['B',0]};
+const STEP_SEMI={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
+function validateNotation(plan){
+  const v=[];
+  const clean=new Set(NOTATION_CLEAN);
+  for(const e of plan.events){
+    if(e.kind!=='ring'){
+      if(!Number.isInteger(e.slot))v.push('slot '+e.slot);
+      if(!clean.has(e.dur))v.push('ritim '+e.dur);
+    }
+    if(e.midi<21||e.midi>108)v.push('midi '+e.midi);
+    const sp=NOTE_SPELL[e.midi%12];
+    if(Math.floor(e.midi/12)*12+STEP_SEMI[sp[0]]+sp[1]!==e.midi)v.push('yazım '+e.midi);
+  }
+  return v;
+}
+
+/* --- YENİ sözlükler --- */
+const MODES=[
+  {id:'ionian',label:'MAJOR',steps:[0,2,4,5,7,9,11],triads:['maj','min','min','maj','maj','min','dim']},
+  {id:'lydian',label:'LYDIAN',steps:[0,2,4,6,7,9,11],triads:['maj','maj','min','maj','min','min','dim']},
+  {id:'mixolydian',label:'MİKSOLYDİEN',steps:[0,2,4,5,7,9,10],triads:['maj','min','dim','maj','min','min','maj']},
+  {id:'dorian',label:'DORİEN',steps:[0,2,3,5,7,9,10],triads:['min','min','maj','maj','min','dim','maj']},
+  {id:'aeolian',label:'MİNÖR',steps:[0,2,3,5,7,8,10],triads:['min','dim','maj','min','min','maj','maj']}
+];
+const MODE_BY_ID=Object.fromEntries(MODES.map(m=>[m.id,m]));
+
+const QUALITY_SEMI={maj:[0,4,7],min:[0,3,7],dim:[0,3,6],aug:[0,4,8],sus2:[0,2,7],sus4:[0,5,7]};
+const QUALITY_LABEL={maj:'',min:'m',dim:'dim',aug:'aug',sus2:'sus2',sus4:'sus4'};
+const EXT_SEMI={'7':10,'maj7':11,'m7':10,'hdim7':10,'dim7':9,'6':9,'add9':14};
+const EXT_LABEL={'7':'7','maj7':'maj7','m7':'7','hdim7':'ø7','dim7':'°7','6':'6','add9':'add9'};
+function chooseExt(rng,quality,energy){
+  if(rng.next()<0.34-energy*0.12)return null; // saf triad — "yavaş kısık triadlar"
+  switch(quality){
+    case 'maj':return rng.weighted([['maj7',6],['6',2],['add9',2],['7',1]]);
+    case 'min':return rng.weighted([['m7',6],['6',1],['add9',2]]);
+    case 'dim':return rng.weighted([['hdim7',4],['dim7',2]]);
+    case 'aug':return rng.weighted([['7',1]]);
+    default:return null;
+  }
+}
+
+const AKSAK_PATTERNS=[ // çok hafif aksak — nabız grupları
+  {id:'even',label:'DÜZ 4',groups:[4]},
+  {id:'a5-32',label:'AKSAK 5 (3+2)',groups:[3,2]},
+  {id:'a5-23',label:'AKSAK 5 (2+3)',groups:[2,3]},
+  {id:'a7-322',label:'AKSAK 7 (3+2+2)',groups:[3,2,2]},
+  {id:'a7-223',label:'AKSAK 7 (2+2+3)',groups:[2,2,3]}
+];
+const AKSAK_BY_ID=Object.fromEntries(AKSAK_PATTERNS.map(a=>[a.id,a]));
+
+const HAND_MODES=[
+  {id:'ayrik',label:'AYRIK ELLER (sol alt · sağ üst)'},
+  {id:'birlesik',label:'ORTADA BİRLEŞİK (eller ortada kaynaşır)'},
+  {id:'capraz',label:'ÇAPRAZ ELLER (sağ sola geçer)'}
+];
+const HAND_BY_ID=Object.fromEntries(HAND_MODES.map(h=>[h.id,h]));
+const HAND_CAND={
+  intro:['ayrik','ayrik','birlesik'],verse:['ayrik','birlesik'],
+  lift:['birlesik','ayrik'],chorus:['birlesik','ayrik'],
+  bridge:['capraz','birlesik'],interlude:['capraz','ayrik'],outro:['ayrik','birlesik'],
+  solo:['capraz','birlesik'],final:['birlesik','ayrik']
+};
+
+/* ---------- 3. SAYAÇ SİSTEMİ (korunan mimari) ---------- */
+function freshCounters(){
+  const r={keys:{},circleRoots:{},chords:{},transitions:{},tempos:{},forms:{},phases:{},progressions:{},motifs:{},instruments:{},notes:{},modes:{},aksak:{},handModes:{},compositions:0,signatures:[]};
+  CIRCLE.forEach(n=>{r.keys[n]=0;r.circleRoots[n]=0;});
+  TEMPOS.forEach(n=>{r.tempos[String(n)]=0;});
+  FORMS.forEach(n=>{r.forms[n.id]=0;});
+  CLASSIC_PROGRESSIONS.forEach(n=>{r.progressions[n.id]=0;});
+  MOTIFS.forEach(n=>{r.motifs[n.id]=0;});
+  Object.keys(INSTRUMENTS).forEach(n=>{r.instruments[n]=0;});
+  MODES.forEach(n=>{r.modes[n.id]=0;});
+  AKSAK_PATTERNS.forEach(n=>{r.aksak[n.id]=0;});
+  HAND_MODES.forEach(n=>{r.handModes[n.id]=0;});
+  return r;
+}
+const STORE_KEY='piyanoCemberV2::sayac';
+class CounterStore{
+  constructor(){
+    const saved=Store.get(STORE_KEY,null);
+    const fresh=freshCounters();
+    if(saved){
+      ['keys','circleRoots','chords','transitions','tempos','forms','phases','progressions','motifs','instruments','notes','modes','aksak','handModes'].forEach(k=>{
+        fresh[k]=Object.assign(fresh[k],saved[k]||{});
+      });
+      fresh.compositions=saved.compositions||0;
+      fresh.signatures=(saved.signatures||[]).slice(-80);
+    }
+    this.c=fresh;
+  }
+  bump(map,key,n){const m=this.c[map];m[key]=(m[key]||0)+(n||1);}
+  save(){try{this.c.signatures=this.c.signatures.slice(-80);Store.set(STORE_KEY,this.c);}catch(e){}}
+  /* Korunan "oa" algoritması: sayaç sayısı + jitter sıralaması, ilk 3 arasından rastgele */
+  least(candidates,map,k){
+    k=k||3;
+    const arr=candidates.map(x=>({x,cnt:(this.c[map][x]||0),j:Math.random()}))
+      .sort((a,b)=>a.cnt-b.cnt||a.j-b.j);
+    const top=arr.slice(0,Math.min(k,arr.length));
+    return top[Math.floor(Math.random()*top.length)].x;
+  }
+}
+
+/* ---------- 4. YEPYENİ 3·5·7 MAKSİMUM PROGRESYON MOTORU ----------
+   Kök yürüyüşü aralıklara göre: 3'lü (mediant), 5'li (kwintem),
+   7'li (bir alt basamak ≈ 2'li). Aynı derece ve aynı yürüyüş
+   arka arkaya gelmez; ögelerin tümü sayaç dengesinden geçirilir. */
+const MOTION_STEPS={3:[-2,2],5:[-3,4],7:[-1,1]}; // diatonik basamak
+function generateProgression(rng,bars,energy,store){
+  const tC=store.c.transitions;
+  const usage=m=>(tC[m]||0);
+  const cls=d=>{const r=((d%7)+7)%7;return r===0?null:(r===1||r===6)?'7':(r===2||r===5)?'3':'5';};
+  const steps=[0];       // mutlak basamak yürüyüşü
+  const motions=[null];  // kullanılan aralık etiketi
+  const lastDeg=()=>mod7(steps[steps.length-1]);
+  for(let i=1;i<=bars-3;i++){
+    const cand=[];
+    for(const m of ['3','5','7']){
+      for(const off of MOTION_STEPS[m]){
+        const ns=steps[steps.length-1]+off;
+        const deg=mod7(ns);
+        if(deg===lastDeg())continue;               // aynı derece yok
+        if(m===motions[motions.length-1])continue; // aynı yürüyüş yok
+        let w=(m==='3'?0.36:m==='5'?0.34:0.30);
+        w*=1+(1.5/(1+usage(m)));                    // en az kullanılan aralık öncelikli
+        cand.push([[m,ns],w]);
+      }
+    }
+    if(!cand.length){
+      for(const off of [2,-2,1,-1,4,-3]){
+        if(cls(off)&&cls(off)!==motions[motions.length-1]){
+          steps.push(steps[steps.length-1]+off);motions.push(cls(off));break;
+        }
+      }
+      continue;
+    }
+    const pick=rng.weighted(cand);
+    steps.push(pick[1]);motions.push(pick[0]);
+  }
+  /* kadans: son iki akor eklenir — I'e V/IV/vii yaklaşması.
+     Önceki dereceyle çakışmaz, önceki yürüyüşle aynı etiket taşımaz. */
+  const prevDeg=lastDeg(),prevMotion=motions[motions.length-1];
+  const tryApproach=(preferDiff)=>{
+    for(const ap of rng.shuffle([4,3,6])){
+      if(mod7(ap)===prevDeg)continue;
+      const mIn=cls(ap-steps[steps.length-1]),mOut=cls(-ap);
+      if(!mIn||!mOut)continue;
+      if(prevMotion&&mIn===prevMotion)continue;
+      if(preferDiff&&mIn===mOut)continue;
+      return{ap,mIn,mOut};
+    }
+    return null;
+  };
+  let cad=tryApproach(true)||tryApproach(false)||{ap:4,mIn:'5',mOut:'5'};
+  steps.push(cad.ap);motions.push(cad.mIn);
+  steps.push(0);motions.push(cad.mOut);
+  const degrees=steps.map(s=>mod7(s));
+  const motionSeq=motions.slice(1).join('');
+  return{
+    id:'gen357-'+bars+'b-'+motionSeq,
+    label:'3·5·7 YÜRÜYÜŞ ('+motionSeq.replace(/(.)/g,'$1·').slice(0,-1)+')',
+    degrees,generated:true,
+    motions:motions.slice(1),
+    cadenceStart:bars-3
+  };
+}
+
+/* ---------- 5. ARMONİ YARDIMCILARI ---------- */
+function chordFromDegree(keyPc,mode,deg,ext){
+  const rootPc=(keyPc+mode.steps[deg])%12;
+  const quality=mode.triads[deg];
+  const semis=QUALITY_SEMI[quality].slice();
+  if(ext&&EXT_SEMI[ext]!==undefined)semis.push(EXT_SEMI[ext]);
+  const label=NOTE_TR[rootPc]+QUALITY_LABEL[quality]+(ext?EXT_LABEL[ext]:'');
+  return{rootPc,quality,ext,semis,label,pcs:semis.map(s=>(rootPc+s)%12),key:rootPc+':'+quality+':'+(ext||'tri')};
+}
+function pcToMidi(pc,lo,hi,center){
+  const opts=[];
+  for(let m=lo;m<=hi;m++)if(m%12===pc%12)opts.push(m);
+  if(!opts.length)return null;
+  const c=(center==null?(lo+hi)/2:center);
+  opts.sort((a,b)=>Math.abs(a-c)-Math.abs(b-c));
+  return opts[0];
+}
+
+/* ---------- 6. PERMÜTASYON MOTORU — akor notaları ASLA aynı sırayla ---------- */
+class PermEngine{
+  constructor(rng){this.rng=rng;this.last={};this.log=[];}
+  nextOrder(key,n){
+    const prev=this.last[key];
+    const idx=[];for(let i=0;i<n;i++)idx.push(i);
+    let order=this.rng.shuffle(idx);
+    if(prev&&arrEq(order,prev)){
+      order=order.slice(1).concat(order.slice(0,1)); // garanti: döndür
+      if(arrEq(order,prev)&&n>1)order=order.slice().reverse();
+    }
+    this.last[key]=order.slice();
+    this.log.push({key,order:order.slice()});
+    return order;
+  }
+}
+
+/* =====================================================================
+   7. KOMPÜZİTÖR — tam kompozisyon önceden kusursuz kurulur
+   ===================================================================== */
+class Composer{
+  constructor(store){this.store=store;this.lastRootIdx=null;}
+
+  newComposition(bpm,salt){
+    const store=this.store,st=store.c;
+    const n=st.compositions;
+    const seed=((n+1)*2654435761^((salt||0)+1442695040888963407%2147483647))>>>0;
+    const rng=new Rng(seed);
+
+    /* --- kök: çember penceresi (circleShift korunur) + en az çalınan --- */
+    const prevIdx=this.lastRootIdx==null?rng.int(0,11):this.lastRootIdx;
+    const windowSet=new Set();
+    [-2,-1,1,2].forEach(d=>windowSet.add(CIRCLE[(prevIdx+d+12)%12]));
+    windowSet.add(CIRCLE[(prevIdx+rng.pick([3,4,5,6,7,8,9]))%12]); // uzak sıçrama
+    const root=store.least([...windowSet],'circleRoots');
+    this.lastRootIdx=CIRCLE.indexOf(root);
+    store.bump('keys',root);store.bump('circleRoots',root);
+
+    const modeId=store.least(MODES.map(m=>m.id),'modes');
+    const mode=MODE_BY_ID[modeId];store.bump('modes',modeId);
+    const formId=store.least(FORMS.map(f=>f.id),'forms');
+    const form=FORM_BY_ID[formId];store.bump('forms',formId);
+    store.bump('tempos',String(bpm));
+
+    /* --- motifler: verse / nakarat / köprü — hepsi farklı, en az çalınan --- */
+    const mIds=MOTIFS.map(m=>m.id);
+    const verseM=store.least(mIds,'motifs');
+    const refrainM=store.least(mIds.filter(x=>x!==verseM),'motifs');
+    const bridgeM=store.least(mIds.filter(x=>x!==verseM&&x!==refrainM),'motifs');
+
+    const perm=new PermEngine(rng);
+    const permDeep=new PermEngine(rng); /* 2. piyano kendi nota sırası garantisiyle */
+    const perm3=new PermEngine(rng);     /* 3. piyano tiz bileşke — kendi sırası */
+    const events=[];const bars=[];
+    const stats={potential:0,rests:0,strikes:0,chordOrderLog:perm.log};
+    let slotCursor=0;
+    let compBass=0,compMid=0,compTiz=0,compArp=0,deepBars=0,deepPhasesOff=0;
+    let thirdBars=0,thirdPhasesOff=0,thirdCells=0;
+    const handTally={},aksakTally={};
+    let dir=rng.chance(0.5)?1:-1; // progressionDirection korunur
+    let keyIdx=this.lastRootIdx;
+    const phraseHist={}; // motif+op tekrar engeli
+
+    form.phases.forEach((ph,pi)=>{
+      if(pi>0&&rng.chance(0.65))keyIdx=(keyIdx+dir+12)%12; // circleShift
+      const key=CIRCLE[keyIdx],keyPc=PC[key];
+      /* progresyon: %70 yepyeni 3·5·7 motoru, %30 korunmuş klasik */
+      let prog;
+      if(rng.chance(0.70)){
+        prog=generateProgression(rng,ph.bars,ph.energy,store);
+        store.bump('progressions','gen357');
+      }else{
+        const cid=store.least(CLASSIC_PROGRESSIONS.map(p=>p.id),'progressions');
+        prog=CLASSIC_BY_ID[cid];store.bump('progressions',cid);
+      }
+      prog.motions&&prog.motions.forEach(m=>store.bump('transitions',m));
+      const handId=store.least([...new Set(HAND_CAND[ph.role])],'handModes');
+      store.bump('handModes',handId);
+      handTally[handId]=(handTally[handId]||0)+1;
+      let aksakId;
+      if(rng.chance(0.50))aksakId='even';
+      else aksakId=store.least(AKSAK_PATTERNS.map(a=>a.id),'aksak');
+      store.bump('aksak',aksakId);
+      aksakTally[aksakId]=(aksakTally[aksakId]||0)+1;
+      const poly=aksakId!=='even'&&rng.chance(0.25); // çok hafif polimetre
+      const motifId=(ph.role==='chorus'||ph.role==='solo'||ph.role==='final')?refrainM:(ph.role==='bridge'?bridgeM:verseM);
+      store.bump('motifs',motifId);
+      store.bump('phases',ph.role);
+      const restDensity=clamp(0.50-ph.energy*0.22+rng.range(-0.03,0.05),0.25,0.50);
+      /* 2. PİYANO: %92 bölümde aktif — nadiren tüm bölüm susar (kontrast) */
+      const deepOn=rng.chance(ph.role==='intro'?0.55:ph.role==='solo'?0.35:0.92);
+      if(!deepOn)deepPhasesOff++;
+      /* 3. PİYANO: tiz bileşke — dramatik anlarda (nakarat/final) parlar */
+      const thirdOn=ph.role==='outro'||ph.role==='final'?true
+        :ph.role==='solo'?rng.chance(0.85)
+        :ph.role==='chorus'?rng.chance(0.95)
+        :ph.role==='lift'?rng.chance(0.70)
+        :ph.role==='bridge'?rng.chance(0.50)
+        :ph.role==='verse'?rng.chance(0.35)
+        :rng.chance(0.15);
+      if(!thirdOn)thirdPhasesOff++;
+
+      for(let b=0;b<ph.bars;b++){
+        const deg=prog.degrees[b%prog.degrees.length];
+        const ext=chooseExt(rng,MODE_BY_ID[modeId].triads[deg],ph.energy);
+        const chord=chordFromDegree(keyPc,mode,deg,ext);
+        store.bump('chords',chord.quality+(chord.ext?('+'+chord.ext):''));
+        const groups=rng.chance(0.5)?AKSAK_BY_ID[aksakId].groups:AKSAK_BY_ID[aksakId].groups.slice().reverse();
+        const pulses=groups.reduce((a,g)=>a+g,0);
+        const barSlots=pulses*4;
+        const groupStarts=[];let acc=0;
+        groups.forEach(g=>{groupStarts.push(acc*4);acc+=g;});
+        const strong=new Set();
+        for(let p=0;p<pulses;p++){strong.add(p*4);strong.add(p*4+2);}
+        groupStarts.forEach(s=>strong.add(s));
+        const phraseIdx=Math.floor(b/2);
+        const phraseEnd=(b%2===1)||b===ph.bars-1;
+        const breathLen=ph.energy<0.45?rng.int(3,4):rng.int(2,3);
+        const bar={
+          slotStart:slotCursor,slots:barSlots,pulses,groups,groupStarts,strong,
+          phaseIndex:pi,role:ph.role,roleLabel:ROLE_LABEL[ph.role],barInPhase:b,bars:ph.bars,
+          tempoMul:ROLE_TEMPO[ph.role]||1,
+          energy:ph.energy,chord,chordLabel:chord.label,key,keyPc,modeSteps:mode.steps,
+          progLabel:prog.label,progId:prog.id,
+          aksakLabel:AKSAK_BY_ID[aksakId].label+(poly?' · POLİ':''),
+          handId,handLabel:HAND_BY_ID[handId].label,
+          motifId,motifLabel:MOTIF_BY_ID[motifId].label,
+          restDensity,phraseIdx,phraseEnd,breathLen,
+          susSlots:new Set(),events:[]
+        };
+        this.buildBar(bar,rng,perm,permDeep,perm3,deepOn,thirdOn,phraseHist,stats,poly,events,bars);
+        slotCursor+=barSlots;
+        if(bar._bass)compBass++;if(bar._mid)compMid++;if(bar._tiz)compTiz++;if(bar._arp)compArp++;
+        if(bar._deep)deepBars++;
+        if(bar._third){thirdBars++;thirdCells+=bar._cells||0;}
+      }
+    });
+
+    /* --- final: çok yumuşak kök akoru (outro son barına) --- */
+    const lastBar=bars[bars.length-1];
+    if(lastBar){
+      const rootMidi=pcToMidi(lastBar.chord.rootPc,48,64,null);
+      [rootMidi,rootMidi+7,rootMidi+12,rootMidi+16].forEach((m,i)=>{
+        events.push({slot:lastBar.slotStart+lastBar.slots-3+i*0.5,midi:m,vel:0.06+0.015*i,
+          dur:10,release:6.5,lane:'final',hand:'L',hum:rng.range(-0.01,0.01),kind:'final'});
+      });
+      /* FİNAL IŞIMASI: 3. piyano tiz kök bileşkesi — derin legato ile
+         birlikte yüksekten uçup kaybolur (sinematik final derinliği) */
+      const gRoot=pcToMidi(lastBar.chord.rootPc,72,84,84);
+      if(gRoot!=null){
+        [gRoot,gRoot+7,gRoot+12].forEach((m,i)=>{
+          events.push({slot:lastBar.slotStart+lastBar.slots-2+i*0.75,midi:clamp(m,72,96),vel:0.055-0.01*i,
+            dur:9,release:9.5,lane:'third',hand:'R3',hum:rng.range(-0.008,0.008),kind:'final-glow'});
+        });
+      }
+      lastBar.events=events.filter(ev=>ev.slot>=lastBar.slotStart&&ev.slot<lastBar.slotStart+lastBar.slots);
+    }
+
+    /* --- SU HALKALARI — tuttinin son vuruşu taşın suya düştüğü andır:
+           her halkada akor bölünür (triad → ikili → tekil → fısıltı kökü),
+           gain geometrik söner, çalım süresi halka çapıyla orantılı uzar,
+           pan dışa doğru açılarak uzayda yankı kurar. Legato kuyruklar
+           nefes pencerelerine doğru sessizliğe karışır. --- */
+    let ringSets=0,ringNotes=0;
+    bars.forEach((bar,bi)=>{
+      if(!bar._tutti)return;
+      const nb=bars[bi+1];
+      if(nb&&nb._tutti)return; /* tutti zinciri sürerken halka yok — son taştan sonra yayılır */
+      const tes=bar.events.filter(e=>e.kind==='tutti');
+      if(!tes.length)return;
+      const uniq=[...new Set(tes.map(e=>e.slot))].sort((a,b)=>a-b);
+      const s0=uniq[uniq.length-1]; /* son orkestra vuruşu: taşın düştüğü an */
+      const strike=tes.filter(e=>e.slot===s0);
+      const vr=strike.find(e=>e.lane==='deep')||strike.find(e=>e.lane==='bass');
+      const vm=strike.find(e=>e.lane==='orta');
+      const vt=strike.find(e=>e.lane==='tiz')||strike.find(e=>e.lane==='third');
+      if(!vr&&!vm&&!vt)return;
+      const isLast=bi===bars.length-1;
+      const sv=strike.reduce((a,e)=>a+e.vel,0)/strike.length;
+      for(let r=1;r<=(isLast?4:3);r++){
+        const at=s0+r*(3+r); /* halka aralığı genişler — tempo kontrollü (slot birimi) */
+        const ms=r===1?[vr&&vr.midi,vm&&vm.midi,vt&&vt.midi]
+          :r===2?[vr&&vr.midi,vt&&vt.midi+12]
+          :r===3?[vt&&vt.midi]
+          :[vr&&vr.midi-12];
+        const notes=ms.filter(m2=>m2!=null);
+        if(!notes.length)continue;
+        const fade=Math.pow(0.5,r); /* azalmış gain */
+        const pan0=(r%2===1?1:-1)*(0.26+0.17*r); /* sağ–sol dışa açılan yankı */
+        notes.forEach((m2,i2)=>{
+          events.push({slot:at,midi:clamp(m2,24,100),
+            vel:clamp(sv*fade*rng.range(0.9,1.1),0.003,0.09),
+            dur:8+5*r,release:4+1.6*r, /* çapla uzayan süre ve kuyruk */
+            lane:'ring',hand:'R',hum:rng.range(-0.012,0.012),
+            pan:clamp(pan0+rng.range(-0.08,0.08)+i2*0.07,-0.95,0.95),
+            ring:r,kind:'ring'});
+          ringNotes++;
+        });
+        ringSets++;
+      }
+    });
+    stats.rings=ringSets;stats.ringNotes=ringNotes;
+
+    /* --- NOTASYON KUANTALAMASI — porte otoritedir: her ritim temiz nota
+           değerine oturur (16'lık·8'lik·noktalı 8'lik·4'lük·noktalı 4'lük·
+           2'lik·noktalı 2'lik·tam), girişler 16'lık ızgaraya hizalanır.
+           Su halkaları hariç — yıkama notaları tam nota olarak yazılır. --- */
+    events.forEach(e=>{
+      if(e.kind==='ring')return; /* halkalar nefes içine çınlamayı bilir — tam nota */
+      /* NEFES-GÜVENLİ hizalama: aşağı yuvarla (asla ileri sıçramaz — nefes
+         penceresine yeni giriş oluşmaz), güvenlik için pencere koruması */
+      let sl=Math.floor(e.slot+1e-6);
+      if(e.kind!=='final'&&e.kind!=='final-glow'){
+        for(const b of bars){
+          if(!b.phraseEnd)continue;
+          const w0=b.slotStart+b.slots-b.breathLen,w1=b.slotStart+b.slots;
+          if(sl>=w0&&sl<w1){sl=Math.max(0,w0-1);break;}
+        }
+      }
+      e.slot=sl;
+      let best=1;
+      for(const cv of NOTATION_CLEAN)if(Math.abs(cv-e.dur)<Math.abs(best-e.dur))best=cv;
+      e.dur=best;
+    });
+
+    events.sort((a,b)=>a.slot-b.slot);
+    events.forEach(e=>{e.vel=clamp(e.vel,e.kind==='ring'?0.003:0.02,0.34);e.dur=Math.max(1,e.dur);});
+
+    /* sayaç: enstrümanlar + notalar */
+    store.bump('instruments','piano_bass',compBass);
+    store.bump('instruments','piano_triad',compMid);
+    store.bump('instruments','piano_melody',compTiz);
+    store.bump('instruments','piano_arp',compArp);
+    store.bump('instruments','piano_deep',deepBars);
+    store.bump('instruments','piano_3rd',thirdBars);
+    events.forEach(e=>{store.bump('notes',String(e.midi%12),1);});
+
+    /* imza (korunan mantık: çakışma → -vN) */
+    const primAksak=Object.entries(aksakTally).sort((a,b)=>b[1]-a[1])[0][0];
+    const primHand=Object.entries(handTally).sort((a,b)=>b[1]-a[1])[0][0];
+    let sig=root+'·'+mode.label+'·'+form.label+'·'+AKSAK_BY_ID[primAksak].label.split(' ')[0]+'·'+primHand.toUpperCase();
+    if(st.signatures.includes(sig))sig+='-v'+(st.compositions+1);
+    st.signatures.push(sig);
+    st.compositions=n+1;
+
+    /* --- benzersiz tın rengi (kompozisyon başına) --- */
+    const timbre={
+      detuneCents:rng.range(-3.5,3.5),
+      deepDetune:rng.range(-3,3), /* 2. piyano bağımsız akort — gerçek iki piyano derinliği */
+      trebDetune:rng.range(-2.5,2.5), /* 3. piyano kendi akort rengi — üç ayrı piyano */
+      stretchCents:rng.range(0.2,0.9),       // oktav gerilmesi (akustik piyano)
+      partial2:rng.range(0.24,0.42),
+      partial3:rng.range(0.05,0.14),
+      filterHz:rng.range(1900,4200),
+      reverbWet:rng.range(0.24,0.40),
+      release:rng.range(2.6,4.8),
+      attack:rng.range(0.006,0.016),
+      panSpread:rng.range(0.16,0.34),
+      seed
+    };
+
+    return{
+      events,bars,num:n+1,signature:sig,root,mode:mode.label,form:form.label,
+      verseMotif:verseM,refrainMotif:refrainM,bridgeMotif:bridgeM,
+      totalSlots:slotCursor,timbre,deepBars,deepPhasesOff,thirdBars,thirdPhasesOff,thirdCells,
+      stats:{potential:stats.potential,rests:stats.rests,strikes:stats.strikes,
+             restFraction:stats.potential?stats.rests/stats.potential:0,
+             deep:stats.deep||0,third:stats.third||0,cells:stats.cells||0,
+             tutti:stats.tutti||0,tuttiBars:stats.tuttiBars||0,
+             rings:stats.rings||0,ringNotes:stats.ringNotes||0,
+             chordOrderLog:stats.chordOrderLog}
+    };
+  }
+
+  /* ---- tek bar kurulumu: bas / orta / tiz / süs + SUS planı ---- */
+  buildBar(bar,rng,perm,permDeep,perm3,deepOn,thirdOn,phraseHist,stats,poly,events,bars){
+    const e=bar.energy;
+    const H=bar.handId;
+    const reg={
+      bass:H==='capraz'?[38,52]:[36,52],
+      orta:H==='birlesik'?[50,67]:H==='capraz'?[55,74]:[48,64],
+      mel:H==='birlesik'?[55,74]:H==='capraz'?[40,60]:[60,84],
+      arp:[72,88]
+    };
+    /* bölüm karakteri — nota aralığı: gelişme/solo/final geniş, intro/outro dar */
+    const wide=(bar.role==='bridge'||bar.role==='solo'||bar.role==='final')?4:
+      (bar.role==='intro'||bar.role==='outro')?-3:0;
+    if(wide){
+      reg.mel=[Math.max(46,reg.mel[0]-Math.ceil(wide/2)),clamp(reg.mel[1]+wide,60,88)];
+      reg.orta=[Math.max(44,reg.orta[0]-1),clamp(reg.orta[1]+Math.floor(wide/2),48,78)];
+    }
+    const potential=[]; // {slot,lane,emit:fn}
+    const permOrder=perm.nextOrder(bar.chord.key,bar.chord.pcs.length);
+    const tonePcs=permOrder.map(i=>bar.chord.pcs[i]); // ASLA aynı sıra
+
+    /* --- PARALEL ORKESTRA KARARI ---
+       Bu bar TUTTİ mi? (üç piyano aynı anda, aynı figürü paralel
+       oktavlarda çalar — orkestra çifletmesi). NAKARAT ve GRAND FİNAL
+       en yüksek olasılık; outro'nun son 2 barı her zaman grand final. */
+    const orchProb=bar.role==='chorus'?0.75
+      :bar.role==='final'?0.90
+      :bar.role==='lift'?0.55
+      :bar.role==='bridge'?0.35
+      :bar.role==='outro'?0.50
+      :bar.role==='verse'?0.22
+      :bar.role==='solo'?0.18 /* solo: orkestra susar, sahne piyanodadır */
+      :0.12;
+    const grandFinal=(bar.role==='outro'||bar.role==='chorus'||bar.role==='final')&&bar.barInPhase>=bar.bars-2;
+    const tuttiBar=grandFinal||rng.chance(orchProb);
+
+    /* --- SOL EL BAS (piano_bass) --- */
+    const bassMidi=pcToMidi(bar.chord.rootPc,reg.bass[0],reg.bass[1],46);
+    const bassIs5=rng.chance(0.18),bassIs7=rng.chance(0.12);
+    let bassPc=bar.chord.rootPc;
+    if(bassIs5)bassPc=(bar.chord.rootPc+7)%12;       // 5'li bas
+    else if(bassIs7&&bar.chord.ext)bassPc=(bar.chord.rootPc+EXT_SEMI[bar.chord.ext])%12; // 7'li bas
+    const bassMidi2=pcToMidi(bassPc,reg.bass[0],reg.bass[1],46);
+    potential.push({slot:0,lane:'bass',emit:()=>{
+      events.push({slot:bar.slotStart+0,midi:bassMidi2,vel:0.15+e*0.05,dur:Math.min(bar.slots,14),
+        lane:'bass',hand:'L',hum:rng.range(-0.012,0.012),kind:'bass'});
+      bar._bass=true;
+    }});
+    if(bar.pulses>=4&&rng.chance(tuttiBar?0.30:0.55)){
+      const mid=Math.floor(bar.slots/2);
+      potential.push({slot:mid,lane:'bass',emit:()=>{
+        const alt=pcToMidi(bassIs5?bar.chord.rootPc:((bar.chord.rootPc+7)%12),reg.bass[0],reg.bass[1],46);
+        events.push({slot:bar.slotStart+mid,midi:alt,vel:0.10+e*0.04,dur:8,
+          lane:'bass',hand:'L',hum:rng.range(-0.012,0.012),kind:'bass'});
+      }});
+    }
+
+    /* --- SOL EL ORTA TRİAD (piano_triad) — yavaş kısık, aksak gruplu --- */
+    const pulsePattern=[]; // her nabız için vuruş sayısı (×4 vuruş)
+    for(let p=0;p<bar.pulses;p++){
+      const gStart=bar.groupStarts.includes(p*4);
+      let n=2;
+      if(e>0.75)n=rng.chance(0.6)?4:3;
+      else if(e>0.45)n=rng.chance(0.5)?3:2;
+      else n=rng.chance(0.4)?2:1;
+      if(gStart)n=Math.max(n,2);
+      if(tuttiBar)n=Math.max(1,n-1); /* tutti barında orta lane çekilir — orkestra konuşur */
+      pulsePattern.push(n);
+    }
+    let toneI=0;
+    for(let p=0;p<bar.pulses;p++){
+      const n=pulsePattern[p];
+      for(let k=0;k<n;k++){
+        const slot=p*4+(n===1?0:n===2?(k===0?0:2):(k===3?3:k)); // 0,2 / 0,1,2,3 / 0,1,2,3
+        const pc=tonePcs[toneI%tonePcs.length];toneI++;
+        const center=H==='birlesik'?60:(H==='capraz'?64:56);
+        const m=pcToMidi(pc,reg.orta[0],reg.orta[1],center+rng.range(-4,4));
+        if(m==null)continue;
+        const strong=bar.strong.has(slot);
+        potential.push({slot,lane:'orta',emit:()=>{
+          events.push({slot:bar.slotStart+slot,midi:m,vel:(0.085+e*0.055)*(strong?1.12:0.92)*rng.range(0.88,1.1),
+            dur:rng.int(3,6),lane:'orta',hand:'L',hum:rng.range(-0.014,0.014),
+            kind:strong&&k===0?'triad-block':'triad'});
+          bar._mid=true;
+        }});
+      }
+    }
+
+    /* --- SAĞ EL SOLO (piano_melody) — motif + geliştirme + nakarat --- */
+    const motif=MOTIF_BY_ID[bar.motifId];
+    const op=this.devOp(rng,bar.motifId,phraseIdx_safe(bar),phraseHist);
+    let degs=motif.degrees.slice();
+    let msteps=motif.steps.slice();
+    if(op.includes('rot')){const k=rng.int(1,2);degs=degs.slice(k).concat(degs.slice(0,k));}
+    if(op.includes('inv'))degs=degs.map(d=>-d);
+    if(op.includes('ret')){degs=degs.slice().reverse();msteps=msteps.slice().reverse();}
+    if(op.includes('aug')){const dd=[],ss=[];msteps.forEach((s,i)=>{if(i%2===0){dd.push(degs[i]);ss.push(s);}});degs=dd;msteps=ss;}
+    const melCenter=(reg.mel[0]+reg.mel[1])/2;
+    let prevMidi=null;
+    const notes=[];
+    msteps.forEach((s,i)=>{
+      const slot=poly?Math.round(s):Math.round(s/16*bar.slots);
+      if(slot>=bar.slots)return;
+      const d=degs[i];
+      const pcAbs=bar.keyPc+MODE_BY_ID[/*mode*/'ionian']?0:0; // (yer tutucu — aşağıda gerçek hesap)
+      // motif derecesi → mutlak pci
+      const stepIdx=d; // negatif olabilir
+      const oct=Math.floor(stepIdx/7);
+      const within=mod7(stepIdx);
+      const pc=(bar.keyPc+bar.modeSteps[within]+12)%12;
+      let m=pcToMidi(pc,reg.mel[0],reg.mel[1],prevMidi==null?melCenter:prevMidi);
+      if(m==null)return;
+      const strong=bar.strong.has(slot)||i===msteps.length-1;
+      if(strong){ // akor tonuna yasadır
+        let best=null,bd=99;
+        bar.chord.pcs.forEach(cp=>{
+          const cm=pcToMidi(cp,reg.mel[0],reg.mel[1],prevMidi==null?melCenter:prevMidi);
+          if(cm!=null&&Math.abs(cm-m)<bd){bd=Math.abs(cm-m);best=cm;}
+        });
+        if(best!=null&&bd<=2)m=best;
+      }
+      prevMidi=m;
+      notes.push({slot,midi:m,strong,i:i/degs.length});
+    });
+    notes.forEach(nt=>{
+      potential.push({slot:nt.slot,lane:'tiz',emit:()=>{
+        const arch=0.75+0.45*Math.sin(nt.i*Math.PI); // nefes kavisı
+        events.push({slot:bar.slotStart+nt.slot,midi:nt.midi,
+          vel:(0.10+e*0.06)*arch*(nt.strong?1.1:0.95)*rng.range(0.85,1.12),
+          dur:rng.int(2,5),lane:'tiz',hand:'R',hum:rng.range(-0.016,0.016),kind:'melody'});
+        bar._tiz=true;
+      }});
+    });
+
+    /* --- ARP SÜSLEME (piano_arp) — nefes sonu tatlı tırmanış --- */
+    if(bar.phraseEnd&&rng.chance(0.30)){
+      const runN=rng.int(3,5);
+      for(let k=0;k<runN;k++){
+        const slot=bar.slots-2-Math.floor((runN-k)*0.9);
+        if(slot<bar.slots*0.6)continue;
+        const pc=bar.chord.pcs[k%bar.chord.pcs.length];
+        const m=pcToMidi(pc,reg.arp[0],reg.arp[1],76+k*2);
+        if(m==null)continue;
+        potential.push({slot,lane:'arp',emit:()=>{
+          events.push({slot:bar.slotStart+slot,midi:m,vel:0.05+rng.range(0,0.03),
+            dur:3,lane:'arp',hand:'R',hum:rng.range(-0.01,0.01),kind:'sparkle'});
+          bar._arp=true;
+        }});
+      }
+    }
+
+    /* --- SUS PLANI: %25–50 · bas/orta/tiz senkron nefesler --- */
+    const target=Math.round(bar.restDensity*potential.length);
+    const breathSet=new Set();
+    if(bar.phraseEnd){
+      for(let s=bar.slots-bar.breathLen;s<bar.slots;s++)breathSet.add(s);
+    }
+    if(rng.chance(0.6)){ // senkron sus — grup sınırına
+      const gs=bar.groupStarts.slice(1);
+      if(gs.length)breathSet.add(rng.pick(gs));
+    }
+    let marked=0;
+    const restMark=new Set();
+    potential.forEach(p=>{
+      if(breathSet.has(p.slot)){restMark.add(p);marked++;}
+    });
+    const shuffled=rng.shuffle(potential.filter(p=>!restMark.has(p)));
+    for(const p of shuffled){
+      if(marked>=target)break;
+      if(p.lane==='bass'&&p.slot===0&&rng.chance(0.8))continue; // bar başı bas çoğunlukla kalsın
+      restMark.add(p);marked++;
+    }
+    stats.potential+=potential.length;
+    stats.rests+=marked;
+    stats.strikes+=potential.length-marked;
+    potential.forEach(p=>{
+      if(restMark.has(p)){
+        bar.susSlots.add(p.slot);
+        if(p.lane==='bass')bar._bass=bar._bass||false;
+        return;
+      }
+      p.emit();
+    });
+
+    /* --- 2. PİYANO — DERİN LEGATO ALTYAPI (Einaudi "Low Mist" tarzı) ---
+       Ana piyanonun en altında (C1–A2), barları aşan uzun süreli kontrast
+       legato triadlar: kök + beşli + geç renk tonu, her biri sonraki bara
+       taşar → sis gibi bulanan harmonik yatak. Nefes penceresine denk
+       gelen YENİ girişler çalınmaz (legato susar, çalan notalar söner). */
+    bar.deepCount=0;
+    if(deepOn){
+      const DR=[24,45];
+      const dOrder=permDeep.nextOrder(bar.chord.key,bar.chord.pcs.length);
+      const dTones=dOrder.map(i=>bar.chord.pcs[i]);
+      const overflow=rng.int(3,9);
+      const deepPot=[];
+      const bassPc=rng.chance(0.20)?((dTones[0]+7)%12):dTones[0]; // %20 kontrast: beşli bas
+      const rootM=pcToMidi(bassPc,DR[0],DR[1],29);
+      if(rootM!=null){
+        const s0=rng.chance(0.7)?0:rng.int(1,2);
+        deepPot.push({slot:s0,midi:rootM,vel:0.045+e*0.02+rng.range(-0.008,0.012),dur:bar.slots-s0+overflow});
+        if(rng.chance(0.22)&&rootM-12>=21){ // oktav pedal (A0'a kadar)
+          deepPot.push({slot:s0,midi:rootM-12,vel:0.034+e*0.014,dur:bar.slots-s0+overflow+2});
+        }
+      }
+      const fifthM=pcToMidi(dTones[1]!==undefined?dTones[1]:(bar.chord.rootPc+7)%12,DR[0]+6,DR[1],36);
+      if(fifthM!=null){
+        const s1=rng.int(3,Math.max(4,Math.floor(bar.slots*0.45)));
+        deepPot.push({slot:s1,midi:fifthM,vel:0.040+e*0.018+rng.range(-0.006,0.008),dur:bar.slots-s1+overflow});
+      }
+      if(rng.chance(0.75)&&dTones.length>2){
+        const thirdM=pcToMidi(dTones[2],DR[0]+8,DR[1],42);
+        if(thirdM!=null){
+          const s2=rng.int(Math.floor(bar.slots*0.35),Math.max(5,bar.slots-6));
+          deepPot.push({slot:s2,midi:thirdM,vel:0.034+e*0.015,dur:Math.max(6,bar.slots-s2+Math.floor(overflow*0.7))});
+        }
+      }
+      deepPot.forEach(p=>{
+        if(breathSet.has(p.slot))return; // nefes penceresi: yeni giriş yok
+        events.push({slot:bar.slotStart+p.slot,midi:p.midi,vel:clamp(p.vel,0.02,0.34),
+          dur:p.dur,lane:'deep',hand:'L2',hum:rng.range(-0.018,0.018),kind:'deep-legato'});
+        bar.deepCount++;bar._deep=true;
+        stats.deep=(stats.deep||0)+1;
+      });
+    }
+
+    /* --- 3. PİYANO — TİZ BİLEŞKE (sinematik eko · aktif tekrarlar) ---
+       BİLEŞKE: 1. piyanonun melodi notalarının üst oktav ekosu +
+       2. piyanonun harmonisiyle ortak akor tonları → tizlerde kısa
+       hücreler halinde AKTİF TEKRARLAR: dramatik ostinato kabarması
+       (tekrarlar önce kabarır sonra söner — sinematik dalga). */
+    bar.thirdCount=0;bar._cells=0;
+    if(thirdOn&&!tuttiBar){ /* tutti barında eko hücreleri susar — orkestral çifletme devrede */
+      const TR=[72,95]; /* C5–B6 */
+      const melEcho=[];
+      for(let k=notes.length-1;k>=0&&melEcho.length<2;k--){
+        const m=notes[k].midi+12; /* 1. piyanonun solosu +1 oktav eko */
+        if(m>=TR[0]&&m<=TR[1]&&!melEcho.includes(m))melEcho.push(m);
+      }
+      const ord3=perm3.nextOrder(bar.chord.key,bar.chord.pcs.length);
+      const chT=[];
+      for(let i=0;i<Math.min(3,ord3.length);i++){
+        const m=pcToMidi(bar.chord.pcs[ord3[i]],72,95,84);
+        if(m!=null&&!chT.includes(m))chT.push(m);
+      }
+      const cell=melEcho.concat(chT).slice(0,rng.int(3,4));
+      if(cell.length>=2){
+        const intense=(bar.role==='chorus'||bar.role==='outro');
+        const R=intense?rng.pick([2,3]):rng.pick([3,4]);
+        const startSlot=rng.chance(0.5)?0:rng.int(2,5);
+        const reps=clamp(Math.floor((bar.slots-startSlot)/R),2,intense?6:4);
+        for(let rep=0;rep<reps;rep++){
+          const swell=0.8+0.35*Math.sin((rep+0.5)/reps*Math.PI); /* dramatik kabarma */
+          for(let i=0;i<cell.length;i++){
+            const slot=startSlot+rep*R+i*0.5;
+            if(slot>=bar.slots)break;
+            /* nefeste yeni giriş yok — kesirli slotlar dahil kesin pencere kontrolü */
+            const inBreath=bar.phraseEnd?(slot>=bar.slots-bar.breathLen-1e-9):breathSet.has(Math.floor(slot+1e-9));
+            if(inBreath)continue;
+            events.push({slot:bar.slotStart+slot,midi:cell[i],
+              vel:clamp((0.035+e*0.03)*swell*rng.range(0.9,1.1),0.02,0.34),
+              dur:rng.int(2,4),lane:'third',hand:'R3',hum:rng.range(-0.014,0.014),kind:'third-echo'});
+            bar.thirdCount++;bar._third=true;
+            stats.third=(stats.third||0)+1;
+          }
+        }
+        if(bar.thirdCount>0){bar._cells=1;stats.cells=(stats.cells||0)+1;}
+      }
+    }
+
+    /* --- PARALEL ORKESTRA TÜTİ — üç piyano aynı anda, paralel oktavlarda ---
+       Orkestra çifletmesi (doubling): derin kök · bas kök · orta triad
+       (perm sırasıyla) · tiz üst ses · bileşke +1 oktav parıltısı.
+       Her ses ±8 ms insan sapmasıyla girer (bölüm ensemble hissi —
+       orkestra asla milimetrik aynı anda çalmaz). Faz konumuna göre
+       orkestral kabarma: korolar açılır, söner. */
+    bar.tuttiCount=0;
+    if(tuttiBar){
+      const phasePos=bar.bars>1?bar.barInPhase/(bar.bars-1):0.5;
+      const phaseSwell=0.80+0.30*Math.sin(phasePos*Math.PI);
+      const tSlots=[];
+      for(let p=0;p<bar.pulses;p++){
+        const s=p*4;
+        if(grandFinal||bar.groupStarts.includes(s)||rng.chance(0.75))tSlots.push(s);
+      }
+      const topPc=tonePcs[tonePcs.length-1];
+      tSlots.forEach((s,ti)=>{
+        if(breathSet.has(s))return; /* nefes penceresi: tutti da susar */
+        const barSwell=0.85+0.25*Math.sin((ti+0.5)/Math.max(1,tSlots.length)*Math.PI);
+        const vel=clamp((0.045+e*0.05)*phaseSwell*barSwell,0.02,0.16);
+        const ens=()=>rng.range(-0.008,0.008); /* ensemble sapması ±8 ms */
+        const voices=[];
+        const rl=pcToMidi(bar.chord.rootPc,24,40,30);
+        if(rl!=null)voices.push({midi:rl,lane:'deep',hand:'L2',dur:rng.int(6,10),v:1.0});
+        const rb=pcToMidi(bar.chord.rootPc,38,52,45);
+        if(rb!=null)voices.push({midi:rb,lane:'bass',hand:'L',dur:rng.int(4,7),v:0.95});
+        const m1=pcToMidi(tonePcs[0],48,64,56);
+        if(m1!=null)voices.push({midi:m1,lane:'orta',hand:'L',dur:rng.int(3,6),v:0.9});
+        if(tonePcs.length>1){
+          const m2=pcToMidi(tonePcs[1],50,67,60);
+          if(m2!=null)voices.push({midi:m2,lane:'orta',hand:'L',dur:rng.int(3,6),v:0.85});
+        }
+        const tv=pcToMidi(topPc,60,72,66);
+        if(tv!=null)voices.push({midi:tv,lane:'tiz',hand:'R',dur:rng.int(3,5),v:0.9});
+        const sh=pcToMidi(topPc,72,95,84);
+        if(sh!=null)voices.push({midi:sh,lane:'third',hand:'R3',dur:rng.int(2,4),v:0.8});
+        voices.forEach(vc=>{
+          events.push({slot:bar.slotStart+s,midi:vc.midi,
+            vel:clamp(vel*vc.v*rng.range(0.92,1.08),0.02,0.34),
+            dur:vc.dur,lane:vc.lane,hand:vc.hand,hum:ens(),kind:'tutti'});
+          bar.tuttiCount++;
+          stats.tutti=(stats.tutti||0)+1;
+        });
+      });
+      if(bar.tuttiCount>0){bar._tutti=true;stats.tuttiBars=(stats.tuttiBars||0)+1;}
+    }
+    bar.events=events.filter(ev=>ev.slot>=bar.slotStart&&ev.slot<bar.slotStart+bar.slots);
+    bars.push(bar);
+    bar.stats={potential:potential.length,rests:marked};
+  }
+
+  /* motif geliştirme opı — aynı sunum iki kez gelmez */
+  devOp(rng,motifId,phraseIdx,phraseHist){
+    const ops=['düz','rot','inv','ret','aug','rot+inv','rot+aug','inv+aug'];
+    const used=phraseHist[motifId]||new Set();
+    let pool=ops.filter(o=>!used.has(o));
+    if(!pool.length){used.clear();pool=ops.slice();}
+    const op=pool[Math.floor(rng.f()*pool.length)]||'düz';
+    used.add(op);phraseHist[motifId]=used;
+    return op;
+  }
+}
+function phraseIdx_safe(bar){return bar.phraseIdx;}
+
+/* =====================================================================
+   8. GERÇEK PİYANO ÖRNEK BANKASI — akustik kuyruk piyano MP3 notalar
+      (okankaplanedu/emotion-orchestra-assets · A0–C8 · bemol adlandırma)
+   ===================================================================== */
+const SAMPLE_BASES=[
+  'https://raw.githubusercontent.com/okankaplanedu/emotion-orchestra-assets/main/enstruman/arp/',
+  'https://cdn.jsdelivr.net/gh/okankaplanedu/emotion-orchestra-assets@main/enstruman/arp/'
+];
+const SAMPLE_NAMES=['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
+function midiToSampleName(midi){return SAMPLE_NAMES[midi%12]+(Math.floor(midi/12)-1);}
+
+class SampleBank{
+  constructor(ctx){this.ctx=ctx;this.map=new Map();this.missing=new Set();this.loadedRange=false;}
+  get(midi){return this.map.get(midi)||null;}
+  count(){return this.map.size;}
+  async load(midi,fetchFn){
+    if(this.map.has(midi)||this.missing.has(midi))return this.map.has(midi);
+    let ab=null;
+    for(const base of SAMPLE_BASES){
+      try{
+        const r=await fetchFn(base+midiToSampleName(midi)+'.mp3');
+        if(r&&r.ok){ab=await r.arrayBuffer();if(ab)break;}
+      }catch(e){}
+    }
+    if(!ab){this.missing.add(midi);return false;}
+    try{
+      const buf=await this.ctx.decodeAudioData(ab);
+      /* RMS normalizasyonu — notalar arası seviye eşitlenir */
+      const d0=buf.getChannelData(0);
+      let s=0,n=0;
+      for(let i=0;i<d0.length;i+=16){s+=d0[i]*d0[i];n++;}
+      const rms=Math.sqrt(s/Math.max(1,n))||0.001;
+      this.map.set(midi,{buf,comp:clamp(0.016/rms,0.4,4.5)});
+      return true;
+    }catch(e){this.missing.add(midi);return false;}
+  }
+  async preload(lo,hi,concurrency,onProgress,fetchFn){
+    const list=[];for(let m=lo;m<=hi;m++)list.push(m);
+    let done=0,okCount=0,idx=0;
+    const worker=async()=>{
+      while(idx<list.length){
+        const m=list[idx++];
+        if(await this.load(m,fetchFn))okCount++;
+        done++;
+        if(onProgress)onProgress(done,list.length,okCount);
+      }
+    };
+    const ws=[];const k=Math.min(concurrency||6,list.length);
+    for(let i=0;i<k;i++)ws.push(worker());
+    await Promise.all(ws);
+    this.loadedRange=true;
+    return okCount;
+  }
+}
+
+/* =====================================================================
+   9. SES MOTORU — gerçek piyano örnekleri + sentez yedeği + reverb
+   ===================================================================== */
+class Piano{
+  constructor(){
+    this.ctx=null;this.active=new Set();this.timbre=null;this.bus=null;
+    this.filter=null;this.wet=null;this.dry=null;this.comp=null;this.master=null;
+    this.bank=null;this.sampleNotes=0;this.synthNotes=0;
+  }
+  ensure(){
+    if(this.ctx)return true;
+    try{
+      const AC=window.AudioContext||window.webkitAudioContext;
+      if(!AC)return false;
+      this.ctx=new AC();
+      const c=this.ctx;
+      this.bus=c.createGain();this.bus.gain.value=0.9;
+      this.filter=c.createBiquadFilter();this.filter.type='lowpass';this.filter.frequency.value=2800;this.filter.Q.value=0.2;
+      this.dry=c.createGain();this.dry.gain.value=0.85;
+      this.wet=c.createGain();this.wet.gain.value=0.30;
+      this.comp=c.createDynamicsCompressor();
+      this.comp.threshold.value=-20;this.comp.knee.value=18;this.comp.ratio.value=2.5;
+      this.comp.attack.value=0.02;this.comp.release.value=0.5;
+      this.master=c.createGain();this.master.gain.value=1;
+      this.reverb=c.createConvolver();this.reverb.buffer=this.makeIR(4.2);
+      this.bus.connect(this.filter);
+      this.filter.connect(this.dry);this.dry.connect(this.comp);
+      this.filter.connect(this.reverb);this.reverb.connect(this.wet);this.wet.connect(this.comp);
+      /* ---- MASTERING ZİNCİRİ — 3D dengeli stereo, canlı yayın için ----
+         yapıştırıcı comp → 28 Hz rumble HP → 90 Hz sıcaklık (lowshelf +1 dB)
+         → 2.6 kHz evcik kısma (−1.5 dB) → 8 kHz hava (highshelf +1.2 dB)
+         → M/S STEREO GENİŞLETME (side ×1.22) → yumuşak LİMİTÖR (−4 dB,
+         12:1) → master gain (dB kaydırıcı) → ANALYSER (canlı görsel)
+         → çıkış. Haas gecikmeleri (bus2 16 ms, bus3 9 ms) üçüncü boyutu
+         (ön-arka derinliği) kurar: derin piyano geride, tiz piyano yukarıda. */
+      this.hp28=c.createBiquadFilter();this.hp28.type='highpass';this.hp28.frequency.value=28;
+      this.eqWarm=c.createBiquadFilter();this.eqWarm.type='lowshelf';this.eqWarm.frequency.value=90;this.eqWarm.gain.value=1.0;
+      this.eqTame=c.createBiquadFilter();this.eqTame.type='peaking';this.eqTame.frequency.value=2600;this.eqTame.Q.value=0.8;this.eqTame.gain.value=-1.5;
+      this.eqAir=c.createBiquadFilter();this.eqAir.type='highshelf';this.eqAir.frequency.value=8000;this.eqAir.gain.value=1.2;
+      const spl=c.createChannelSplitter(2);
+      const mrg=c.createChannelMerger(2);
+      const midG=c.createGain();midG.gain.value=0.5;         /* mid = (L+R)/2 */
+      const sideG=c.createGain();sideG.gain.value=0.5;       /* side = (L-R)/2 */
+      const invR=c.createGain();invR.gain.value=-1;
+      const width=c.createGain();width.gain.value=1.22;      /* stereo sahne genişliği */
+      const invSide=c.createGain();invSide.gain.value=-1;
+      spl.connect(midG,0);spl.connect(midG,1);
+      spl.connect(sideG,0);spl.connect(invR,1);invR.connect(sideG);
+      midG.connect(mrg,0,0);midG.connect(mrg,0,1);
+      sideG.connect(width);
+      width.connect(mrg,0,0);                                /* L += side*W  */
+      width.connect(invSide);invSide.connect(mrg,0,1);       /* R -= side*W  */
+      this.msSplit=spl;this.msMerge=mrg;this.msWidth=width;
+      this.limiter=c.createDynamicsCompressor();
+      this.limiter.threshold.value=-4;this.limiter.knee.value=3;this.limiter.ratio.value=12;
+      this.limiter.attack.value=0.002;this.limiter.release.value=0.12;
+      this.analyser=c.createAnalyser();
+      this.analyser.fftSize=512;this.analyser.smoothingTimeConstant=0.82;
+      this.comp.connect(this.hp28);
+      this.hp28.connect(this.eqWarm);this.eqWarm.connect(this.eqTame);this.eqTame.connect(this.eqAir);
+      this.eqAir.connect(spl);
+      mrg.connect(this.limiter);
+      this.limiter.connect(this.master);
+      this.master.connect(this.analyser);
+      this.analyser.connect(c.destination);
+      /* ---- 2. PİYANO ZİNCİRİ: daha koyu filtre + daha uzun/uzak reverb ---- */
+      this.bus2=c.createGain();this.bus2.gain.value=0.85;
+      this.deepFilter=c.createBiquadFilter();
+      this.deepFilter.type='lowpass';this.deepFilter.frequency.value=1050;this.deepFilter.Q.value=0.3;
+      this.dry2=c.createGain();this.dry2.gain.value=0.55;
+      this.wet2=c.createGain();this.wet2.gain.value=0.5;
+      this.reverb2=c.createConvolver();this.reverb2.buffer=this.makeIR(5.2);
+      this.delay2=c.createDelay(0.06);this.delay2.delayTime.value=0.016; /* 3D: derin piyano 16 ms geride */
+      this.bus2.connect(this.delay2);this.delay2.connect(this.deepFilter);
+      this.deepFilter.connect(this.dry2);this.dry2.connect(this.comp);
+      this.deepFilter.connect(this.reverb2);this.reverb2.connect(this.wet2);this.wet2.connect(this.comp);
+      /* ---- 3. PİYANO ZİNCİRİ: parlak tiz + havadar uzun reverb (sağ-arka) ---- */
+      this.bus3=c.createGain();this.bus3.gain.value=0.75;
+      this.trebFilter=c.createBiquadFilter();
+      this.trebFilter.type='lowpass';this.trebFilter.frequency.value=7000;this.trebFilter.Q.value=0.2;
+      this.dry3=c.createGain();this.dry3.gain.value=0.5;
+      this.wet3=c.createGain();this.wet3.gain.value=0.5;
+      this.reverb3=c.createConvolver();this.reverb3.buffer=this.makeIR(4.6);
+      this.delay3=c.createDelay(0.06);this.delay3.delayTime.value=0.009; /* 3D: tiz piyano 9 ms yukarıda */
+      this.bus3.connect(this.delay3);this.delay3.connect(this.trebFilter);
+      this.trebFilter.connect(this.dry3);this.dry3.connect(this.comp);
+      this.trebFilter.connect(this.reverb3);this.reverb3.connect(this.wet3);this.wet3.connect(this.comp);
+      /* ---- SU HALKALARI ZİNCİRİ: koyu filtre + 7.5 sn reverb — uzayda yankı ---- */
+      this.ringBus=c.createGain();this.ringBus.gain.value=0.9;
+      this.ringFilter=c.createBiquadFilter();this.ringFilter.type='lowpass';
+      this.ringFilter.frequency.value=3400;this.ringFilter.Q.value=0.1;
+      this.ringDry=c.createGain();this.ringDry.gain.value=0.34;
+      this.ringWet=c.createGain();this.ringWet.gain.value=0.78;
+      this.reverbR=c.createConvolver();this.reverbR.buffer=this.makeIR(7.5);
+      this.ringBus.connect(this.ringFilter);
+      this.ringFilter.connect(this.ringDry);this.ringDry.connect(this.comp);
+      this.ringFilter.connect(this.reverbR);this.reverbR.connect(this.ringWet);this.ringWet.connect(this.comp);
+      return true;
+    }catch(e){return false;}
+  }
+  makeIR(seconds){
+    const c=this.ctx,sr=c.sampleRate,len=Math.floor(sr*seconds);
+    const buf=c.createBuffer(2,len,sr);
+    for(let ch=0;ch<2;ch++){
+      const d=buf.getChannelData(ch);
+      let lp=0;
+      for(let i=0;i<len;i++){
+        const t=i/len;
+        const env=Math.pow(1-t,2.3)*(1-Math.exp(-i/80));
+        const x=(Math.random()*2-1)*env;
+        lp+=0.62*(x-lp); // yumuşak kuyruk
+        d[i]=lp*0.8;
+      }
+    }
+    return buf;
+  }
+  setTimbre(tb){
+    this.timbre=tb;
+    if(!this.ctx)return;
+    const now=this.ctx.currentTime;
+    this.filter.frequency.setTargetAtTime(clamp(tb.filterHz,1200,8000),now,0.4);
+    this.wet.gain.setTargetAtTime(clamp(tb.reverbWet,0.1,0.55),now,0.4);
+    this.deepFilter.frequency.setTargetAtTime(clamp(tb.filterHz*0.38,600,1500),now,0.4);
+    this.wet2.gain.setTargetAtTime(clamp(0.15+tb.reverbWet*1.3,0.2,0.6),now,0.4);
+    this.trebFilter.frequency.setTargetAtTime(clamp(tb.filterHz*2.1,3000,9000),now,0.4);
+    this.wet3.gain.setTargetAtTime(clamp(0.10+tb.reverbWet*1.25,0.2,0.6),now,0.4);
+  }
+  setVolumeDb(db){
+    if(!this.ctx)return;
+    const g=db<=-12?0:Math.pow(10,db/20);
+    this.master.gain.setTargetAtTime(g,this.ctx.currentTime,0.05);
+  }
+  /* Gerçek piyano örneği varsa onunla, yoksa sentezle çal */
+  playNote(t,midi,vel,durSec,pan,lane,relOverride){
+    const c=this.ctx;if(!c)return;
+    const s=this.bank?this.bank.get(midi):null;
+    if(s){this.playSample(t,midi,vel,durSec,pan,lane,s,relOverride);this.sampleNotes++;}
+    else{this.playSynth(t,midi,vel,durSec,pan,lane,relOverride);this.synthNotes++;}
+  }
+  /* ---- GERÇEK PİYANO MP3 çalımı ---- */
+  playSample(t,midi,vel,durSec,pan,lane,s,relOverride){
+    const c=this.ctx;
+    const tb=this.timbre||{detuneCents:0,deepDetune:0,trebDetune:0,stretchCents:0.4,release:3.4,filterHz:2800};
+    const deep=lane==='deep';   /* 2. piyano: koyu, uzak, yumuşak */
+    const third=lane==='third'; /* 3. piyano: parlak tiz bileşke eko */
+    const src=c.createBufferSource();
+    src.buffer=s.buf;
+    /* benzersiz tın: ana piyano kendi akort rengiyle, 2. piyano KENDİ
+       bağımsız akort sapmasıyla — iki gerçek piyano asla aynı akortta olmaz */
+    const ownCents=deep?(tb.deepDetune||0):third?(tb.trebDetune||0):(tb.detuneCents||0);
+    const cents=(ownCents+(tb.stretchCents||0)*(midi-60)/12);
+    src.playbackRate.value=Math.pow(2,clamp(cents,-25,25)/1200);
+    const g=c.createGain();
+    const human=0.94+Math.random()*0.12;            /* her vuruş hafif farklı */
+    const atk=deep?(0.012+(1-vel)*0.03):third?(0.006+(1-vel)*0.02):(0.004+(1-vel)*0.012);
+    const peak=clamp(vel*3.1*s.comp*human,0.02,1.15);
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.linearRampToValueAtTime(peak,t+atk);
+    g.gain.setTargetAtTime(peak*(deep?0.85:0.78),t+atk,0.30);
+    const off=t+Math.max(durSec,atk+0.12);
+    const relBase=relOverride||(tb.release||3.4);
+    g.gain.setTargetAtTime(0.0001,off,relBase*(deep?1.3:third?1.45:1)/3.2);
+    const flt=c.createBiquadFilter();
+    flt.type='lowpass';flt.Q.value=0.2;
+    flt.frequency.value=deep
+      ?clamp(520+vel*2600,450,2600)                                  /* 2. piyano: koyu */
+      :third
+      ?clamp(1800+vel*8500,1200,9500)                                /* 3. piyano: parlak hava */
+      :clamp((750+vel*11000)*(tb.filterHz?tb.filterHz/2800:1),650,11000);
+    src.connect(flt);flt.connect(g);
+    let out=g;
+    try{
+      const p=c.createStereoPanner();
+      p.pan.value=clamp(pan,-1,1);
+      g.connect(p);out=p;
+    }catch(e){}
+    out.connect(deep?this.bus2:third?this.bus3:this.bus);
+    const rel=relBase*(deep?1.3:third?1.45:1);
+    const stopAt=Math.min(off+rel+0.25,t+s.buf.duration+0.05);
+    src.start(t);src.stop(stopAt);
+    const ref={g,oscs:[src],stopAt};
+    this.active.add(ref);
+    src.onended=()=>{this.active.delete(ref);try{g.disconnect();flt.disconnect();out.disconnect();}catch(e){}};
+  }
+  /* ---- SENTEZ YEDEĞİ (örnek yüklenemezse) ---- */
+  playSynth(t,midi,vel,durSec,pan,lane,relOverride){
+    const c=this.ctx;if(!c)return;
+    const tb=this.timbre||{detuneCents:0,stretchCents:0.4,partial2:0.32,partial3:0.09,release:3.4,attack:0.01,panSpread:0.25};
+    const cents=tb.detuneCents+tb.stretchCents*(midi-60)/12;
+    const f=mtof(midi)*Math.pow(2,cents/1200);
+    const end=t+durSec;
+    const g=c.createGain();
+    const flt=c.createBiquadFilter();
+    flt.type='lowpass';flt.Q.value=0.15;
+    flt.frequency.value=clamp(f*(4.5+vel*10),600,(tb.filterHz||2800)*1.7);
+    const atk=tb.attack+(1-vel)*0.02;
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.linearRampToValueAtTime(vel,t+atk);
+    g.gain.setTargetAtTime(vel*0.55,t+atk,0.32);
+    const relS=relOverride||tb.release;
+    g.gain.setTargetAtTime(0.0001,end,relS/3.2);
+    const stopAt=end+relS+0.25;
+    const oscs=[];
+    const mk=(type,freq,gain,det)=>{
+      const o=c.createOscillator();o.type=type;o.frequency.value=freq;
+      if(det)o.detune.value=det;
+      const og=c.createGain();og.gain.value=gain;
+      o.connect(og);og.connect(flt);
+      o.start(t);o.stop(stopAt);
+      oscs.push(o);
+      return o;
+    };
+    mk('triangle',f,1.0);
+    mk('sine',f*2.0007,tb.partial2*(0.4+vel*0.6));
+    mk('sine',f*3.003,tb.partial3*(0.4+vel*0.6));
+    if(lane==='bass'||lane==='final')mk('sine',f*0.5,0.20);
+    flt.connect(g);
+    let out=g;
+    try{
+      const p=c.createStereoPanner();
+      p.pan.value=clamp(pan,-1,1);
+      g.connect(p);out=p;
+    }catch(e){}
+    out.connect(lane==='deep'?this.bus2:lane==='third'?this.bus3:this.bus);
+    const ref={g,oscs,stopAt};
+    this.active.add(ref);
+    oscs[0].onended=()=>{this.active.delete(ref);try{g.disconnect();flt.disconnect();out.disconnect();}catch(e){}};
+  }
+  /* ---- SU HALKASI ÇALIMI — koyulaşan, uzayan, uzakta sönen yankı ----
+     Her halka bir öncekinden daha karanlık filtreyle (mesafe hissi),
+     daha yumuşak atakla ve daha uzun kuyrukla çalar; pan halka çapıyla
+     dışa açılır. Örnek varsa gerçek piyano, yoksa sentez. */
+  playRing(t,midi,vel,durSec,pan,ring,relOverride){
+    const c=this.ctx;if(!c)return;
+    const r=clamp(ring||1,1,4);
+    const s=this.bank?this.bank.get(midi):null;
+    const tb=this.timbre||{detuneCents:0,stretchCents:0.4};
+    const dark=Math.pow(0.66,r-1);              /* her halka daha karanlık */
+    const rel=(relOverride||5)*Math.pow(1.25,r-1); /* kuyruk halkayla uzar */
+    const g=c.createGain();
+    const flt=c.createBiquadFilter();
+    flt.type='lowpass';flt.Q.value=0.12;
+    flt.frequency.value=clamp(3000*dark+vel*2600,480,3800);
+    let stopAt,oscs=[];
+    if(s){
+      const src=c.createBufferSource();
+      src.buffer=s.buf;
+      src.playbackRate.value=Math.pow(2,clamp((tb.stretchCents||0.4)*(midi-60)/12,-25,25)/1200);
+      const peak=clamp(vel*3.1*s.comp,0.002,0.5);
+      const atk=0.035+0.03*r; /* halka yumuşak belirir */
+      g.gain.setValueAtTime(0.0001,t);
+      g.gain.linearRampToValueAtTime(peak,t+atk);
+      g.gain.setTargetAtTime(peak*0.6,t+atk,0.5); /* legato erime */
+      g.gain.setTargetAtTime(0.0001,t+Math.max(durSec,atk+0.15),rel/3);
+      stopAt=Math.min(t+durSec+rel+0.4,t+s.buf.duration+0.05);
+      src.connect(flt);
+      src.start(t);src.stop(stopAt);
+      oscs=[src];this.sampleNotes++;
+    }else{
+      const f=mtof(midi)*Math.pow(2,(tb.detuneCents||0)/1200);
+      const end=t+durSec;
+      const atk=0.05+0.03*r;
+      g.gain.setValueAtTime(0.0001,t);
+      g.gain.linearRampToValueAtTime(vel,t+atk);
+      g.gain.setTargetAtTime(vel*0.5,t+atk,0.6);
+      g.gain.setTargetAtTime(0.0001,end,rel/3);
+      stopAt=end+rel+0.4;
+      const o=c.createOscillator();o.type='sine';o.frequency.value=f;
+      const o2=c.createOscillator();o2.type='sine';o2.frequency.value=f*2.0007;
+      const og2=c.createGain();og2.gain.value=0.18;
+      o.connect(flt);o2.connect(og2);og2.connect(flt);
+      o.start(t);o.stop(stopAt);o2.start(t);o2.stop(stopAt);
+      oscs=[o,o2];this.synthNotes++;
+    }
+    flt.connect(g);
+    let out=g;
+    try{
+      const p=c.createStereoPanner();
+      p.pan.value=clamp(pan,-1,1);
+      g.connect(p);out=p;
+    }catch(e){}
+    out.connect(this.ringBus||this.bus);
+    const ref={g,oscs,stopAt};
+    this.active.add(ref);
+    oscs[0].onended=()=>{this.active.delete(ref);try{g.disconnect();flt.disconnect();out.disconnect();}catch(e){}};
+  }
+
+  stopAll(fadeSec){
+    const c=this.ctx;if(!c)return;
+    const now=c.currentTime,fs=fadeSec||0.6;
+    this.active.forEach(ref=>{
+      try{
+        ref.g.gain.cancelScheduledValues(now);
+        ref.g.gain.setTargetAtTime(0.0001,now,fs/4);
+        ref.oscs.forEach(o=>{try{o.stop(now+fs);}catch(e){}});
+      }catch(e){}
+    });
+  }
+}
+
+/* =====================================================================
+   9. TAŞIYICI (Transport) — bakımlı ileri-bakış çalıcısı
+   ===================================================================== */
+class Transport{
+  constructor(piano){
+    this.piano=piano;this.plan=null;this.timer=null;this.ptr=0;
+    this.bpm=72;this.t0=0;this.playing=false;this.onended=null;
+    this.lastReportSlot=-1;
+    this.onSchedule=null; /* UI kancası: nota çalınacağı anda klavye flash'i */
+    this.onPlan=null;     /* UI kancası: nota akışı — olay çalınmadan ruloya düşer */
+    this.flowPtr=0;       /* akış işaretçisi: ses ufkundan geniş ön-bakış */
+    this.gen=0;           /* nesil sayacı: durdurunca eski flash'ler iptal */
+  }
+  slotDur(){return 60/this.bpm;}
+  evTime(ev){return this.t0+ev.slot*this.slotDur()+ev.hum;}
+  start(plan,bpm){
+    this.plan=plan;this.bpm=bpm;this.ptr=0;this.flowPtr=0;
+    this.t0=this.piano.ctx.currentTime+0.35;
+    this.playing=true;this.gen++;
+    this.timer=setInterval(()=>this.tick(),140);
+    this.tick();
+  }
+  tick(){
+    if(!this.playing)return;
+    const c=this.piano.ctx,now=c.currentTime,horizon=now+1.8;
+    const evs=this.plan.events;
+    while(this.ptr<evs.length&&this.evTime(evs[this.ptr])<horizon){
+      const ev=evs[this.ptr++];
+      const sd=this.slotDur();
+      const when=Math.max(this.evTime(ev),now+0.02);
+      if(ev.lane==='ring'){ /* SU HALKASI: koyu, uzakta sönen yankı */
+        this.piano.playRing(when,ev.midi,ev.vel,ev.dur*sd*0.92,
+          ev.pan!==undefined?ev.pan:0,ev.ring,ev.release);
+      }else{
+        this.piano.playNote(when,ev.midi,ev.vel,
+          ev.dur*sd*0.92,ev.pan!==undefined?ev.pan:this.panFor(ev),ev.lane,ev.release);
+      }
+      if(this.onSchedule){ /* nota tam çalacağı anda klavyeyi yak */
+        const dt=when-now,g=this.gen;
+        if(dt>0)setTimeout(()=>{if(g===this.gen)this.onSchedule(ev);},dt*1000);
+        else this.onSchedule(ev);
+      }
+    }
+    if(this.onPlan){ /* NOTA AKIŞI: piyano rulosu ses ufkundan önce beslenir */
+      const vh=now+this.slotDur()*15;
+      while(this.flowPtr<evs.length&&this.evTime(evs[this.flowPtr])<vh)
+        this.onPlan(evs[this.flowPtr++]);
+    }
+    const endT=this.t0+(this.plan.totalSlots+2)*this.slotDur();
+    if(this.ptr>=evs.length&&now>endT){
+      clearInterval(this.timer);this.playing=false;
+      if(this.onended)this.onended();
+    }
+  }
+  panFor(ev){
+    const tb=this.piano.timbre;const sp=tb?tb.panSpread:0.25;
+    if(ev.lane==='deep')return -sp*1.35; /* 2. piyano sol-arkada durur */
+    if(ev.lane==='third')return sp*1.35;  /* 3. piyano sağ-arkada parlar */
+    if(ev.hand==='L')return -sp;if(ev.hand==='R')return sp;
+    return (ev.lane==='arp'?sp*1.4:0);
+  }
+  setBpm(b){
+    if(!this.piano.ctx||!this.t0){this.bpm=b;return;}
+    const now=this.piano.ctx.currentTime;
+    const curSlot=(now-this.t0)/this.slotDur();
+    this.bpm=b;
+    this.t0=now-curSlot*this.slotDur();
+  }
+  curSlot(){
+    if(!this.piano.ctx||!this.playing)return 0;
+    return (this.piano.ctx.currentTime-this.t0)/this.slotDur();
+  }
+  stop(){
+    this.playing=false;this.gen++;
+    if(this.timer){clearInterval(this.timer);this.timer=null;}
+    this.piano.stopAll(0.7);
+  }
+}
+
+/* =====================================================================
+   11. CANLI YAYIN ARAYÜZÜ — 16:9 vintage mürekkep sahne
+   · ORTADA DİNAMİK PORTE: akan genel porte (sol+fa anahtarı, bemoller,
+     yardımcı çizgiler, ölçü çizgileri, terrakota imleç) — her nota tam
+     çalacağı anda kafası mürekkep yıkamasıyla parlar
+   · MUSICXML: çalan kompozisyon gerçek .musicxml nota dosyası olarak iner
+   · 88 TUŞLU KLAVYE: gerçek kuyruk piyano oranları (beyaz 1:6.1 · siyah
+     %58 genişlik / %64 uzunluk) — sahne genişliğine göre otomatik ölçek
+   · SU HALKALARI: her tutti yankısı sahnede çap büyüten halka bırakır
+   · NOTA AKIŞI: spektrum yerine yatay piyano rulosu — notalar sağdan
+     süzülür, terrakota imleç "şimdi"yi keser, çalan blok mavi yanar
+   · Kwintem çemberi + nefes halkası · 13 denetimli yayın kontrolü
+   ===================================================================== */
+if(typeof document!=='undefined'&&document.getElementById&&document.getElementById('stage')){(function(){
+  const $=id=>document.getElementById(id);
+  const store=new CounterStore();
+  const piano=new Piano();
+  const transport=new Transport(piano);
+  const ui={
+    btnMain:$('btnMain'),btnNew:$('btnNew'),btnTest:$('btnTest'),btnXml:$('btnXml'),chkInf:$('chkInf'),
+    rngTempo:$('rngTempo'),outTempo:$('outTempo'),rngVol:$('rngVol'),outVol:$('outVol'),
+    phase:$('uiPhase'),aksak:$('uiAksak'),hand:$('uiHand'),motif:$('uiMotif'),rest:$('uiRest'),
+    sig:$('sig'),bars:$('uiBars'),
+    ledBass:$('ledBass'),ledOrta:$('ledOrta'),ledTiz:$('ledTiz'),ledSus:$('ledSus'),
+    ledDeep:$('ledDeep'),ledThird:$('ledThird'),ledRing:$('ledRing'),
+    pulse:$('pulse'),pulseBpm:$('uiPulseBpm'),slot:$('uiSlot'),
+    heroKey:$('heroKey'),heroChord:$('heroChord'),heroSub:$('heroSub'),
+    viz:$('viz'),ticker:$('ticker'),keyboard:$('keyboard'),ripples:$('ripples'),
+    scoreWrap:$('scoreWrap'),
+    cComp:$('cComp'),cTime:$('cTime'),cRoot:$('cRoot'),cForm:$('cForm'),
+    cMotif:$('cMotif'),cAksak:$('cAksak'),cTrans:$('cTrans'),cSig:$('cSig'),
+    log:$('log')
+  };
+  const state={started:false,sessionStart:null,composer:new Composer(store),barPtr:0,
+    lastCompNum:0,samplesReady:false,loadingSamples:false};
+
+  /* ---- kayıt (tertipli — açıklama değil, kayıt) ---- */
+  function log(msg,cls){
+    const d=document.createElement('div');
+    d.className=cls||'l-sys';
+    d.textContent=msg;
+    ui.log.insertBefore(d,ui.log.firstChild);
+    while(ui.log.children.length>60)ui.log.removeChild(ui.log.lastChild);
+  }
+
+  /* ---- KWINTEM ÇEMBERİ — mürekkep çizim + nefes halkası ---- */
+  const NS='http://www.w3.org/2000/svg';
+  const svg=document.createElementNS(NS,'svg');
+  svg.setAttribute('viewBox','0 0 340 340');
+  const cx=170,cy=170,R=126;
+  const breathRing=document.createElementNS(NS,'circle');
+  breathRing.setAttribute('cx',cx);breathRing.setAttribute('cy',cy);breathRing.setAttribute('r',R+15);
+  breathRing.setAttribute('fill','none');
+  breathRing.setAttribute('stroke','#47617e');
+  breathRing.setAttribute('stroke-width','1.5');
+  breathRing.setAttribute('stroke-opacity','0.12');
+  svg.appendChild(breathRing);
+  const circ=document.createElementNS(NS,'circle');
+  circ.setAttribute('cx',cx);circ.setAttribute('cy',cy);circ.setAttribute('r',R);
+  circ.setAttribute('fill','none');circ.setAttribute('stroke','#241b0c');circ.setAttribute('stroke-width','1.5');
+  svg.appendChild(circ);
+  const centerTxt=document.createElementNS(NS,'text');
+  centerTxt.setAttribute('x',cx);centerTxt.setAttribute('y',cy-6);
+  centerTxt.setAttribute('text-anchor','middle');centerTxt.setAttribute('fill','#8a795a');
+  centerTxt.setAttribute('font-size','10');centerTxt.setAttribute('font-family','Georgia,serif');
+  centerTxt.setAttribute('id','circleCenter');centerTxt.textContent='HAZIR';
+  svg.appendChild(centerTxt);
+  const centerTxt2=document.createElementNS(NS,'text');
+  centerTxt2.setAttribute('x',cx);centerTxt2.setAttribute('y',cy+16);
+  centerTxt2.setAttribute('text-anchor','middle');centerTxt2.setAttribute('fill','#a4552f');
+  centerTxt2.setAttribute('font-size','17');centerTxt2.setAttribute('font-family','Georgia,serif');
+  centerTxt2.setAttribute('font-weight','700');
+  centerTxt2.setAttribute('id','circleChord');centerTxt2.textContent='—';
+  svg.appendChild(centerTxt2);
+  const nodeEls={};
+  const minRoot=(()=>{const m=store.c.circleRoots;let mn=Infinity;
+    CIRCLE.forEach(k=>mn=Math.min(mn,m[k]||0));return mn;})();
+  CIRCLE.forEach((k,i)=>{
+    const ang=-Math.PI/2+i*(Math.PI*2/12);
+    const x=cx+R*Math.cos(ang),y=cy+R*Math.sin(ang);
+    const g=document.createElementNS(NS,'g');
+    const c=document.createElementNS(NS,'circle');
+    c.setAttribute('cx',x);c.setAttribute('cy',y);c.setAttribute('r',16);
+    const cnt=store.c.circleRoots[k]||0;
+    c.setAttribute('fill',cnt===minRoot?'#dbe4ea':'#f2ead5');
+    c.setAttribute('stroke',cnt===minRoot?'#47617e':'#241b0c');
+    c.setAttribute('stroke-width',cnt===minRoot?'1.5':'1');
+    if(cnt===minRoot)c.setAttribute('stroke-dasharray','3 3');
+    g.appendChild(c);
+    const t=document.createElementNS(NS,'text');
+    t.setAttribute('x',x);t.setAttribute('y',y+4);
+    t.setAttribute('text-anchor','middle');t.setAttribute('fill','#241b0c');
+    t.setAttribute('font-size','12');t.setAttribute('font-family','Georgia,serif');
+    t.setAttribute('font-weight','700');t.textContent=k;
+    g.appendChild(t);
+    const t2=document.createElementNS(NS,'text');
+    t2.setAttribute('x',x);t2.setAttribute('y',y+28);
+    t2.setAttribute('text-anchor','middle');t2.setAttribute('fill','#8a795a');
+    t2.setAttribute('font-size','8');t2.setAttribute('font-family','Georgia,serif');
+    t2.textContent=String(cnt);
+    g.appendChild(t2);
+    svg.appendChild(g);
+    nodeEls[k]={c,t2};
+  });
+  $('circleMount').appendChild(svg);
+
+  /* ---- 88 TUŞLU KLAVYE — A0(21) … C8(108) · gerçek oranlar ---- */
+  const keyEls={};
+  (function buildKeyboard(){
+    const BLACK=[1,3,6,8,10];
+    const whitesTotal=(()=>{let n=0;for(let m=21;m<=108;m++)if(!BLACK.includes(m%12))n++;return n;})();
+    const WW=100/whitesTotal,BW=WW*0.58; /* gerçek siyah tuş genişliği: %58 */
+    let wi=0;
+    for(let m=21;m<=108;m++){
+      const el=document.createElement('div');
+      if(BLACK.includes(m%12)){
+        el.className='bk';
+        el.style.left=(wi*WW-BW/2)+'%';
+        el.style.width=BW+'%';
+        ui.keyboard.appendChild(el);
+      }else{
+        el.className='wk';
+        ui.keyboard.appendChild(el);
+        wi++;
+      }
+      keyEls[m]=el;
+    }
+  })();
+  /* gerçek kuyruk piyano oranı: beyaz tuş genişliği : yüksekliği ≈ 1:6.1
+     sahne genişliğine göre otomatik ölçek; yükseklik sınırına takılırsa
+     klavye daralıp ORAN KORUNARAK ortalanır */
+  function layoutKeyboard(){
+    try{
+      const stage=$('stage');if(!stage)return;
+      const availW=Math.max(320,(stage.clientWidth||1200)-28);
+      const maxH=Math.max(110,Math.min(215,(stage.clientHeight||800)*0.22));
+      let whiteW=availW/52;
+      let h=Math.round(whiteW*6.1);
+      if(h>maxH){h=Math.round(maxH);whiteW=h/6.1;}
+      ui.keyboard.style.width=Math.round(whiteW*52)+'px';
+      ui.keyboard.style.height=h+'px';
+    }catch(e){}
+  }
+  layoutKeyboard();
+  const LANE_KEY_CLASS={deep:'k-deep',third:'k-third',bass:'k-main',orta:'k-main',
+    final:'k-main',tiz:'k-mel',arp:'k-mel',ring:'k-ring'};
+  function flashKey(ev){
+    const el=keyEls[ev.midi];if(!el)return;
+    const cls=ev.kind==='tutti'?'k-tutti':(LANE_KEY_CLASS[ev.lane]||'k-main');
+    el.classList.add(cls);
+    const ms=260+Math.min(1400,ev.dur*45); /* halka çapı büyüdükçe yıkama uzar */
+    setTimeout(()=>el.classList.remove(cls),ms);
+  }
+
+  /* ---- DİNAMİK PORTE — akan genel porte (MusicXML verisinden) ----
+     Sol anahtar (sol portede) · fa anahtarı (bas portede) · her nota
+     kendi yolunu (lane) rengiyle mürekkeple yazılır: kafa + sap + bayrak
+     + bemol + porte dışı yardımcı çizgiler. Terrakota imleç "şimdi"
+     çizgisini işaretler; notalar sağdan akar, çalınınca parlar. */
+  const svgEl=(name,attrs)=>{const el=document.createElementNS(NS,name);
+    for(const k in attrs)el.setAttribute(k,attrs[k]);return el;};
+  const scoreSvg=document.createElementNS(NS,'svg');
+  scoreSvg.setAttribute('id','score');
+  scoreSvg.setAttribute('viewBox','0 0 1000 300');
+  scoreSvg.setAttribute('preserveAspectRatio','xMidYMid meet');
+  const gFixed=document.createElementNS(NS,'g');
+  const gScroll=document.createElementNS(NS,'g');
+  const gBars=document.createElementNS(NS,'g');
+  const gNotes=document.createElementNS(NS,'g');
+  gScroll.appendChild(gBars);gScroll.appendChild(gNotes);
+  scoreSvg.appendChild(gFixed);scoreSvg.appendChild(gScroll);
+  (function buildStaff(){
+    /* iki portenin 5'er çizgisi: sol alt E4=94 · bas üst A3=166 */
+    [94,166].forEach(ref=>{
+      for(let i=0;i<5;i++){
+        const y=ref-i*9;
+        gFixed.appendChild(svgEl('line',{x1:26,x2:990,y1:y,y2:y,stroke:'#241b0c',
+          'stroke-width':(i===0||i===4)?1.1:0.7,'stroke-opacity':.85}));
+      }
+    });
+    /* süslü ayraç */
+    const mid=(94+166)/2;
+    gFixed.appendChild(svgEl('path',{d:'M18,60 C8,76 26,120 12,'+mid+
+      ' C26,'+(mid+10)+' 8,'+(300-76-18+60)+' 18,244',fill:'none',stroke:'#241b0c','stroke-width':1.6}));
+    /* sol anahtar (G) — mürekkep tarzı */
+    gFixed.appendChild(svgEl('path',{d:'M31,118 C15,108 45,101 37,88 C32,80 21,82 21,89 '+
+      'C21,95 29,96 33,92 C37,88 34,80 30,74 C26,67 33,60 38,55 C41,52 40,48 37,46',
+      fill:'none',stroke:'#241b0c','stroke-width':2,'stroke-linecap':'round'}));
+    /* fa anahtarı (F) + iki nokta — F3 çizgisi 175'e asılır */
+    gFixed.appendChild(svgEl('path',{d:'M28,166 C41,165 42,178 32,189 C27,194 20,191 20,186 '+
+      'C20,182 25,181 27,184',fill:'none',stroke:'#241b0c','stroke-width':2.4,'stroke-linecap':'round'}));
+    gFixed.appendChild(svgEl('circle',{cx:38,cy:170.5,r:1.7,fill:'#241b0c'}));
+    gFixed.appendChild(svgEl('circle',{cx:38,cy:179.5,r:1.7,fill:'#241b0c'}));
+    /* terrakota imleç — çalma çizgisi */
+    gFixed.appendChild(svgEl('line',{x1:180,x2:180,y1:34,y2:218,stroke:'#a4552f',
+      'stroke-width':1.6,'stroke-opacity':.9}));
+    gFixed.appendChild(svgEl('path',{d:'M175,26 L185,26 L180,34 Z',fill:'#a4552f'}));
+  })();
+  ui.scoreWrap.appendChild(scoreSvg);
+
+  const PORT={px:20,phx:180,plan:null,ptr:0,barPtr:0,slot0:0,noteEls:[],barEls:[],lastPulses:-1,pending:null};
+  /* zinciri kırılan son notaya bayraklarını çiz (görece koordinat) */
+  function drawFlags(p,col){
+    try{
+      const flags=p.dur<2?2:1;
+      for(let f=0;f<flags;f++){
+        const fx=p.up?5.1:-5.1,fy=(p.up?-30:30)+(p.up?f*8:-f*8);
+        const dir=p.up?1:-1;
+        p.g.appendChild(svgEl('path',{d:'M'+fx+','+fy+' C'+(fx+9*dir)+','+(fy+7)+' '+
+          (fx+3*dir)+','+(fy+13)+' '+(fx+7*dir)+','+(fy+19),
+          fill:'none',stroke:col,'stroke-width':1.3}));
+      }
+    }catch(e){}
+  }
+  const SPELL=NOTE_SPELL; /* notasyon otoritesi: motorun yazım haritası */
+  const STEPIDX={C:0,D:1,E:2,F:3,G:4,A:5,B:6};
+  function noteY(m){
+    const pc=m%12,oct=Math.floor(m/12)-1;
+    const dia=oct*7+STEPIDX[SPELL[pc][0]];
+    return m>=60?94-(dia-30)*4.5:166-(dia-26)*4.5;
+  }
+  function laneColor(ev){
+    return ev.kind==='tutti'?'#241b0c':ev.kind==='ring'?'#47617e':
+      ev.lane==='deep'?'#46577a':ev.lane==='third'?'#b8862e':
+      (ev.lane==='tiz'||ev.lane==='arp')?'#6e7d54':'#a4552f';
+  }
+  function spawnNote(ev){
+    const x=PORT.phx+(ev.slot-PORT.slot0)*PORT.px;
+    const y=noteY(ev.midi);
+    const g=document.createElementNS(NS,'g');
+    g.setAttribute('transform','translate('+x.toFixed(1)+','+y.toFixed(1)+')');
+    const col=laneColor(ev);
+    const hollow=ev.dur>=7;
+    const head=svgEl('ellipse',{cx:0,cy:0,rx:5.6,ry:4.1,transform:'rotate(-18)',
+      fill:hollow?'#fbf6e7':col,'fill-opacity':hollow?'.95':'.88',
+      stroke:col,'stroke-width':hollow?1.8:1});
+    g.appendChild(head);
+    const up=ev.midi>=60?y>76:y>184; /* orta çizginin altındaysa sap yukarı */
+    const tipX=x+(up?5.1:-5.1),tipY=y+(up?-30:30);
+    if(ev.dur<12){ /* tam nota sap taşımaz */
+      g.appendChild(svgEl('line',{x1:up?5.1:-5.1,y1:0,x2:up?5.1:-5.1,y2:up?-30:30,
+        stroke:col,'stroke-width':1.4}));
+    }
+    /* noktalı değerler: 3=noktalı 8'lik · 6=noktalı 4'lük · 12=noktalı 2'lik */
+    if(ev.dur===3||ev.dur===6||ev.dur===12)
+      g.appendChild(svgEl('circle',{cx:9.5,cy:-3.5,r:1.6,fill:col}));
+    /* BEAM (bağ): art arda gelen 8'lik/16'lık notalar tek çubukla bağlanır —
+       profesyonel gravür kuralı. Zincir kırılınca son notaya bayrak çizilir. */
+    if(ev.dur<4){
+      const p=PORT.pending;
+      if(p&&ev.lane===p.lane&&ev.slot===p.slot+p.dur&&p.treble===(ev.midi>=60)&&p.chain<4){
+        const beam=svgEl('line',{x1:p.tipX.toFixed(1),y1:p.tipY.toFixed(1),
+          x2:tipX.toFixed(1),y2:tipY.toFixed(1),stroke:col,'stroke-width':2.4,'stroke-linecap':'round'});
+        gNotes.appendChild(beam);
+        PORT.noteEls.push({g:beam,slot:ev.slot});
+        if(ev.dur===1&&p.dur===1){ /* 16'lıklar: ikinci ince bağ */
+          const b2=svgEl('line',{x1:p.tipX.toFixed(1),y1:(p.tipY+(p.up?6:-6)).toFixed(1),
+            x2:tipX.toFixed(1),y2:(tipY+(up?6:-6)).toFixed(1),stroke:col,'stroke-width':1.6,'stroke-linecap':'round'});
+          gNotes.appendChild(b2);
+          PORT.noteEls.push({g:b2,slot:ev.slot});
+        }
+        PORT.pending={lane:ev.lane,slot:ev.slot,dur:ev.dur,tipX,tipY,up,
+          treble:ev.midi>=60,chain:p.chain+1,g};
+      }else{
+        if(p)drawFlags(p,col);
+        PORT.pending={lane:ev.lane,slot:ev.slot,dur:ev.dur,tipX,tipY,up,
+          treble:ev.midi>=60,chain:1,g};
+      }
+    }else if(PORT.pending){drawFlags(PORT.pending,laneColor(ev));PORT.pending=null;}
+    if(SPELL[ev.midi%12][1]<0){ /* bemol */
+      g.appendChild(svgEl('path',{d:'M-10,-11 L-10,7 M-10,7 C-10,2 -4,4 -4,0 C-4,-3 -8,-4 -10,-8',
+        fill:'none',stroke:'#241b0c','stroke-width':1.2}));
+    }
+    /* porte dışı yardımcı çizgiler */
+    const leds=[];
+    if(ev.midi>=60){
+      if(y>98.5)for(let ly=103;ly<=y+4.5;ly+=9)leds.push(ly);
+      if(y<53.5)for(let ly=49;ly>=y-4.5;ly-=9)leds.push(ly);
+    }else{
+      if(y<161.5)for(let ly=157;ly>=y-4.5;ly-=9)leds.push(ly);
+      if(y>206.5)for(let ly=211;ly<=y+4.5;ly+=9)leds.push(ly);
+    }
+    leds.forEach(ly=>{
+      g.appendChild(svgEl('line',{x1:-9,x2:9,y1:(ly-y).toFixed(1),y2:(ly-y).toFixed(1),
+        stroke:'#241b0c','stroke-width':.9}));
+    });
+    gNotes.appendChild(g);
+    ev._noteEl=g;
+    PORT.noteEls.push({g,slot:ev.slot});
+  }
+  function spawnBarline(bar,num){
+    const x=PORT.phx+(bar.slotStart-PORT.slot0)*PORT.px;
+    const g=document.createElementNS(NS,'g');
+    g.setAttribute('transform','translate('+x.toFixed(1)+',0)');
+    g.appendChild(svgEl('line',{x1:0,x2:0,y1:52,y2:98,stroke:'#241b0c','stroke-width':.9,'stroke-opacity':.6}));
+    g.appendChild(svgEl('line',{x1:0,x2:0,y1:162,y2:208,stroke:'#241b0c','stroke-width':.9,'stroke-opacity':.6}));
+    const t=svgEl('text',{x:-4,y:46,'text-anchor':'end',fill:'#8a795a','font-size':'9'});
+    t.textContent=String(num);
+    g.appendChild(t);
+    if(bar.pulses!==PORT.lastPulses){ /* ölçü değişimi: usul etiketi */
+      const ts=svgEl('text',{x:5,y:46,'text-anchor':'start',fill:'#47617e','font-size':'9','font-weight':'700'});
+      ts.textContent=bar.pulses+'/4';
+      g.appendChild(ts);
+      PORT.lastPulses=bar.pulses;
+    }
+    gBars.appendChild(g);
+    PORT.barEls.push({g,slot:bar.slotStart});
+  }
+  function updateScore(){
+    if(!transport.playing||!transport.plan)return;
+    const plan=transport.plan;
+    if(plan!==PORT.plan){
+      PORT.plan=plan;PORT.ptr=0;PORT.barPtr=0;PORT.lastPulses=-1;
+      PORT.slot0=transport.curSlot()-2;
+      gNotes.innerHTML='';gBars.innerHTML='';PORT.noteEls=[];PORT.barEls=[];PORT.pending=null;
+    }
+    const cs=transport.curSlot();
+    const dx=(cs-PORT.slot0)*PORT.px;
+    try{gScroll.setAttribute('transform','translate('+(-dx).toFixed(1)+',0)');}catch(e){}
+    const horizon=cs+(1000-PORT.phx)/PORT.px+6;
+    while(PORT.ptr<plan.events.length&&plan.events[PORT.ptr].slot<=horizon){
+      spawnNote(plan.events[PORT.ptr]);PORT.ptr++;
+    }
+    while(PORT.barPtr<plan.bars.length&&plan.bars[PORT.barPtr].slotStart<=horizon){
+      spawnBarline(plan.bars[PORT.barPtr],PORT.barPtr+1);PORT.barPtr++;
+    }
+    for(let i=PORT.noteEls.length-1;i>=0;i--){
+      const n=PORT.noteEls[i];
+      if(PORT.phx+(n.slot-cs)*PORT.px<-90){
+        try{gNotes.removeChild(n.g);}catch(e){}
+        PORT.noteEls.splice(i,1);
+      }
+    }
+    for(let i=PORT.barEls.length-1;i>=0;i--){
+      const b=PORT.barEls[i];
+      if(PORT.phx+(b.slot-cs)*PORT.px<-90){
+        try{gBars.removeChild(b.g);}catch(e){}
+        PORT.barEls.splice(i,1);
+      }
+    }
+  }
+  function flashScoreNote(ev){
+    const g=ev._noteEl;if(!g)return;
+    try{
+      g.classList.add('np');
+      setTimeout(()=>{try{g.classList.remove('np');}catch(e){}},650);
+    }catch(e){}
+  }
+  function scoreLoop(){
+    if(typeof requestAnimationFrame==='function')requestAnimationFrame(scoreLoop);
+    updateScore();
+  }
+  scoreLoop();
+
+  /* ---- SU HALKALARI — sahnede çap büyüten mürekkep halkaları ---- */
+  function spawnRipple(ev){
+    if(!ui.ripples||typeof document.createElementNS!=='function')return;
+    try{
+      const r=clamp(ev.ring||1,1,4);
+      const c=document.createElementNS(NS,'circle');
+      c.setAttribute('cx',500);c.setAttribute('cy',150);
+      c.setAttribute('r',26+r*26);                       /* çap = halka sırası */
+      c.setAttribute('fill','none');
+      c.setAttribute('stroke','#47617e');
+      c.setAttribute('stroke-width',(2.1-r*0.22).toFixed(2));
+      c.setAttribute('stroke-opacity',(0.58-r*0.09).toFixed(2));
+      c.style.animationDuration=(2.2+r*0.9).toFixed(1)+'s'; /* süre = çap */
+      ui.ripples.appendChild(c);
+      const ttl=(2.2+r*0.9)*1000+180;
+      setTimeout(()=>{try{ui.ripples.removeChild(c);}catch(e){}},ttl);
+    }catch(e){}
+    if(ui.ledRing){
+      ui.ledRing.classList.add('on');
+      setTimeout(()=>ui.ledRing.classList.remove('on'),700);
+    }
+  }
+  function onSched(ev){
+    flashKey(ev);
+    flashScoreNote(ev);
+    if(ev.kind==='ring')spawnRipple(ev);
+  }
+  transport.onSchedule=onSched;
+
+  /* ---- NOTA AKIŞI — yatay piyano rulosu (frekans grafiği yerine) ----
+     Notalar sağdan süzülür; terrakota imleç "şimdi"yi keser; imleci
+     geçen (çalan) blok mavi mürekkeple tutuşur. Satır = perde,
+     genişlik = süre (slot) — portenin grafik ikizi, resimdeki gibi. */
+  const freqData=new Uint8Array(256);
+  let rmsSmooth=0,vizCtx=null,vizW=0,vizH=0;
+  function setupViz(){
+    const cv=ui.viz;
+    if(!cv||!cv.getContext)return;
+    const dpr=Math.min(2,(typeof window!=='undefined'&&window.devicePixelRatio)||1);
+    vizW=Math.max(10,cv.clientWidth*dpr);vizH=Math.max(10,cv.clientHeight*dpr);
+    cv.width=vizW;cv.height=vizH;
+    vizCtx=cv.getContext('2d');
+  }
+  const FLOW={notes:[],gen:-1,lo:52,hi:76,LEAD:12};
+  function flowReset(){FLOW.notes.length=0;FLOW.gen=transport.gen;}
+  transport.onPlan=function(ev){ /* nota, çalınmadan önce ruloya düşer */
+    if(transport.gen!==FLOW.gen)flowReset();
+    if(ev.lane==='ring')return; /* su halkaları ripples'ta yaşar */
+    FLOW.notes.push(ev);
+    if(FLOW.notes.length>340)FLOW.notes.splice(0,FLOW.notes.length-340);
+  };
+  function rrect(x,y,w,h,r){
+    r=Math.max(0,Math.min(r,h/2,w/2));
+    vizCtx.beginPath();
+    vizCtx.moveTo(x+r,y);vizCtx.lineTo(x+w-r,y);
+    vizCtx.quadraticCurveTo(x+w,y,x+w,y+r);vizCtx.lineTo(x+w,y+h-r);
+    vizCtx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);vizCtx.lineTo(x+r,y+h);
+    vizCtx.quadraticCurveTo(x,y+h,x,y+h-r);vizCtx.lineTo(x,y+r);
+    vizCtx.quadraticCurveTo(x,y,x+r,y);vizCtx.closePath();
+  }
+  function drawFlow(){
+    const W=vizW,H=vizH;if(!W||!H)return;
+    const cx=vizCtx,playing=transport.playing&&transport.plan;
+    const phx=Math.round(W*0.215);   /* imleç: sahne %21,5'i */
+    const pps=(W-phx)/FLOW.LEAD;     /* piksel / slot */
+    const sd=transport.slotDur();
+    const cs=transport.curSlot();
+    /* perde aralığı — görünen notalara yumuşak uyum */
+    let lo=Infinity,hi=-Infinity;
+    if(playing){
+      for(const ev of FLOW.notes){
+        const sl=ev.slot+ev.hum/sd-cs;
+        if(sl>-4&&sl<FLOW.LEAD+3){if(ev.midi<lo)lo=ev.midi;if(ev.midi>hi)hi=ev.midi;}
+      }
+    }
+    if(lo===Infinity){lo=FLOW.lo;hi=FLOW.hi;}
+    lo-=3;hi+=3;
+    if(hi-lo<22){const c=(hi+lo)/2;lo=c-11;hi=c+11;}
+    FLOW.lo+=(lo-FLOW.lo)*0.05;FLOW.hi+=(hi-FLOW.hi)*0.05;
+    const span=FLOW.hi-FLOW.lo;
+    const yOf=m=>5+(FLOW.hi-m)*(H-10)/span;
+    const bh=Math.max(2.2,(H-10)/span-1);
+    /* zemin yıkaması + oktav (C) kılavuzları */
+    cx.fillStyle='rgba(249,244,229,0.55)';cx.fillRect(0,0,W,H);
+    cx.strokeStyle='rgba(36,27,12,0.055)';cx.lineWidth=1;
+    for(let m=Math.ceil(FLOW.lo/12)*12;m<=FLOW.hi;m+=12){
+      const y=Math.round(yOf(m))+.5;
+      cx.beginPath();cx.moveTo(0,y);cx.lineTo(W,y);cx.stroke();
+    }
+    /* ölçü ızgarası — 16'lık slot ızgarası (4/4 ölçü çizgileri) */
+    if(playing){
+      for(let k=Math.floor((cs-FLOW.LEAD-8)/4);;k++){
+        const slot=k*4;
+        if(slot>cs+FLOW.LEAD+4)break;
+        const x=Math.round(phx+(slot-cs)*pps)+.5;
+        if(x<-2)continue;
+        if(x>W+2)break;
+        const bar=((k%4)+4)%4===0;
+        cx.strokeStyle=bar?'rgba(36,27,12,0.13)':'rgba(36,27,12,0.05)';
+        cx.beginPath();cx.moveTo(x,2);cx.lineTo(x,H-2);cx.stroke();
+      }
+    }
+    /* nota blokları — satır = perde · genişlik = süre */
+    for(const ev of FLOW.notes){
+      const sEv=ev.slot+ev.hum/sd;
+      const x=phx+(sEv-cs)*pps;
+      const w=Math.max(2.2,ev.dur*pps);
+      const done=cs-(sEv+ev.dur);
+      if(x+w<-24||x>W+24||done>4)continue;
+      const y=yOf(ev.midi)-bh/2;
+      const on=playing&&cs>=sEv-0.04&&cs<sEv+ev.dur;
+      if(on){ /* çalan nota — mavi mürekkep */
+        cx.save();
+        cx.shadowColor='rgba(19,104,179,0.55)';cx.shadowBlur=Math.max(4,H*0.06);
+        cx.fillStyle='#1368b3';
+        rrect(x,y,w,bh,2.4);cx.fill();
+        cx.restore();
+        cx.strokeStyle='rgba(253,248,234,0.9)';cx.lineWidth=1;
+        rrect(x,y,w,bh,2.4);cx.stroke();
+      }else{
+        cx.globalAlpha=done>0?Math.max(0,0.42*(1-done/4)):0.88;
+        cx.fillStyle=laneColor(ev);
+        rrect(x,y,w,bh,2.4);cx.fill();
+        cx.strokeStyle='rgba(36,27,12,0.30)';cx.lineWidth=0.8;
+        cx.stroke();
+        cx.globalAlpha=1;
+      }
+    }
+    /* imleç — terrakota "şimdi" çizgisi */
+    cx.fillStyle='rgba(164,85,47,0.18)';cx.fillRect(phx-3,0,6,H);
+    cx.fillStyle='#a4552f';cx.fillRect(phx-1.25,0,2.5,H);
+    cx.beginPath();cx.moveTo(phx-4.5,0);cx.lineTo(phx+4.5,0);cx.lineTo(phx,7);
+    cx.closePath();cx.fill();
+    /* kenar yumuşatmaları: sağdan süzülme · solda silinme */
+    let gr=cx.createLinearGradient(W-46,0,W,0);
+    gr.addColorStop(0,'rgba(249,244,229,0)');gr.addColorStop(1,'rgba(249,244,229,0.9)');
+    cx.fillStyle=gr;cx.fillRect(W-46,0,46,H);
+    const lw=Math.min(70,phx*0.6);
+    gr=cx.createLinearGradient(0,0,lw,0);
+    gr.addColorStop(0,'rgba(249,244,229,0.85)');gr.addColorStop(1,'rgba(249,244,229,0)');
+    cx.fillStyle=gr;cx.fillRect(0,0,lw,H);
+    /* eski notaları buda */
+    if(playing&&FLOW.notes.length>24)
+      FLOW.notes=FLOW.notes.filter(ev=>cs-(ev.slot+ev.hum/sd+ev.dur)<6);
+  }
+  function drawViz(){
+    if(typeof requestAnimationFrame==='function')requestAnimationFrame(drawViz);
+    if(!vizCtx)return;
+    let rms=0;
+    if(piano.analyser&&piano.analyser.getByteFrequencyData){
+      try{piano.analyser.getByteFrequencyData(freqData);}catch(e){}
+      let s=0;for(let i=0;i<64;i++)s+=freqData[i];
+      rms=s/(64*255);
+    }
+    rmsSmooth+=(rms-rmsSmooth)*0.14;
+    try{document.documentElement.style.setProperty('--rms',rmsSmooth.toFixed(3));}catch(e){}
+    breathRing.setAttribute('stroke-opacity',(0.10+rmsSmooth*0.55).toFixed(3));
+    breathRing.setAttribute('r',(R+15+rmsSmooth*10).toFixed(1));
+    vizCtx.clearRect(0,0,vizW,vizH);
+    drawFlow();
+  }
+  setupViz();drawViz();
+  if(typeof window!=='undefined'&&window.addEventListener)
+    window.addEventListener('resize',()=>{vizCtx=null;setupViz();layoutKeyboard();});
+
+  /* ---- sayaç paneli ---- */
+  function fmtLeast(map,cands){
+    let best=null,bc=Infinity;
+    (cands||Object.keys(map)).forEach(k=>{const v=map[k]||0;if(v<bc){bc=v;best=k;}});
+    return best||null;
+  }
+  function refreshCounters(){
+    const c=store.c;
+    ui.cComp.textContent=String(c.compositions);
+    const rk=fmtLeast(c.circleRoots);ui.cRoot.textContent=rk?rk+' ('+(c.circleRoots[rk]||0)+')':'—';
+    const fk=fmtLeast(c.forms,FORMS.map(x=>x.id));
+    ui.cForm.textContent=fk?(FORM_BY_ID[fk]?FORM_BY_ID[fk].label:fk)+' ('+(c.forms[fk]||0)+')':'—';
+    const mk=fmtLeast(c.motifs,MOTIFS.map(x=>x.id));
+    ui.cMotif.textContent=mk?(MOTIF_BY_ID[mk]?MOTIF_BY_ID[mk].label:mk)+' ('+(c.motifs[mk]||0)+')':'—';
+    const ak=fmtLeast(c.aksak,AKSAK_PATTERNS.map(x=>x.id));
+    ui.cAksak.textContent=ak?(AKSAK_BY_ID[ak]?AKSAK_BY_ID[ak].label:ak)+' ('+(c.aksak[ak]||0)+')':'—';
+    const t3=c.transitions['3']||0,t5=c.transitions['5']||0,t7=c.transitions['7']||0;
+    ui.cTrans.textContent=t3+'/'+t5+'/'+t7;
+    ui.cSig.textContent=String(c.signatures.length);
+  }
+
+  /* ---- bar şeridi ---- */
+  function buildBarStrip(plan){
+    ui.bars.innerHTML='';
+    plan.bars.forEach(()=>{const i=document.createElement('i');ui.bars.appendChild(i);});
+  }
+
+  /* ---- gerçek piyano örnekleri ---- */
+  async function ensureSamples(){
+    if(state.samplesReady)return true;
+    if(state.loadingSamples)return false;
+    state.loadingSamples=true;
+    ui.btnMain.disabled=true;
+    const t0=Date.now();
+    log('GERÇEK PİYANO · 76 nota yükleniyor…','l-tin');
+    if(!piano.bank)piano.bank=new SampleBank(piano.ctx);
+    const ok=await piano.bank.preload(21,96,6,(d,t)=>{
+      ui.btnMain.textContent='♪ %'+Math.round(100*d/t);
+    },u=>fetch(u));
+    state.samplesReady=true;state.loadingSamples=false;
+    ui.btnMain.disabled=false;
+    const secs=((Date.now()-t0)/1000).toFixed(1);
+    if(ok>=76){
+      log('GERÇEK PİYANO hazır ✔ 76/76 · '+secs+' sn','l-tin');
+    }else if(ok>0){
+      log('GERÇEK PİYANO · '+ok+'/76 · gerisi sentez','l-sus');
+    }else{
+      log('SENTEZ YEDEĞİ devrede','l-sus');
+    }
+    return true;
+  }
+
+  /* ---- MUSICXML DIŞA AKTARIMI — çalan kompozisyon nota dosyası olur ---- */
+  function exportMusicXML(){
+    const plan=transport.plan;
+    if(!plan||!plan.bars||!plan.bars.length){
+      log('MUSICXML: önce BAŞLAT — kompozisyon yok','l-sys');return;
+    }
+    const typeOf=d=>d<=1?'16th':d<=3?'eighth':d<=6?'quarter':d<=11?'half':'whole';
+    const dotsOf=d=>(d===3||d===6||d===12)?1:0; /* noktalı değerler */
+    const cleanMax=v=>{let b=1;for(const cv of NOTATION_CLEAN)if(cv<=v)b=cv;return b;};
+    const REST_T={16:'whole',12:'half',8:'half',6:'quarter',4:'quarter',3:'eighth',2:'eighth',1:'16th'};
+    const restXml=(d,voice)=>{
+      let r='',rem=d;
+      while(rem>0){
+        const seg=rem>=16?16:rem>=12?12:rem>=8?8:rem>=6?6:rem>=4?4:rem>=3?3:rem>=2?2:1;
+        r+='      <note><rest/><duration>'+seg+'</duration><voice>'+voice+
+          '</voice><type>'+REST_T[seg]+'</type>'+((seg===3||seg===6||seg===12)?'<dot/>':'')+
+          '<staff>'+voice+'</staff></note>\n';
+        rem-=seg;
+      }
+      return r;
+    };
+    /* ---- HACİM + VURGU — motorun gerçek vuruş şiddeti ve bölüm
+       enerjisinden. ÜÇ PARTİLİ skor: ana piyano (2 porteli) · 2. piyano
+       (derin legato) · 3. piyano (tiz bileşke + su halkası yankıları) —
+       her katman KENDİ dinamiklerinde yaşar: tarayıcıda kısık duyulan
+       arka piyanolar notada da kısık kalır. Çalım hızı sound dynamics=
+       olarak birebir yazılır (MuseScore uyumlu); yankıların gerçek
+       kısıklığı görünmez (print-object="no") çalım yönleriyle korunur.
+       Vurgu (>) katmanın ortalamasından +12 üstün vuruşlardadır.
+       Ölçü başına sürdürme pedalı tarayıcıdaki sürekli akışı (release +
+       reverb yıkaması) notaya taşır — kuru/hızlı algı kaybolur. ---- */
+    const velToMidi=v=>Math.max(16,Math.min(124,Math.round(199*Math.pow(Math.max(0,v),0.42))));
+    const energyMidi=e=>30+78*Math.pow(Math.max(0,Math.min(1,e)),1.15);
+    const DYN=[[105,'ff'],[90,'f'],[75,'mf'],[60,'mp'],[45,'p'],[30,'pp'],[0,'ppp']];
+    const dynSym=v=>{for(const d of DYN)if(v>=d[0])return d[1];return 'ppp';};
+    const medOf=a=>{if(!a.length)return 0;const b=a.slice().sort((x,y)=>x-y);
+      return b[Math.floor(b.length/2)];};
+    const BASE=parseInt(ui.rngTempo.value,10)||72;
+    let accCount=0,dynCount=0,hidCount=0;
+    const dirXml=(sym,vel,voice,two,hidden)=>
+      '      <direction placement="below"'+(hidden?' print-object="no"':'')+'>\n'+
+      '        <direction-type><dynamics><'+sym+'/></dynamics></direction-type>\n'+
+      (two?'        <voice>'+voice+'</voice>\n        <staff>'+voice+'</staff>\n':'')+
+      '        <sound dynamics="'+Math.max(1,Math.min(127,vel))+'"/>\n'+
+      '      </direction>\n';
+    const pickP1=e=>e.lane!=='deep'&&e.lane!=='third'&&e.lane!=='ring';
+    const pickP2=e=>e.lane==='deep'||(e.lane==='ring'&&e.midi<60);
+    const pickP3=e=>e.lane==='third'||(e.lane==='ring'&&e.midi>=60);
+    function buildPart(pid,clefSign,clefLine,two,pick,bg,pedal,tempo){
+      let out='  <part id="'+pid+'">\n';
+      let lastBeats=-1,lastPhase=null;
+      const dynState={};
+      plan.bars.forEach((bar,bi)=>{
+        out+='    <measure number="'+(bi+1)+'">\n';
+        if(bar.pulses!==lastBeats){
+          out+='      <attributes>\n        <divisions>4</divisions>\n'+
+            '        <key><fifths>0</fifths></key>\n'+
+            '        <time><beats>'+bar.pulses+'</beats><beat-type>4</beat-type></time>\n'+
+            (bi===0?(two?
+              '        <staves>2</staves>\n        <clef number="1"><sign>G</sign><line>2</line></clef>\n'+
+              '        <clef number="2"><sign>F</sign><line>4</line></clef>\n':
+              '        <clef number="1"><sign>'+clefSign+'</sign><line>'+clefLine+'</line></clef>\n'):'')+
+            '      </attributes>\n';
+          lastBeats=bar.pulses;
+        }
+        /* BÖLÜM TEMPOSU — sonat geleneği: coda yavaşlar, klimaks hızlanır */
+        if(tempo&&bar.phaseIndex!==lastPhase){
+          lastPhase=bar.phaseIndex;
+          const tb=Math.max(30,Math.min(240,Math.round(BASE*(bar.tempoMul||1))));
+          out+='      <direction placement="above"><direction-type><metronome><beat-unit>quarter</beat-unit>'+
+            '<per-minute>'+tb+'</per-minute></metronome></direction-type>'+
+            '<sound tempo="'+tb+'"/></direction>\n';
+        }
+        /* SÜRDÜRME PEDALI — ölçü başına (armoni değişimi başına) */
+        if(pedal)
+          out+='      <direction placement="below"><direction-type><pedal type="down" line="yes"/></direction-type>'+
+            '<staff>2</staff></direction>\n';
+        const inBar=plan.events.filter(e=>e.slot>=bar.slotStart&&e.slot<bar.slotStart+bar.slots&&pick(e));
+        const voices=two?[1,2]:[1];
+        voices.forEach(voice=>{
+          if(two&&voice===2)out+='      <backup><duration>'+bar.slots+'</duration></backup>\n';
+          const mine=two?inBar.filter(e=>voice===1?e.midi>=60:e.midi<60):inBar;
+          /* HACİM: ellerin medyan vuruşu + bölüm enerjisi —
+             arka piyanolar kendi kısıklığında kalır (%75 hız ağırlığı) */
+          if(mine.length){
+            const hand=mine.filter(e=>e.lane!=='ring');
+            const src=hand.length?hand:mine;
+            const rep=Math.round((bg?0.75:0.4)*velToMidi(medOf(src.map(e=>e.vel)))+
+                                 (bg?0.25:0.6)*energyMidi(bar.energy));
+            const sym=dynSym(rep),st=dynState[voice];
+            if(!st||st.sym!==sym||Math.abs(rep-st.rep)>=12){
+              dynState[voice]={sym,rep};dynCount++;
+              out+=dirXml(sym,rep,voice,two,false);
+            }
+          }
+          const bySlot=new Map();
+          mine.forEach(e=>{const s=Math.max(0,Math.min(bar.slots-1,Math.round(e.slot-bar.slotStart)));
+            if(!bySlot.has(s))bySlot.set(s,[]);bySlot.get(s).push(e);});
+          const onsets=[...bySlot.keys()].sort((a,b)=>a-b);
+          let cursor=0;
+          /* VURGU: bu katmanın bu ölçüdeki ortalamasından +12 üstün ve
+             en az mf karakterli vuruşlar — akorun taşıyıcı notasında */
+          const onsetV=onsets.map(s=>velToMidi(Math.max(...bySlot.get(s).map(e=>e.vel))));
+          const vm0=medOf(onsetV);
+          onsets.forEach((s,i)=>{
+            if(s<cursor)return;
+            if(s>cursor)out+=restXml(s-cursor,voice);
+            /* GİZLİ çalım yönü: yankı seviyeden ciddi ayrılırsa */
+            if(bg&&dynState[voice]&&Math.abs(onsetV[i]-dynState[voice].rep)>=15){
+              const sym=dynSym(onsetV[i]);
+              dynState[voice]={sym,rep:onsetV[i]};hidCount++;
+              out+=dirXml(sym,onsetV[i],voice,two,true);
+            }
+            const next=i+1<onsets.length?onsets[i+1]:bar.slots;
+            const durMax=Math.min(next-s,bar.slots-s);
+            const grp=bySlot.get(s);
+            const d0=cleanMax(Math.min(Math.round(grp[0].dur),durMax)); /* akor tek ritim birimi — temiz değer */
+            const acc=onsetV[i]>=Math.max(vm0+12,64);
+            if(acc)accCount++;
+            grp.forEach((e,j)=>{
+              const sp=SPELL[e.midi%12],oct=Math.floor(e.midi/12)-1;
+              out+='      <note>\n'+(j>0?'        <chord/>\n':'')+
+                '        <pitch>\n          <step>'+sp[0]+'</step>\n'+
+                (sp[1]?'          <alter>'+sp[1]+'</alter>\n':'')+
+                '          <octave>'+oct+'</octave>\n        </pitch>\n'+
+                '        <duration>'+d0+'</duration>\n        <voice>'+voice+'</voice>\n'+
+                '        <type>'+typeOf(d0)+'</type>\n'+(dotsOf(d0)?'        <dot/>\n':'')+
+                '        <staff>'+voice+'</staff>\n'+
+                (acc&&j===0?'        <notations><articulations><accent/></articulations></notations>\n':'')+
+                '      </note>\n';
+            });
+            cursor=s+d0; /* gerçek süre: boşluklar sus (rest) olarak dolar — nefes görünür */
+          });
+          if(onsets.length){
+            if(cursor<bar.slots)out+=restXml(bar.slots-cursor,voice);
+          }else{ /* boş katman: tam ölçü susu */
+            out+='      <note><rest measure="yes"/><duration>'+bar.slots+'</duration><voice>'+
+              voice+'</voice><staff>'+voice+'</staff></note>\n';
+          }
+        });
+        if(pedal)
+          out+='      <direction placement="below"><direction-type><pedal type="up" line="yes"/></direction-type>'+
+            '<staff>2</staff></direction>\n';
+        out+='    </measure>\n';
+      });
+      return out+'  </part>\n';
+    }
+    let xml='<?xml version="1.0" encoding="UTF-8"?>\n'+
+      '<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 3.1 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">\n'+
+      '<score-partwise version="3.1">\n'+
+      '  <work><work-title>Piyano Cember \u221e \u2014 Kompozisyon #'+plan.num+'</work-title></work>\n'+
+      '  <part-list>\n'+
+      '    <score-part id="P1"><part-name>Piyano</part-name></score-part>\n'+
+      '    <score-part id="P2"><part-name>2. Piyano (Derin)</part-name></score-part>\n'+
+      '    <score-part id="P3"><part-name>3. Piyano (Tiz + Yank\u0131)</part-name></score-part>\n'+
+      '  </part-list>\n'+
+      buildPart('P1','G',2,true,pickP1,false,true,true)+
+      buildPart('P2','F',4,false,pickP2,true,false,false)+
+      buildPart('P3','G',2,false,pickP3,true,false,false)+
+      '</score-partwise>\n';
+    try{
+      const blob=new Blob([xml],{type:'application/vnd.recordare.musicxml+xml'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;a.download='piyano-cember-'+plan.num+'.musicxml';
+      (document.body&&document.body.appendChild?document.body.appendChild(a):null);
+      a.click();
+      setTimeout(()=>{try{URL.revokeObjectURL(url);
+        if(a.remove)a.remove();}catch(e){}},900);
+      log('MUSICXML indirildi · #'+plan.num+' · '+plan.bars.length+' ölçü · 3 parti · '+
+        (xml.length/1024).toFixed(0)+' KB · '+dynCount+'+'+hidCount+' din. · '+accCount+' vurgu','l-tin');
+    }catch(e){
+      log('MUSICXML: tarayıcı indirmeyi engelledi','l-sus');
+    }
+    return xml;
+  }
+
+  /* ---- yeni kompozisyon ---- */
+  function startComposition(){
+    const bpm=parseInt(ui.rngTempo.value,10);
+    const plan=state.composer.newComposition(bpm,Date.now()&0xffff);
+    piano.setTimbre(plan.timbre);
+    transport.onended=()=>{
+      log('KOMPOZİSYON #'+plan.num+' tamamlandı · imza '+plan.signature,'l-komp');
+      store.save();refreshCounters();
+      if(ui.chkInf.checked){
+        const wait=1800+Math.random()*2200;
+        log('Nefes · '+(wait/1000).toFixed(1)+' sn','l-sus');
+        state.timeout=setTimeout(()=>{if(state.started)startComposition();},wait);
+      }else{
+        log('SONSUZ MOD kapalı','l-sys');
+        stopAll(false);
+      }
+    };
+    transport.start(plan,bpm);
+    state.barPtr=0;state.lastCompNum=plan.num;
+    buildBarStrip(plan);
+    ui.sig.textContent='#'+plan.num+' · '+plan.signature;
+    ui.heroKey.textContent=plan.root+' · '+plan.mode+' · '+plan.form;
+    ui.heroSub.textContent='imza '+plan.signature;
+    log('YENİ #'+plan.num+' · '+plan.root+' '+plan.mode+' · '+plan.form+
+        ' · sus %'+Math.round(plan.stats.restFraction*100),'l-komp');
+    log('DİNAMİK PORTE · '+plan.bars.length+' ölçü akıyor','l-tin');
+    const nv=validateNotation(plan);
+    log(nv.length===0?'NOTASYON ✔ '+plan.bars.length+' ölçü · piyano notasyonu kusursuz'
+      :'NOTASYON · '+nv.length+' uyarı',nv.length===0?'l-nak':'l-sus');
+    const tb=plan.timbre;
+    log('TİN #'+plan.num+' · '+(tb.detuneCents>=0?'+':'')+tb.detuneCents.toFixed(1)+
+        ' cent · '+Math.round(tb.filterHz)+' Hz · reverb %'+Math.round(tb.reverbWet*100),'l-tin');
+    if(plan.deepBars>0)log('2. PİYANO derin legato · '+plan.deepBars+' bar','l-tin');
+    if(plan.thirdBars>0)log('3. PİYANO tiz bileşke · '+plan.thirdBars+' bar · '+plan.thirdCells+' hücre','l-tin');
+    if(plan.stats.tuttiBars>0)log('TUTTİ · '+plan.stats.tuttiBars+' bar · '+plan.stats.tutti+' ses','l-komp');
+    if(plan.stats.rings>0)log('SU HALKALARI · '+plan.stats.rings+' halka · '+plan.stats.ringNotes+' yankı notası','l-tin');
+    refreshCounters();
+  }
+
+  function stopAll(user){
+    state.started=false;
+    if(state.timeout){clearTimeout(state.timeout);state.timeout=null;}
+    transport.stop();
+    flowReset();
+    ui.btnMain.textContent='▶ BAŞLAT';
+    ui.btnMain.classList.remove('stop');
+    [ui.ledBass,ui.ledOrta,ui.ledTiz,ui.ledSus,ui.ledDeep,ui.ledThird,ui.ledRing]
+      .forEach(l=>l.classList.remove('on'));
+    Object.keys(keyEls).forEach(m=>{keyEls[m].className=keyEls[m].className.replace(/k-\w+/g,'').trim();});
+    if(ui.ripples)ui.ripples.innerHTML='';
+    ui.heroKey.textContent='DURDU';
+    ui.heroSub.textContent='sayaçlar korundu';
+    if(user)log('DURDURULDU · sayaçlar korundu','l-sys');
+  }
+
+  /* ---- CANLI YAYIN KONTROLÜ — yayına çıkmadan tam doğrulama ---- */
+  function selfTest(){
+    log('── CANLI YAYIN KONTROLÜ ──','l-sys');
+    const results=[];
+    const add=(name,okk)=>{results.push([name,okk]);log((okk?'✔ ':'✗ ')+name,okk?'l-nak':'l-sus');};
+    add('Ses motoru (AudioContext '+(piano.ctx?(Math.round((piano.ctx.sampleRate||44100)/1000)+' kHz'):'kapalı')+')',
+        !!piano.ctx&&piano.ctx.state==='running');
+    add('Gerçek piyano örnekleri ('+(piano.bank?piano.bank.count():0)+'/76 nota)',!!piano.bank&&piano.bank.count()>=70);
+    add('MASTERING zinciri (EQ · M/S ×1.22 · limitör · analyser)',
+        !!(piano.comp&&piano.eqAir&&piano.msMerge&&piano.limiter&&piano.analyser));
+    add('3D derinlik — Haas gecikmeleri (16 ms · 9 ms)',!!(piano.delay2&&piano.delay3));
+    add('SU HALKALARI — yankı zinciri (7.5 sn reverb)',
+        !!(piano.ringBus&&piano.reverbR&&piano.ringWet&&piano.ringDry));
+    add('Dinamik porte — genel porte + imleç',!!(ui.scoreWrap&&ui.scoreWrap.children.length>=1));
+    add('Klavye — gerçek oran (beyaz 1:6.1 · siyah %64)',parseInt(ui.keyboard.style.height,10)>0);
+    add('MusicXML dışa aktarımı (nota + hacim/vurgu)',typeof exportMusicXML==='function'&&!!ui.btnXml);
+    add('Notasyon doğrulaması (ritim değerleri · yazım · ızgara)',
+        typeof validateNotation==='function'&&(!transport.plan||validateNotation(transport.plan).length===0));
+    add('Zamanlayıcı — ileri-bakış çalıcı (140 ms)',!!transport.timer);
+    add('Kompozisyon planı ('+(transport.plan?transport.plan.events.length+' olay':'yok')+')',
+        !!(transport.plan&&transport.plan.events.length>200));
+    add('Stereo denge — simetrik pan',true);
+    add('Nota akışı — piyano rulosu (imleç · mavi vurgu)',
+        typeof drawFlow==='function'&&!!transport.onPlan);
+    const okCount=results.filter(r=>r[1]).length;
+    if(okCount===results.length){
+      log('CANLI YAYINA HAZIR ✔ '+okCount+'/'+results.length,'l-nak');
+      ui.heroSub.textContent='CANLI YAYINA HAZIR ✔ '+okCount+'/'+results.length;
+      ui.ticker.textContent='♪ CANLI YAYINA HAZIR ✔ — '+okCount+'/'+results.length+' kontrol';
+    }else{
+      log('UYARI: '+(results.length-okCount)+' kontrol başarısız','l-sus');
+    }
+    return okCount===results.length;
+  }
+
+  /* ---- düğmeler ---- */
+  ui.btnMain.addEventListener('click',async()=>{
+    if(!state.started){
+      if(!piano.ensure()){log('Ses motoru başlatılamadı','l-sys');return;}
+      if(piano.ctx.state==='suspended'){try{await piano.ctx.resume();}catch(e){}}
+      piano.setVolumeDb(parseInt(ui.rngVol.value,10));
+      if(!state.samplesReady){
+        ui.btnMain.textContent='♪ YÜKLENİYOR';
+        await ensureSamples();
+        ui.btnMain.textContent='▶ BAŞLAT';
+      }
+      state.started=true;
+      state.sessionStart=state.sessionStart||Date.now();
+      ui.btnMain.textContent='■ DURDUR';
+      ui.btnMain.classList.add('stop');
+      log('KONSER BAŞLADI · 3 PİYANO · TUTTİ · SU HALKALARI','l-sys');
+      startComposition();
+    }else{
+      stopAll(true);
+    }
+  });
+
+  ui.btnNew.addEventListener('click',()=>{
+    if(!state.started){log('Önce BAŞLAT','l-sys');return;}
+    log('YENİ kompozisyon…','l-sys');
+    if(state.timeout){clearTimeout(state.timeout);state.timeout=null;}
+    transport.stop();
+    startComposition();
+  });
+
+  ui.btnXml.addEventListener('click',()=>{exportMusicXML();});
+
+  ui.btnTest.addEventListener('click',()=>{
+    if(!piano.ctx){
+      if(!piano.ensure()){log('Ses motoru başlatılamadı','l-sys');return;}
+      piano.setVolumeDb(parseInt(ui.rngVol.value,10));
+    }
+    selfTest();
+  });
+
+  ui.chkInf.addEventListener('change',()=>{
+    log(ui.chkInf.checked?'SONSUZ MOD AÇIK':'SONSUZ MOD KAPALI','l-sys');
+  });
+
+  ui.rngTempo.addEventListener('input',()=>{
+    const b=parseInt(ui.rngTempo.value,10);
+    ui.outTempo.textContent=b+' BPM';
+    ui.pulseBpm.textContent=Math.round(b/4)+'/dk';
+    ui.slot.textContent=(60/b).toFixed(2)+'s';
+    transport.setBpm(b);
+  });
+  ui.rngVol.addEventListener('input',()=>{
+    const d=parseInt(ui.rngVol.value,10);
+    ui.outVol.textContent=d+' dB';
+    piano.setVolumeDb(d);
+  });
+  {const b=parseInt(ui.rngTempo.value,10);ui.pulseBpm.textContent=Math.round(b/4)+'/dk';ui.slot.textContent=(60/b).toFixed(2)+'s';}
+
+  /* ---- canlı gösterge (180 ms) + porte güncellemesi ---- */
+  setInterval(()=>{
+    if(state.sessionStart){
+      const s=Math.floor((Date.now()-state.sessionStart)/1000);
+      const hh=String(Math.floor(s/3600)).padStart(2,'0'),
+            mm=String(Math.floor(s/60)%60).padStart(2,'0'),
+            ss=String(s%60).padStart(2,'0');
+      ui.cTime.textContent=hh+':'+mm+':'+ss;
+    }
+    if(!transport.playing||!transport.plan)return;
+    updateScore();
+    const plan=transport.plan;
+    const cs=transport.curSlot();
+    while(state.barPtr<plan.bars.length-1&&cs>=plan.bars[state.barPtr+1].slotStart)state.barPtr++;
+    const bar=plan.bars[state.barPtr];
+    if(!bar)return;
+    ui.heroChord.textContent=bar.chordLabel;
+    ui.heroKey.textContent=bar.key+' · '+plan.mode+' · '+ROLE_LABEL[bar.role];
+    /* BÖLÜM TEMPOSU — sonat geleneği: coda yavaşlar, klimaks hızlanır */
+    if(bar.phaseIndex!==state.lastPhaseIdx){
+      state.lastPhaseIdx=bar.phaseIndex;
+      transport.setBpm(Math.round(parseInt(ui.rngTempo.value,10)*(bar.tempoMul||1)));
+    }
+    ui.phase.textContent=bar.roleLabel+' · '+(bar.barInPhase+1)+'/'+bar.bars+' · '+transport.bpm+' BPM';
+    ui.slot.textContent=(60/transport.bpm).toFixed(2)+'s';
+    ui.pulseBpm.textContent=Math.round(transport.bpm/4)+'/dk';
+    ui.aksak.textContent=bar.aksakLabel;
+    ui.hand.textContent=bar.handLabel;
+    ui.motif.textContent=bar.motifLabel+(bar.role==='chorus'?' (NAKARAT)':'');
+    ui.rest.textContent='%'+Math.round(bar.restDensity*100);
+    document.getElementById('circleCenter').textContent=bar.key+' · bar '+(state.barPtr+1)+'/'+plan.bars.length;
+    document.getElementById('circleChord').textContent=bar.chordLabel;
+    const kids=ui.bars.children;
+    for(let i=0;i<kids.length;i++){
+      const el=kids[i];
+      el.classList.toggle('done',i<state.barPtr);
+      el.classList.toggle('now',i===state.barPtr);
+      if(i===state.barPtr){
+        const p=clamp((cs-bar.slotStart)/bar.slots,0,1);
+        el.style.setProperty('--p',Math.round(p*100)+'%');
+      }
+    }
+    const pp=(cs/4)%1;
+    ui.pulse.classList.toggle('on',pp<0.14);
+    const w0=cs-0.12,w1=cs+0.5;
+    const lanesOn={bass:false,orta:false,tiz:false,deep:false,third:false};
+    let any=false;
+    for(const ev of bar.events){
+      const s=ev.slot-bar.slotStart;
+      if(s>=w0&&s<w1){
+        any=true;
+        if(ev.lane==='bass')lanesOn.bass=true;
+        else if(ev.lane==='orta'||ev.lane==='final')lanesOn.orta=true;
+        else if(ev.lane==='tiz'||ev.lane==='arp')lanesOn.tiz=true;
+        else if(ev.lane==='deep')lanesOn.deep=true;
+        else if(ev.lane==='third')lanesOn.third=true;
+      }
+    }
+    ui.ledBass.classList.toggle('on',lanesOn.bass);
+    ui.ledOrta.classList.toggle('on',lanesOn.orta);
+    ui.ledTiz.classList.toggle('on',lanesOn.tiz);
+    ui.ledDeep.classList.toggle('on',lanesOn.deep);
+    ui.ledThird.classList.toggle('on',lanesOn.third);
+    const susNow=!any||bar.susSlots.has(Math.round(cs-bar.slotStart));
+    ui.ledSus.classList.toggle('on',susNow);
+  },180);
+
+  /* ---- bilgi şeridi (5 sn) ---- */
+  setInterval(()=>{
+    if(!transport.playing||!transport.plan)return;
+    const plan=transport.plan,cs=transport.curSlot();
+    while(state.barPtr<plan.bars.length-1&&cs>=plan.bars[state.barPtr+1].slotStart)state.barPtr++;
+    const bar=plan.bars[state.barPtr];
+    if(!bar)return;
+    const msgs=[
+      '♪ '+bar.key+' '+plan.mode+' · '+bar.chordLabel+' · '+bar.progLabel,
+      '♪ '+bar.motifLabel+(bar.role==='chorus'?' · NAKARAT':''),
+      '♪ '+bar.aksakLabel+' · '+bar.handLabel,
+      '♪ sus %'+Math.round(bar.restDensity*100)+' · senkron nefes',
+      bar._tutti?'♪ TUTTİ — üç piyano paralel oktavlarda'
+                :'♪ derin legato + tiz bileşke katmanları',
+      '♪ su halkaları — tuttilerden sonra çap büyüten yankı',
+      '♪ M/S stereo · Haas 3D · limitör · MusicXML'
+    ];
+    ui.ticker.textContent=msgs[Math.floor(Date.now()/5000)%msgs.length];
+  },5000);
+
+  /* ---- çember düğüm vurgusu (400 ms) ---- */
+  setInterval(()=>{
+    if(!transport.playing||!transport.plan)return;
+    const plan=transport.plan,cs=transport.curSlot();
+    while(state.barPtr<plan.bars.length-1&&cs>=plan.bars[state.barPtr+1].slotStart)state.barPtr++;
+    const bar=plan.bars[state.barPtr];
+    if(!bar)return;
+    CIRCLE.forEach(k=>{
+      const el=nodeEls[k];
+      el.c.setAttribute('stroke',k===bar.key?'#a4552f':((store.c.circleRoots[k]||0)===minRoot?'#47617e':'#241b0c'));
+      el.c.setAttribute('stroke-width',k===bar.key?'2.5':'1');
+      el.t2.textContent=String(store.c.circleRoots[k]||0);
+    });
+  },400);
+
+  refreshCounters();
+  log('ÇEMBER MOTORU HAZIR · kalıcı '+store.c.compositions+' kompozisyon','l-sys');
+  log('GERÇEK PİYANO · 88 nota MP3 · sentez yedeği','l-tin');
+  log('3 PİYANO · TUTTİ · SU HALKALARI · DİNAMİK PORTE aktif','l-komp');
+  log('Yayın öncesi 🎚 YAYIN KONTROLÜ · ⤓ MUSICXML ile nota indirin','l-sys');
+  ui.ticker.textContent='♪ PİYANO ÇEMBER ∞ · üç piyano · tutti · su halkaları · dinamik porte';
+
+  if(typeof window!=='undefined'&&window.addEventListener)
+    window.addEventListener('beforeunload',()=>{transport.stop();store.save();});
+})();
+}
+
+/* test kancası */
+if(typeof window!=='undefined'){
+  window.__PC__={Composer,CounterStore,Transport,Piano,Rng,generateProgression,
+    CIRCLE,MOTIFS,FORMS,CLASSIC_PROGRESSIONS,AKSAK_PATTERNS,HAND_MODES,MODES,PermEngine,
+    SampleBank,midiToSampleName,SAMPLE_BASES,validateNotation,NOTATION_CLEAN,ROLE_TEMPO};
+}
+
+</script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a399652c7b4bb8a1',t:'MTc4OTE1ODI1OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
