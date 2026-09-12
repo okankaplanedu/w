@@ -1,0 +1,2000 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Akademi Stüdyosu — Bölüm & Ders CRUD + Typewriter Markdown Editör</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   GENEL / TEMA — AÇIK BEJ & GRİ, AKADEMİK
+============================================================ */
+:root{
+  --bg:#f3efe6;          /* açık bej zemin */
+  --bg2:#ece6d8;         /* yan paneller */
+  --panel:#fbf9f3;       /* kağıt beyazı */
+  --panel2:#ffffff;
+  --border:#ddd4c2;      /* sıcak gri kenarlık */
+  --border2:#c9bda4;
+  --text:#2c2a24;        /* koyu sıcak siyah */
+  --muted:#6d6859;       /* gri */
+  --muted2:#9a927d;
+  --accent:#2c4a6e;      /* lacivert (akademik) */
+  --accent2:#4a6fa5;
+  --gold:#b98a2e;        /* akademik altın */
+  --goldSoft:#e8dcbb;
+  --cyan:#2c7a8f;        /* bilgi */
+  --green:#3f7d4e;
+  --amber:#b0701e;
+  --red:#a33b3b;
+  --radius:12px;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  --serif:"Bricolage Grotesque",Georgia,"Times New Roman","Palatino Linotype","Book Antiqua",serif;
+  --sans:"Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:var(--sans);font-size:14px;line-height:1.5;overflow:hidden;
+  display:flex;flex-direction:column;
+}
+button{font-family:inherit;color:inherit;background:none;border:none;cursor:pointer}
+input,textarea,select{font-family:inherit;color:var(--text)}
+::selection{background:rgba(44,74,110,.18)}
+*::-webkit-scrollbar{width:10px;height:10px}
+*::-webkit-scrollbar-thumb{background:#cbc0a8;border-radius:8px;border:2px solid transparent;background-clip:padding-box}
+*::-webkit-scrollbar-thumb:hover{background:#b3a685}
+*::-webkit-scrollbar-track{background:transparent}
+
+/* ============================================================
+   ÜST BAR
+============================================================ */
+header{
+  height:56px;flex:none;display:flex;align-items:center;gap:10px;
+  padding:0 16px;background:linear-gradient(180deg,#fdfbf5,#f4efe4);
+  border-bottom:1px solid var(--border);z-index:50;position:relative;
+}
+.h-left{display:flex;align-items:center;gap:10px;min-width:0}
+.h-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:16px;white-space:nowrap;font-family:var(--serif);letter-spacing:.01em}
+.logo .mark{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-size:14px;color:#fff;flex:none;box-shadow:0 2px 6px rgba(44,74,110,.3)}
+.logo small{color:var(--muted);font-weight:400;font-family:var(--sans);letter-spacing:.14em;text-transform:uppercase;font-size:9px}
+#courseTitle{
+  background:transparent;border:1px dashed transparent;border-radius:8px;
+  font-weight:800;font-size:15px;padding:5px 10px;max-width:360px;min-width:120px;
+  color:var(--accent);transition:.15s;font-family:var(--serif);
+}
+#courseTitle:hover{border-color:var(--border2);background:rgba(44,74,110,.03)}
+.icon-btn{
+  height:34px;min-width:34px;padding:0 10px;border-radius:9px;display:inline-flex;align-items:center;gap:6px;
+  border:1px solid var(--border);background:var(--panel);font-size:13px;color:var(--text);
+  transition:.15s;white-space:nowrap;font-weight:600;
+}
+.icon-btn:hover{background:#fff;border-color:var(--border2)}
+.icon-btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent;color:#fff;font-weight:700}
+.icon-btn.primary:hover{filter:brightness(1.08)}
+.icon-btn.danger:hover{border-color:var(--red);color:var(--red)}
+#saveStatus{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;margin-right:2px}
+#saveStatus.saved{color:var(--green)}
+#saveStatus.error{color:var(--red)}
+#saveStatus .dot{width:7px;height:7px;border-radius:50%;background:var(--amber)}
+#saveStatus.saved .dot{background:var(--green)}
+#saveStatus.error .dot{background:var(--red)}
+
+.drop{position:relative}
+.drop-menu{
+  position:absolute;right:0;top:calc(100% + 6px);min-width:240px;background:var(--panel2);
+  border:1px solid var(--border2);border-radius:12px;padding:6px;z-index:90;box-shadow:0 14px 44px rgba(60,50,20,.18);
+  display:none;
+}
+.drop.open .drop-menu{display:block}
+.drop-menu .grp{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted2);padding:8px 10px 4px}
+.drop-menu button{display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:8px 10px;border-radius:8px;font-size:13px;font-weight:600}
+.drop-menu button:hover{background:rgba(44,74,110,.09)}
+
+/* ============================================================
+   ANA YERLEŞİM
+============================================================ */
+#app{flex:1;display:flex;min-height:0}
+
+#sidebar{
+  width:300px;flex:none;background:var(--bg2);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;min-height:0;z-index:60;
+  transition:transform .25s cubic-bezier(.4,0,.2,1), width .25s;
+}
+@media (max-width:1199px){
+  #sidebar{position:fixed;top:0;left:0;bottom:0;transform:translateX(-105%);box-shadow:24px 0 60px rgba(60,50,20,.2)}
+  #sidebar.open{transform:translateX(0)}
+}
+#sidebar.collapsed{width:0;border-right:none;overflow:hidden}
+#scrim{position:fixed;inset:0;background:rgba(44,40,30,.3);z-index:55;display:none;backdrop-filter:blur(2px)}
+@media (min-width:1200px){#scrim{display:none !important}}
+
+.sidebar-head{padding:12px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:10px}
+.sidebar-head .row{display:flex;align-items:center;gap:8px}
+.sidebar-head .row select{flex:1;min-width:0;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:7px 8px;font-size:13px}
+.sidebar-head h2{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:0;font-weight:800;font-family:var(--serif)}
+.mini{height:28px;min-width:28px;padding:0 8px;border-radius:7px;border:1px solid var(--border);background:var(--panel);font-size:12px;display:inline-flex;align-items:center;justify-content:center;gap:4px;transition:.15s;font-weight:700}
+.mini:hover{background:#fff;border-color:var(--border2)}
+.mini.danger:hover{border-color:var(--red);color:var(--red)}
+.tree{flex:1;overflow-y:auto;padding:10px}
+.tree .empty{padding:24px 14px;text-align:center;color:var(--muted);font-size:13px}
+.sec{margin-bottom:10px;border:1px solid var(--border);border-radius:12px;background:var(--panel);overflow:hidden;box-shadow:0 2px 8px rgba(60,50,20,.05)}
+.sec-head{display:flex;align-items:center;gap:6px;padding:8px 9px;background:linear-gradient(180deg,#fdfbf5,#f5f0e5);cursor:pointer;user-select:none;border-bottom:1px solid var(--border)}
+.sec-head .tt{font-weight:800;font-size:13px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--serif);color:var(--accent)}
+.sec-head .chev{transition:transform .2s;color:var(--muted);font-size:11px}
+.sec.closed .chev{transform:rotate(-90deg)}
+.sec.closed .lessons{display:none}
+.lessons{padding:4px}
+.lesson{display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:9px;cursor:pointer;font-size:13px;border:1px solid transparent;transition:.12s;position:relative}
+.lesson:hover{background:rgba(44,74,110,.05)}
+.lesson.active{background:rgba(44,74,110,.12);border-color:rgba(44,74,110,.28)}
+.lesson .ic{width:20px;height:20px;border-radius:6px;background:rgba(44,74,110,.12);display:grid;place-items:center;font-size:11px;flex:none}
+.lesson .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.lesson .pg{font-size:11px;color:var(--muted2);flex:none}
+.lesson .acts{display:none;gap:2px;flex:none}
+.lesson:hover .acts{display:inline-flex}
+.lesson .acts button{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;font-size:11px;color:var(--muted)}
+.lesson .acts button:hover{background:rgba(44,74,110,.1);color:var(--text)}
+.lesson .acts button.del:hover{color:var(--red)}
+.sidebar-foot{padding:10px 12px;border-top:1px solid var(--border);font-size:11px;color:var(--muted2);display:flex;gap:6px;flex-wrap:wrap}
+.sidebar-foot button{font-size:11px;color:var(--muted);padding:4px 8px;border-radius:7px;border:1px solid var(--border);font-weight:600}
+.sidebar-foot button:hover{color:var(--text);border-color:var(--border2)}
+
+/* Orta alan */
+#main{flex:1;display:flex;min-width:0;min-height:0}
+#pagesRail{width:196px;flex:none;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:0}
+.rail-head{padding:12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.rail-head span{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:800;flex:1;font-family:var(--serif)}
+#pageList{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
+.page-card{border:1px solid var(--border);border-radius:12px;background:var(--panel);padding:9px;cursor:pointer;transition:.12s;position:relative;box-shadow:0 2px 6px rgba(60,50,20,.05)}
+.page-card:hover{border-color:var(--border2)}
+.page-card.active{border-color:var(--accent);background:rgba(44,74,110,.07);box-shadow:0 3px 10px rgba(44,74,110,.14)}
+.page-card .thumb{aspect-ratio:16/9;border-radius:8px;background:linear-gradient(135deg,#efe9da,#e6deca);display:grid;place-items:center;font-size:20px;color:var(--muted2);margin-bottom:7px;overflow:hidden;border:1px solid var(--border)}
+.page-card .thumb video,.page-card .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.page-card .pt{font-size:12.5px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--serif);color:var(--accent)}
+.page-card .psub{font-size:11px;color:var(--muted2);display:flex;align-items:center;gap:5px;margin-top:2px}
+.page-card .acts{display:none;position:absolute;top:7px;right:7px;gap:2px}
+.page-card:hover .acts{display:flex}
+.page-card .acts button{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;font-size:11px;background:rgba(255,255,255,.95);color:var(--muted);border:1px solid var(--border)}
+.page-card .acts button:hover{color:var(--text);border-color:var(--border2)}
+.page-card .acts button.del:hover{color:var(--red)}
+#pageList .empty{padding:20px 10px;text-align:center;color:var(--muted);font-size:12.5px}
+
+/* Sahne */
+#stageWrap{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--bg)}
+#stageHead{flex:none;display:flex;align-items:center;gap:12px;padding:8px 16px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#faf7ef,#f2eddf);flex-wrap:wrap}
+.crumbs{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;min-width:0;overflow:hidden;white-space:nowrap}
+.crumbs b{color:var(--accent);font-family:var(--serif)}
+.crumbs .sep{color:var(--muted2)}
+.page-nav{display:flex;align-items:center;gap:8px;margin-left:auto}
+.page-nav button{width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:var(--panel);display:grid;place-items:center;font-size:15px;font-weight:700}
+.page-nav button:hover{background:#fff;border-color:var(--border2)}
+#pageTitle{font-weight:800;font-size:13.5px;font-family:var(--serif);color:var(--accent)}
+.tt-controls{display:flex;align-items:center;gap:6px;padding-left:12px;border-left:1px solid var(--border);flex-wrap:wrap}
+.tt-controls select{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:5px 6px;font-size:12px}
+.pill{height:28px;padding:0 10px;border-radius:8px;border:1px solid var(--border);background:var(--panel);font-size:12px;display:inline-flex;align-items:center;gap:6px;transition:.15s;font-weight:600}
+.pill:hover{background:#fff;border-color:var(--border2)}
+.pill.on{background:rgba(63,125,78,.12);border-color:var(--green);color:var(--green)}
+#stageScroll{flex:1;overflow-y:auto;padding:12px;display:flex;align-items:flex-start;justify-content:center}
+#stage{
+  width:100%;max-width:1320px;aspect-ratio:16/9;background:
+    radial-gradient(1100px 480px at 18% -8%, rgba(44,74,110,.06), transparent 60%),
+    radial-gradient(900px 460px at 100% 118%, rgba(185,138,46,.06), transparent 60%),
+    linear-gradient(180deg,#fdfbf5,#f6f1e6);
+  border:1px solid var(--border);border-radius:16px;box-shadow:0 18px 50px rgba(60,50,20,.12);
+  display:flex;flex-direction:column;overflow:hidden;position:relative;
+}
+#stage:fullscreen{border-radius:0;border:none;max-width:none;width:100vw;height:100vh;aspect-ratio:auto;margin:0}
+#stage .stage-tag{position:absolute;bottom:10px;right:14px;font-size:10px;color:var(--muted2);letter-spacing:.16em;opacity:.7;pointer-events:none;text-transform:uppercase}
+#content{flex:1;overflow:auto;padding:clamp(30px,3.9vw,68px)}
+#content > *:first-child{margin-top:0}
+
+/* Sağ video paneli (Dashboard) */
+#videoPanel{width:322px;flex:none;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;min-height:0}
+#videoPanel.hidden{display:none}
+.video-head{padding:12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.video-head span{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:800;flex:1;font-family:var(--serif)}
+.video-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px}
+#videoFrame{width:100%;max-width:240px;aspect-ratio:9/16;margin:0 auto;border-radius:14px;overflow:hidden;background:#1a2030;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 14px 34px rgba(44,40,30,.25)}
+#videoFrame video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000}
+#videoFrame video.contain{object-fit:contain}
+#videoEmpty{text-align:center;color:#b9c0cc;font-size:12.5px;padding:20px;display:flex;flex-direction:column;gap:10px;align-items:center}
+#videoEmpty .big{font-size:34px;opacity:.5}
+.field label{font-size:11px;color:var(--muted);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+.input{width:100%;background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:8px 10px;font-size:13px;transition:.15s;color:var(--text)}
+.input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(44,74,110,.12)}
+textarea.input{resize:vertical;min-height:70px}
+.row{display:flex;gap:7px}
+.row .grow{flex:1;min-width:0}
+.filebtn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:8px;border-radius:9px;border:1px dashed var(--border2);background:var(--panel);font-size:12.5px;color:var(--muted);cursor:pointer;transition:.15s;font-weight:600}
+.filebtn:hover{color:var(--accent);border-color:var(--accent)}
+.video-info{font-size:11.5px;color:var(--muted2);line-height:1.55;background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:10px}
+.video-info b{color:var(--muted)}
+
+/* ============================================================
+   SUNUM MODU (dashboard'dan ayrı tam ekran görünüm)
+============================================================ */
+#presentView{
+  position:fixed;inset:0;z-index:200;display:none;flex-direction:column;
+  background:
+    radial-gradient(1400px 700px at 15% -10%, rgba(44,74,110,.07), transparent 60%),
+    radial-gradient(1000px 600px at 100% 120%, rgba(185,138,46,.08), transparent 60%),
+    linear-gradient(160deg,#f6f2e8,#ede6d6);
+}
+#presentView.open{display:flex}
+#presentTop{
+  display:flex;align-items:center;gap:22px;padding:10px 24px;flex:none;
+  background:rgba(251,249,243,.94);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--border);transition:opacity .25s, transform .25s;
+}
+#presentTop.hide{opacity:0;pointer-events:none;transform:translateY(-100%)}
+.p-title{display:flex;flex-direction:column;min-width:0}
+#pCourse{font-size:10px;text-transform:uppercase;letter-spacing:.16em;color:var(--muted2);font-weight:700}
+#pPage{font-size:20px;font-weight:800;color:var(--accent);font-family:var(--serif);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p-nav{display:flex;align-items:center;gap:8px;margin-left:auto}
+.p-nav button,.pbtn{
+  height:34px;min-width:34px;padding:0 12px;border-radius:9px;border:1px solid var(--border);
+  background:var(--panel);font-size:13px;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  font-weight:700;transition:.15s;
+}
+.p-nav button:hover,.pbtn:hover{background:#fff;border-color:var(--border2)}
+#pIdx{font-size:13px;color:var(--muted);font-weight:700;min-width:46px;text-align:center}
+#pExit{background:var(--accent);border-color:transparent;color:#fff}
+#pExit:hover{filter:brightness(1.1)}
+#pSpeed{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:6px 8px;font-size:12px}
+#presentBody{
+  flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;justify-content:center;gap:clamp(24px,4vw,72px);
+  padding:26px clamp(30px,5vw,84px);
+}
+#presStage{
+  aspect-ratio:16/9;width:100%;max-width:min(100%,calc((100vh - 132px)*1.7778));justify-self:center;min-width:0;
+  background:radial-gradient(900px 420px at 18% -8%, rgba(44,74,110,.05), transparent 60%),
+             linear-gradient(180deg,#fdfbf5,#f5f0e4);
+  border:1px solid var(--border);border-radius:16px;
+  box-shadow:0 24px 64px rgba(60,50,20,.16);
+  display:flex;flex-direction:column;overflow:hidden;position:relative;
+}
+#presStage .stage-tag{position:absolute;bottom:10px;right:14px;font-size:10px;color:var(--muted2);letter-spacing:.16em;opacity:.7;text-transform:uppercase;pointer-events:none}
+#presContent{flex:1;overflow:auto;padding:clamp(32px,4.3vw,76px)}
+#presContent > *:first-child{margin-top:0}
+#presContent.markdown-body{font-size:clamp(20px,1.9vw,27px);line-height:1.85}
+#presContent.markdown-body h1{font-size:2.9em}
+#presContent.markdown-body h2{font-size:2em}
+#presContent.markdown-body h3{font-size:1.55em}
+#presContent.markdown-body p{margin:.6em 0}
+#presContent.markdown-body .md-big{font-size:2.4em}
+#presVideoWrap{display:flex;flex-direction:column;align-items:center;gap:14px}
+#presVideoFrame{
+  height:calc(100vh - 216px);min-height:300px;aspect-ratio:9/16;width:auto;
+  background:#1a2030;border-radius:14px;border:1px solid var(--border2);
+  box-shadow:0 24px 64px rgba(44,40,30,.28);overflow:hidden;position:relative;
+  display:flex;align-items:center;justify-content:center;
+}
+#presVideo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000}
+#presVideo.contain{object-fit:contain}
+#presVideoEmpty{text-align:center;color:#b9c0cc;font-size:13px;padding:20px;display:flex;flex-direction:column;gap:12px;align-items:center}
+#presVideoEmpty .big{font-size:40px;opacity:.5}
+#presVideoTitle{font-size:13px;font-weight:800;color:var(--accent);font-family:var(--serif);text-align:center}
+@media (max-width:1020px){
+  #presentBody{grid-template-columns:1fr;gap:18px;padding:18px;overflow:auto}
+  #presVideoFrame{height:32vh;min-height:200px}
+  #presStage{max-width:100%}
+}
+
+/* ============================================================
+   EDİTÖR PANELİ
+============================================================ */
+#editorPanel{flex:none;height:310px;display:flex;flex-direction:column;border-top:1px solid var(--border);background:var(--bg2);min-height:0;position:relative}
+#editorPanel.collapsed{height:42px;overflow:hidden}
+#editorHandle{position:absolute;top:-3px;left:0;right:0;height:7px;cursor:ns-resize;z-index:5}
+#editorPanel.collapsed #editorHandle{display:none}
+.editor-head{flex:none;display:flex;align-items:center;gap:10px;padding:6px 14px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,#faf7ef,#f1ecdf)}
+.editor-head .t{font-size:13px;font-weight:800;display:flex;align-items:center;gap:8px;min-width:0;font-family:var(--serif)}
+.editor-head .t b{color:var(--accent);font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:320px}
+.editor-head .t small{color:var(--muted2);font-weight:400;font-family:var(--sans)}
+.editor-actions{margin-left:auto;display:flex;align-items:center;gap:6px}
+#editorToolbar{flex:none;display:flex;flex-wrap:wrap;gap:4px;padding:7px 12px;border-bottom:1px solid var(--border);background:var(--bg2)}
+.tb-btn{height:30px;min-width:30px;padding:0 8px;border-radius:7px;border:1px solid var(--border);background:var(--panel);font-size:12.5px;display:inline-flex;align-items:center;justify-content:center;gap:4px;transition:.12s;color:var(--text);font-weight:600}
+.tb-btn:hover{background:#fff;border-color:var(--border2)}
+.tb-btn:active{transform:scale(.95)}
+.tb-btn.hl:hover{border-color:var(--accent);color:var(--accent)}
+.tb-sep{width:1px;background:var(--border);margin:3px 5px;align-self:stretch}
+.editor-body{flex:1;display:flex;min-height:0}
+#editor{flex:1;resize:none;border:none;background:#fbf9f3;color:var(--text);padding:14px 16px;font-family:var(--mono);font-size:13.5px;line-height:1.65;outline:none;min-width:0}
+#editorPreview{width:44%;border-left:1px solid var(--border);overflow-y:auto;padding:16px 20px;background:#fdfbf5;display:none;min-width:0}
+#editorPreview.show{display:block}
+#editorPanel.collapsed .editor-body,#editorPanel.collapsed #editorToolbar{display:none}
+#editorPanel.collapsed .editor-head{border-bottom:none;height:42px}
+
+/* ============================================================
+   MODAL / TOAST
+============================================================ */
+#modal{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(44,40,30,.4);backdrop-filter:blur(3px);padding:20px}
+#modal.open{display:flex}
+.modal-card{width:100%;max-width:440px;background:var(--panel2);border:1px solid var(--border2);border-radius:16px;box-shadow:0 26px 80px rgba(60,50,20,.28);overflow:hidden}
+.modal-title{padding:16px 18px 0;font-weight:800;font-size:17px;font-family:var(--serif);color:var(--accent)}
+.modal-body{padding:14px 18px;display:flex;flex-direction:column;gap:12px}
+.modal-body .hint{font-size:12px;color:var(--muted)}
+.modal-actions{padding:0 18px 18px;display:flex;justify-content:flex-end;gap:8px}
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);z-index:300;background:var(--panel2);border:1px solid var(--border2);border-radius:12px;padding:10px 16px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;box-shadow:0 14px 44px rgba(60,50,20,.25);display:flex;align-items:center;gap:8px;max-width:80vw;font-weight:600}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Typewriter imleci */
+.typecursor{display:inline-block;width:3px;height:1.15em;background:var(--gold);vertical-align:-0.2em;margin-left:2px;border-radius:2px;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* ============================================================
+   MARKDOWN GÖVDE STİLLERİ — AKADEMİK, SERIF, BÜYÜK & KALIN
+============================================================ */
+</style>
+
+<style id="md-style">
+.markdown-body{color:#33302a;font-size:clamp(18px,1.55vw,22.5px);line-height:1.82;word-wrap:break-word;font-family:"Bricolage Grotesque",Georgia,"Times New Roman","Palatino Linotype","Book Antiqua",serif}
+.markdown-body h1,.markdown-body h2,.markdown-body h3,.markdown-body h4,.markdown-body h5,.markdown-body h6{
+  margin:0.7em 0 0.35em;line-height:1.18;font-weight:800;color:#20314a;font-family:"Bricolage Grotesque",Georgia,"Times New Roman",serif;letter-spacing:-.015em;
+}
+.markdown-body h1{font-size:2.6em;border-bottom:3px double var(--gold);padding-bottom:.25em;letter-spacing:-.01em}
+.markdown-body h2{font-size:1.85em;border-left:5px solid var(--gold);padding-left:.5em;color:var(--accent)}
+.markdown-body h3{font-size:1.45em;color:var(--accent)}
+.markdown-body h4{font-size:1.2em;color:var(--accent)}
+.markdown-body h5,.markdown-body h6{font-size:1em;color:var(--muted)}
+.markdown-body p{margin:.55em 0}
+.markdown-body a{color:var(--cyan);text-decoration:none;border-bottom:1px dotted rgba(44,122,143,.5)}
+.markdown-body a:hover{border-bottom-style:solid}
+.markdown-body strong{color:#1c2c44;font-weight:800}
+.markdown-body em{color:#3f4b5e}
+.markdown-body del{opacity:.55}
+.markdown-body mark{background:#f7e6bf;color:#6b4d0e;border-radius:4px;padding:0 .25em}
+.markdown-body .md-big{display:inline-block;font-size:2.1em;font-weight:800;line-height:1.16;letter-spacing:-.02em;color:#1f3a5f;margin:.15em 0}
+.markdown-body .md-badge{display:inline-block;font-size:.68em;font-weight:800;padding:.22em .7em;border-radius:999px;background:#f3ecd8;border:1px solid #d8c58f;color:#6b4d0e;vertical-align:middle;margin:0 2px;font-family:"Segoe UI",system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase}
+.markdown-body .md-btn{display:inline-block;padding:.5em 1.2em;margin:.15em .2em;border-radius:9px;text-decoration:none;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-weight:800;font-size:.88em;box-shadow:0 6px 18px rgba(44,74,110,.3);transition:.15s;font-family:"Segoe UI",system-ui,sans-serif}
+.markdown-body .md-btn:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.markdown-body code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.86em;background:#f0ecdf;color:#7a3b2e;padding:.15em .45em;border-radius:6px;border:1px solid #ddd4c2}
+.markdown-body pre.codeblock{background:#f7f4ec;border:1px solid var(--border2);border-radius:12px;padding:14px 16px;overflow:auto;position:relative;margin:.7em 0}
+.markdown-body pre.codeblock[data-lang]::before{content:attr(data-lang);position:absolute;top:8px;right:12px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2)}
+.markdown-body pre.codeblock code{background:none;border:none;padding:0;color:#33302a;font-size:13.5px}
+.markdown-body blockquote{margin:.7em 0;padding:.55em 1em;border-left:4px solid var(--gold);background:#f6f2e6;border-radius:0 10px 10px 0;color:#4a463a}
+.markdown-body ul,.markdown-body ol{margin:.5em 0;padding-left:1.6em}
+.markdown-body li{margin:.3em 0}
+.markdown-body li::marker{color:var(--gold);font-weight:700}
+.markdown-body li.task{list-style:none;margin-left:-1.3em}
+.markdown-body li.task input{margin-right:.5em;accent-color:var(--accent)}
+.markdown-body hr{border:none;border-top:1px solid var(--border2);margin:1.2em 0}
+.markdown-body .table-wrap{overflow-x:auto;margin:.8em 0;border-radius:10px;border:1px solid var(--border2)}
+.markdown-body table{border-collapse:collapse;width:100%;font-size:.9em}
+.markdown-body th{background:var(--accent);color:#fff;font-weight:800;font-family:"Segoe UI",system-ui,sans-serif;letter-spacing:.02em}
+.markdown-body th,.markdown-body td{padding:9px 14px;border:1px solid var(--border);text-align:left}
+.markdown-body tr:nth-child(even) td{background:#f6f2e6}
+.markdown-body tr:hover td{background:rgba(44,74,110,.06)}
+.markdown-body img{max-width:100%;border-radius:10px}
+.markdown-body .callout{margin:.8em 0;padding:12px 16px;border-radius:12px;border:1px solid;font-size:.95em;border-left-width:5px}
+.markdown-body .callout::before{font-weight:800;display:block;margin-bottom:4px;font-size:.9em;letter-spacing:.03em;font-family:"Segoe UI",system-ui,sans-serif}
+.markdown-body .callout-info{background:rgba(44,122,143,.07);border-color:rgba(44,122,143,.4)}
+.markdown-body .callout-info::before{content:"ℹ BİLGİ";color:var(--cyan)}
+.markdown-body .callout-warning{background:rgba(176,112,30,.07);border-color:rgba(176,112,30,.42)}
+.markdown-body .callout-warning::before{content:"⚠ UYARI";color:var(--amber)}
+.markdown-body .callout-success{background:rgba(63,125,78,.07);border-color:rgba(63,125,78,.42)}
+.markdown-body .callout-success::before{content:"✔ BAŞARI";color:var(--green)}
+.markdown-body .callout-danger{background:rgba(163,59,59,.07);border-color:rgba(163,59,59,.42)}
+.markdown-body .callout-danger::before{content:"✖ TEHLİKE";color:var(--red)}
+.markdown-body .callout p{margin:.2em 0}
+.markdown-body .md-muted{color:var(--muted2);font-style:italic}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="h-left">
+    <button class="icon-btn" id="btnSidebar" title="Bölümler & Dersler (offcanvas)">☰</button>
+    <div class="logo"><span class="mark">🎓</span> Akademi Stüdyosu <small>16:9</small></div>
+    <input id="courseTitle" spellcheck="false" title="Kurs başlığını düzenle">
+  </div>
+  <div class="h-right">
+    <span id="saveStatus"><span class="dot"></span> Kaydedildi</span>
+    <button class="icon-btn" id="btnVideo" title="Video panelini göster/gizle">🎬 <span class="lbl">Video</span></button>
+    <button class="icon-btn" id="btnEditor" title="Editör panelini aç/kapat">✍️ <span class="lbl">Editör</span></button>
+    <div class="drop" id="exportDrop">
+      <button class="icon-btn primary" id="btnExport">⬇️ <span class="lbl">İndir</span> ▾</button>
+      <div class="drop-menu">
+        <div class="grp">Aktif Dersi İndir</div>
+        <button data-fmt="md">📄 Markdown (.md)</button>
+        <button data-fmt="html">🌐 HTML (.html)</button>
+        <button data-fmt="json">🗂 JSON — ders yedeği (.json)</button>
+        <div class="grp">Kurs / Tüm Veri</div>
+        <button data-fmt="course-json">💾 Aktif kurs yedeği (.json)</button>
+        <button data-fmt="all-json">📦 Tüm veri yedeği (.json)</button>
+      </div>
+    </div>
+    <button class="icon-btn" id="btnImport" title="JSON yedeğini geri yükle">📥 <span class="lbl">İçe Aktar</span></button>
+    <input type="file" id="importFile" accept=".json,application/json" style="display:none">
+    <button class="icon-btn" id="btnHelp" title="Yardım ve işaretleme rehberi">❓</button>
+    <button class="icon-btn" id="btnFullscreen" title="Tam ekran (panoya dön)">⛶</button>
+    <button class="icon-btn primary" id="btnPresent" title="Sunum modu — 16:9 typewriter + sağda 9:16 video">▶ <span class="lbl">Sunum</span></button>
+  </div>
+</header>
+
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-head">
+      <div class="row" style="justify-content:space-between">
+        <h2>📚 Kurslar</h2>
+        <button class="mini" id="btnAddCourse" title="Yeni kurs ekle">➕ Kurs</button>
+      </div>
+      <div class="row">
+        <select id="courseSelect"></select>
+        <button class="mini" id="btnEditCourse" title="Kursu yeniden adlandır">✏️</button>
+        <button class="mini danger" id="btnDelCourse" title="Kursu sil">🗑</button>
+      </div>
+      <div class="row" style="justify-content:space-between">
+        <h2>📖 Bölümler & Dersler</h2>
+        <button class="mini" id="btnAddSection" title="Yeni bölüm ekle">➕ Bölüm</button>
+      </div>
+    </div>
+    <div class="tree" id="sectionList"></div>
+    <div class="sidebar-foot">
+      <span id="statInfo">—</span>
+      <span style="flex:1"></span>
+      <button id="btnSample" title="Örnek veriyi geri yükle">🔄 Örnek</button>
+      <button id="btnClear" title="Tüm veriyi sil">🗑 Temizle</button>
+    </div>
+  </aside>
+  <div id="scrim"></div>
+
+  <main id="main">
+    <nav id="pagesRail">
+      <div class="rail-head">
+        <span>📄 Sayfalar</span>
+        <button class="mini" id="btnAddPage" title="Bu derse yeni sayfa ekle">➕</button>
+      </div>
+      <div id="pageList"></div>
+    </nav>
+
+    <section id="stageWrap">
+      <div id="stageHead">
+        <div class="crumbs" id="crumbs"></div>
+        <div class="page-nav">
+          <button id="btnPrevPage" title="Önceki sayfa">‹</button>
+          <span id="pageTitle">Sayfa seçilmedi</span>
+          <button id="btnNextPage" title="Sonraki sayfa">›</button>
+        </div>
+        <div class="tt-controls">
+          <select id="speedSel" title="Yazma hızı">
+            <option value="slow">🐢 Yavaş</option>
+            <option value="normal" selected>🚶 Normal</option>
+            <option value="fast">🏃 Hızlı</option>
+            <option value="turbo">⚡ Turbo</option>
+          </select>
+          <button class="pill" id="btnTTPause" title="Duraklat/Sürdür">⏸</button>
+          <button class="pill" id="btnTTSkip" title="Tamamını göster">⏭</button>
+          <button class="pill on" id="btnTTToggle" title="Typewriter efektini aç/kapat">⌨ Efekt</button>
+        </div>
+      </div>
+      <div id="stageScroll">
+        <div id="stage">
+          <div id="content" class="markdown-body"></div>
+          <div class="stage-tag">16:9 • Typewriter</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <aside id="videoPanel">
+    <div class="video-head">
+      <span>🎬 Video — 9:16</span>
+      <button class="mini" id="btnCloseVideo" title="Paneli gizle">✕</button>
+    </div>
+    <div class="video-body">
+      <div id="videoFrame">
+        <video id="video" controls playsinline preload="metadata"></video>
+        <div id="videoEmpty">
+          <div class="big">🎞️</div>
+          Bu sayfaya ait dikey (9:16) video yok.<br>Aşağıdan bir MP4 URL girin veya dosya yükleyin.
+        </div>
+      </div>
+      <div class="field">
+        <label>Video URL (MP4)</label>
+        <input class="input" id="videoUrl" placeholder="https://.../video.mp4" spellcheck="false">
+        <div style="height:7px"></div>
+        <div class="row">
+          <label class="filebtn" for="videoFile">📁 Dosya Seç
+            <input type="file" id="videoFile" accept="video/mp4,video/*" style="display:none">
+          </label>
+          <button class="mini danger" id="btnClearVideo" title="Videoyu kaldır">🗑</button>
+        </div>
+      </div>
+      <div class="row">
+        <button class="pill" id="btnVideoFit" title="Kapla / Sığdır">📐 Kapla</button>
+        <button class="pill" id="btnDownloadVideo" title="Videoyu indir">⬇️ Videoyu indir</button>
+      </div>
+      <div class="video-info" id="videoInfo">—</div>
+    </div>
+  </aside>
+</div>
+
+<div id="editorPanel">
+  <div id="editorHandle" title="Sürükleyerek yeniden boyutlandır"></div>
+  <div class="editor-head">
+    <div class="t">✍️ Ders Anlatım Editörü — <b id="editorPageName">—</b> <small>(markdown)</small></div>
+    <div class="editor-actions">
+      <button class="pill" id="btnUndo" title="Geri al">↩</button>
+      <button class="pill" id="btnRedo" title="Yinele">↪</button>
+      <button class="pill" id="btnTogglePreview" title="Canlı önizlemeyi göster/gizle">👁 Önizle</button>
+      <button class="icon-btn primary" id="btnApply" title="Sahneye uygula ve typewriter'ı oynat">▶ Uygula &amp; Oynat</button>
+      <button class="icon-btn" id="btnCollapseEditor" title="Editörü kapat">✕</button>
+    </div>
+  </div>
+  <div id="editorToolbar"></div>
+  <div class="editor-body">
+    <textarea id="editor" spellcheck="false" placeholder="# Markdown ile ders anlatımınızı buraya yazın…&#10;&#10;%%Büyük kalın yazı%%  |  **kalın**  |  *italik*  |  ==vurgu==  |  tablo  |  :::info kutu :::"></textarea>
+    <div id="editorPreview" class="markdown-body"></div>
+  </div>
+</div>
+
+<!-- SUNUM MODU — dashboard'dan ayrı, temiz tam ekran -->
+<div id="presentView">
+  <div id="presentTop">
+    <div class="p-title">
+      <div id="pCourse">—</div>
+      <div id="pPage">—</div>
+    </div>
+    <div class="p-nav">
+      <button id="pPrev" title="Önceki sayfa">‹</button>
+      <span id="pIdx">—</span>
+      <button id="pNext" title="Sonraki sayfa">›</button>
+    </div>
+    <div class="p-nav">
+      <button class="pbtn" id="pReplay" title="Baştan oynat">↺ Baştan</button>
+      <button class="pbtn" id="pPause" title="Duraklat/Sürdür">⏸</button>
+      <select id="pSpeed" title="Yazma hızı">
+        <option value="slow">🐢 Yavaş</option>
+        <option value="normal" selected>🚶 Normal</option>
+        <option value="fast">🏃 Hızlı</option>
+        <option value="turbo">⚡ Turbo</option>
+      </select>
+      <button class="pbtn" id="pFull" title="Tam ekran aç/kapat">⛶</button>
+      <button class="pbtn" id="pExit">✕ Panoya Dön</button>
+    </div>
+  </div>
+  <div id="presentBody">
+    <div id="presStage">
+      <div id="presContent" class="markdown-body"></div>
+      <div class="stage-tag">16:9 • Typewriter</div>
+    </div>
+    <div id="presVideoWrap">
+      <div id="presVideoFrame">
+        <video id="presVideo" controls playsinline preload="metadata"></video>
+        <div id="presVideoEmpty">
+          <div class="big">🎞️</div>
+          Bu sayfada dikey (9:16) video yok.
+        </div>
+      </div>
+      <div id="presVideoTitle">—</div>
+    </div>
+  </div>
+</div>
+
+<div id="modal">
+  <div class="modal-card">
+    <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-actions" id="modalActions"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+/* ============================================================
+   YARDIMCILAR
+============================================================ */
+const $  = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : 'id-' + Math.random().toString(36).slice(2) + Date.now().toString(36));
+const deepClone = o => JSON.parse(JSON.stringify(o));
+const debounce = (fn, ms) => { let t; return function(){ clearTimeout(t); t = setTimeout(() => fn.apply(this, arguments), ms); }; };
+
+/* ===== MARKDOWN PARSER START ===== */
+function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escapeAttr(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function isDangerousUrl(u){
+  u = (u||'').trim();
+  if(/^\s*(javascript|vbscript)\s*:/i.test(u)) return true;
+  if(/^\s*data\s*:/i.test(u) && !/^\s*data:image\//i.test(u)) return true;
+  return false;
+}
+function inline(s, ctx, root){
+  ctx = ctx || {toks:[], codes:[]};
+  if(root === undefined) root = true;
+  s = s.replace(/`([^`\n]+)`/g, function(m,c){
+    ctx.codes.push('<code>' + escapeHtml(c) + '</code>');
+    return '\u0001' + (ctx.codes.length-1) + '\u0001';
+  });
+  s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, function(m,alt,url){
+    ctx.toks.push(isDangerousUrl(url) ? '<span class="md-muted">[resim engellendi]</span>'
+      : '<img src="' + escapeAttr(url) + '" alt="' + escapeHtml(alt) + '" loading="lazy">');
+    return '\u0000' + (ctx.toks.length-1) + '\u0000';
+  });
+  s = s.replace(/@btn\(([^|)\n]+)\|([^)\n]+)\)/g, function(m,l,u){
+    ctx.toks.push(isDangerousUrl(u) ? escapeHtml(l)
+      : '<a class="md-btn" href="' + escapeAttr(u) + '" target="_blank" rel="noopener">' + escapeHtml(l) + '</a>');
+    return '\u0000' + (ctx.toks.length-1) + '\u0000';
+  });
+  s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, function(m,txt,url){
+    ctx.toks.push(isDangerousUrl(url) ? inline(txt, ctx, false)
+      : '<a href="' + escapeAttr(url) + '" target="_blank" rel="noopener">' + inline(txt, ctx, false) + '</a>');
+    return '\u0000' + (ctx.toks.length-1) + '\u0000';
+  });
+  s = escapeHtml(s);
+  s = s.replace(/%%([^%\n]+)%%/g, '<span class="md-big">$1</span>');
+  s = s.replace(/@badge\(([^)\n]+)\)/g, '<span class="md-badge">$1</span>');
+  s = s.replace(/\*\*\*([^*\n]+)\*\*\*/g, '<strong><em>$1</em></strong>');
+  s = s.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/__([^_\n]+)__/g, '<strong>$1</strong>');
+  s = s.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+  s = s.replace(/(^|[^\w])_([^_\n]+)_(?!\w)/g, '$1<em>$2</em>');
+  s = s.replace(/~~([^~\n]+)~~/g, '<del>$1</del>');
+  s = s.replace(/==([^=\n]+)==/g, '<mark>$1</mark>');
+  if(root){
+    s = s.replace(/\u0000(\d+)\u0000/g, function(m,i){ return ctx.toks[+i]; });
+    s = s.replace(/\u0001(\d+)\u0001/g, function(m,i){ return ctx.codes[+i]; });
+  }
+  return s;
+}
+function splitRow(line){
+  let s = line.trim();
+  if(s.startsWith('|')) s = s.slice(1);
+  if(s.endsWith('|'))   s = s.slice(0, -1);
+  return s.split('|');
+}
+function isTableSeparator(line){
+  if(line.indexOf('-') === -1) return false;
+  const cells = splitRow(line);
+  if(!cells.length) return false;
+  return cells.every(c => /^\s*:?-{2,}:?\s*$/.test(c));
+}
+function isBlockStart(lines, i, n){
+  const l = lines[i];
+  if(/^\s*$/.test(l)) return true;
+  if(/^(#{1,6})\s+/.test(l)) return true;
+  if(/^(```|~~~)/.test(l)) return true;
+  if(/^\s{0,3}>/.test(l)) return true;
+  if(/^:::\w*\s*$/.test(l.trim())) return true;
+  if(/^\s{0,3}([-*_])(\s*\1){2,}\s*$/.test(l)) return true;
+  if(/^\s{0,3}([-*+]|\d+[.)])\s+/.test(l)) return true;
+  if(l.indexOf('|') !== -1 && i+1 < n && isTableSeparator(lines[i+1])) return true;
+  return false;
+}
+function parseList(lines, i, n, indent){
+  const ordered = /^\s*\d+[.)]\s+/.test(lines[i]);
+  const tag = ordered ? 'ol' : 'ul';
+  let html = '<' + tag + '>';
+  while(i < n){
+    const m = lines[i].match(/^(\s*)([-*+]|\d+[.)])\s+(.*)$/);
+    if(!m) break;
+    const ind = (m[1] || '').replace(/\t/g, '   ').length;
+    if(ind < indent) break;
+    if(ind > indent){ const sub = parseList(lines, i, n, ind); html += sub.html; i = sub.next; continue; }
+    let itemHtml = '';
+    const content = m[3];
+    const task = content.match(/^\[([ xX])\]\s+(.*)$/);
+    if(task){
+      itemHtml += '<input type="checkbox" disabled ' + (/[xX]/.test(task[1]) ? 'checked' : '') + '> ';
+      itemHtml += inline(task[2]);
+    } else {
+      itemHtml += inline(content);
+    }
+    i++;
+    const cont = [];
+    while(i < n && lines[i].trim() !== '' && !/^\s{0,3}([-*+]|\d+[.)])\s+/.test(lines[i]) && !isBlockStart(lines, i, n)){
+      cont.push(lines[i].trim()); i++;
+    }
+    if(cont.length) itemHtml += '<br>' + inline(cont.join('<br>'));
+    if(i < n && /^\s{0,3}([-*+]|\d+[.)])\s+/.test(lines[i])){
+      const subInd = (lines[i].match(/^(\s*)/)[1] || '').replace(/\t/g, '   ').length;
+      if(subInd > indent){ const sub = parseList(lines, i, n, subInd); itemHtml += sub.html; i = sub.next; }
+    }
+    html += '<li>' + itemHtml + '</li>';
+  }
+  html += '</' + tag + '>';
+  return { html: html, next: i };
+}
+function markdownToHtml(md){
+  if(!md || !md.trim()) return '';
+  const lines = md.replace(/\r\n?/g, '\n').split('\n');
+  const out = [];
+  let i = 0, n = lines.length;
+  while(i < n){
+    const line = lines[i];
+    if(/^\s*$/.test(line)){ i++; continue; }
+    const fence = line.match(/^(\s*)(```+|~~~+)\s*([\w-]*)\s*$/);
+    if(fence){
+      const marker = fence[2][0];
+      const lang = fence[3] || '';
+      const code = [];
+      i++;
+      while(i < n && !new RegExp('^\\s*' + marker + '{3,}\\s*$').test(lines[i])){ code.push(lines[i]); i++; }
+      i++;
+      out.push('<pre class="codeblock"' + (lang ? ' data-lang="' + escapeAttr(lang) + '"' : '') + '><code>' + escapeHtml(code.join('\n')) + '</code></pre>');
+      continue;
+    }
+    const h = line.match(/^(#{1,6})\s+(.*)$/);
+    if(h){ const lv = h[1].length; out.push('<h' + lv + '>' + inline(h[2]) + '</h' + lv + '>'); i++; continue; }
+    if(/^\s{0,3}([-*_])(\s*\1){2,}\s*$/.test(line)){ out.push('<hr>'); i++; continue; }
+    if(/^:::\s*(\w*)\s*$/.test(line)){
+      const type = (line.match(/^:::\s*(\w*)/)[1] || 'info') || 'info';
+      const inner = [];
+      i++;
+      while(i < n && !/^:::\s*$/.test(lines[i].trim())){ inner.push(lines[i]); i++; }
+      i++;
+      out.push('<div class="callout callout-' + escapeAttr(type) + '">' + markdownToHtml(inner.join('\n')) + '</div>');
+      continue;
+    }
+    if(/^\s{0,3}>/.test(line)){
+      const inner = [];
+      while(i < n && (/^\s{0,3}>/.test(lines[i]) || (lines[i].trim() !== '' && !isBlockStart(lines, i, n)))){
+        inner.push(lines[i].replace(/^\s{0,3}>\s?/, ''));
+        i++;
+      }
+      out.push('<blockquote>' + markdownToHtml(inner.join('\n')) + '</blockquote>');
+      continue;
+    }
+    if(line.indexOf('|') !== -1 && i+1 < n && isTableSeparator(lines[i+1])){
+      const header = splitRow(line);
+      const sep = splitRow(lines[i+1]);
+      const aligns = sep.map(c => (/^:/.test(c) && /:$/.test(c)) ? 'center' : (/^:/.test(c) ? 'left' : (/:$/.test(c) ? 'right' : 'left')));
+      let html = '<table><thead><tr>';
+      header.forEach((c, ci) => { html += '<th style="text-align:' + (aligns[ci]||'left') + '">' + inline(c.trim()) + '</th>'; });
+      html += '</tr></thead><tbody>';
+      i += 2;
+      let rows = 0;
+      while(i < n && lines[i].indexOf('|') !== -1 && lines[i].trim() !== ''){
+        const cells = splitRow(lines[i]);
+        html += '<tr>';
+        cells.forEach((c, ci) => { html += '<td style="text-align:' + (aligns[ci]||'left') + '">' + inline(c.trim()) + '</td>'; });
+        html += '</tr>';
+        rows++;
+        i++;
+      }
+      html += '</tbody></table>';
+      if(rows > 0) out.push('<div class="table-wrap">' + html + '</div>');
+      continue;
+    }
+    if(/^\s{0,3}([-*+]|\d+[.)])\s+/.test(line)){
+      const res = parseList(lines, i, n, 0);
+      out.push(res.html);
+      i = res.next;
+      continue;
+    }
+    const para = [];
+    while(i < n && !isBlockStart(lines, i, n)){ para.push(lines[i]); i++; }
+    out.push('<p>' + inline(para.join('<br>')) + '</p>');
+  }
+  return out.join('\n');
+}
+/* ===== MARKDOWN PARSER END ===== */
+
+/* ============================================================
+   VERİ & DURUM
+============================================================ */
+const KEY = 'kurs-studyo-v2';
+const L = (...lines) => lines.join('\n');
+
+const SAMPLE_COURSE = () => ({
+  id: uid(), title: 'Akademik Yazım ve Araştırma Yöntemleri',
+  sections: [
+    { id: uid(), title: '1. Bölüm — Bilimsel Metin Türleri', lessons: [
+      { id: uid(), title: 'Ders 1 — Makale Yapısı ve Bölümler', description: 'Bilimsel makalenin anatomisi ve IMRaD yapısı.', pages: [
+        { id: uid(), title: 'Sayfa 1 — IMRaD Yapısı', video: { src: 'https://www.w3schools.com/html/mov_bbb.mp4' },
+          markdown: L(
+            '# Bilimsel Makalede IMRaD Yapısı',
+            '',
+            '%%Akademik Yazımın Temel İskeleti%%',
+            '',
+            '@badge(1. Hafta) @badge(Zorunlu) @badge(Teorik)',
+            '',
+            'Bu derste bilimsel makalenin **IMRaD** yapısını (*Giriş, Yöntem, Bulgular, Tartışma*) inceliyoruz. Doğru bir iskelet, yayın kabul oranını belirgin biçimde artırır.',
+            '',
+            '## IMRaD Bölümleri',
+            '',
+            '| Kısım | İşlevi | Tipik Uzunluk |',
+            '|:------|:-------|--------------:|',
+            '| Giriş | Problemi tanımlar | %10–15 |',
+            '| Yöntem | Nasıl yapıldığını açıklar | %20–25 |',
+            '| Bulgular | Veriyi nesnel sunar | %30–40 |',
+            '| Tartışma | Yorumlar ve bağlar | %25–30 |',
+            '',
+            ':::info',
+            '**Not:** Tablo ve şekiller *Bulgular* bölümünde, yorum ise *Tartışma* bölümünde yer alır.',
+            ':::',
+            '',
+            ':::warning',
+            'Kaynak göstermeden alıntı yapmak **intihal** sayılır ve etik ihlaldir.',
+            ':::',
+            '',
+            '## Bu Haftaki Görevler',
+            '',
+            '- [x] Ders notlarını indir',
+            '- [ ] Örnek makaleyi incele',
+            '- [ ] Alıştırmayı tamamla',
+            '',
+            '> "İyi bir makale, iyi bir araştırma sorusuyla başlar."',
+            '',
+            '```bibtex',
+            '@article{ornek2026,',
+            '  author  = {Yazar, A.},',
+            '  title   = {Örnek Çalışma},',
+            '  journal = {Dergi},',
+            '  year    = {2026}',
+            '}',
+            '```'
+          ) },
+        { id: uid(), title: 'Sayfa 2 — Özet Yazımı', video: { src: '' },
+          markdown: L(
+            '# Özet (Abstract) Yazımı',
+            '',
+            '%%Tek Sayfada Bütün Çalışma%%',
+            '',
+            'İyi bir özet; **amaç**, **yöntem**, **bulgu** ve **sonucu** tek paragrafta, açık ve ölçülü bir dille sunar.',
+            '',
+            '## Özet Kontrol Listesi',
+            '',
+            '1. Araştırma sorusu açık biçimde ifade edilmiş mi?',
+            '2. Yöntem yeterince tanımlanmış mı?',
+            '3. Ana bulgular sayısallaştırılmış mı?',
+            '4. Sözcük sınırına uyulmuş mu?',
+            '',
+            ':::success',
+            'Özet, editör ve hakemlerin **ilk okuduğu** bölümdür.',
+            ':::'
+          ) },
+        { id: uid(), title: 'Sayfa 3 — Kaynak Gösterimi', video: { src: '' },
+          markdown: L(
+            '# Kaynak Gösterimi ve APA',
+            '',
+            '## Temel Kurallar',
+            '',
+            '- Metin içi atıf: **(Yazar, Yıl)**',
+            '- Kaynakça: yazara göre **alfabetik** sıra',
+            '- İkincil kaynak kullanımından kaçının',
+            '',
+            '| Tür | Biçim |',
+            '|:----|:------|',
+            '| Kitap | Yazar, A. (Yıl). *Kitap Adı*. Yayınevi. |',
+            '| Makale | Yazar, A. (Yıl). Başlık. *Dergi*, 12(3), 1–15. |',
+            '| Web | Yazar, A. (Yıl). Başlık. URL |'
+          ) }
+      ]},
+      { id: uid(), title: 'Ders 2 — Literatür Taraması', description: 'Alandaki bilgiyi sistematik biçimde haritalama.', pages: [
+        { id: uid(), title: 'Sayfa 1 — Sistematik Tarama', video: { src: '' },
+          markdown: L(
+            '# Literatür Taraması',
+            '',
+            '%%Neyin Bilindiğini Haritalayın%%',
+            '',
+            'Literatür taraması; alandaki mevcut bilgiyi **sistematik** ve **eleştirel** biçimde değerlendirir.',
+            '',
+            '## Aşamalar',
+            '',
+            '1. Araştırma sorusunu daralt',
+            '2. Anahtar sözcükleri belirle',
+            '3. Veri tabanlarını tara',
+            '4. Bulguları sentezle',
+            '',
+            ':::warning',
+            'Yalnızca özet okuyarak tarama yapmak **eksik** sonuçlara yol açar.',
+            ':::'
+          ) }
+      ]}
+    ]},
+    { id: uid(), title: '2. Bölüm — Veri ve Analiz', lessons: [
+      { id: uid(), title: 'Ders 3 — Betimsel İstatistik', description: 'Veriyi özetleme ve sunma teknikleri.', pages: [
+        { id: uid(), title: 'Sayfa 1 — Merkezi Eğilim', video: { src: '' },
+          markdown: L(
+            '# Betimsel İstatistik',
+            '',
+            '%%Veriyi Anlamlı Biçimde Özetlemek%%',
+            '',
+            '| Ölçü | Tanım |',
+            '|:------|:------|',
+            '| Ortalama | Değerlerin toplamının sayıya bölümü |',
+            '| Ortanca | Sıralı verinin ortasındaki değer |',
+            '| Mod | En sık tekrarlanan değer |',
+            '',
+            ':::info',
+            'Aykırı değerler varlığında **ortanca**, ortalamadan daha güvenilirdir.',
+            ':::'
+          ) }
+      ]}
+    ]}
+  ]
+});
+
+const SAMPLE_COURSE2 = () => ({
+  id: uid(), title: 'Felsefeye Giriş',
+  sections: [
+    { id: uid(), title: '1. Bölüm — Bilgi Felsefesi', lessons: [
+      { id: uid(), title: 'Ders 1 — Epistemolojiye Giriş', description: 'Bilginin doğası ve kaynakları.', pages: [
+        { id: uid(), title: 'Sayfa 1 — Bilgi Nedir?', video: { src: '' },
+          markdown: L(
+            '# Bilgi Nedir?',
+            '',
+            '%%Geleneksel Tanım: Gerekçelendirilmiş Doğru İnanç%%',
+            '',
+            'Epistemoloji, bilginin **doğasını**, **kaynağını** ve **sınırlarını** araştırır.',
+            '',
+            '> "Bildiğim tek şey, hiçbir şey bilmediğimdir." — Sokrates'
+          ) }
+      ]}
+    ]}
+  ]
+});
+
+let data = { courses: [] };
+let active = { courseId: null, sectionId: null, lessonId: null, pageId: null };
+let settings = { typewriterOn: true, speed: 'normal', videoFit: 'cover', editorOpen: true, previewOn: true, sidebarOpen: true };
+let videoBlobs = {};
+let tt = { container: null, nodes: [], orig: [], i: 0, pos: 0, acc: 0, timer: null, done: false, paused: false };
+let presenting = false;
+
+/* ============================================================
+   DEPOLAMA
+============================================================ */
+const store = {
+  get(){ try { return localStorage.getItem(KEY); } catch(e){ return null; } },
+  set(v){ try { localStorage.setItem(KEY, v); return true; } catch(e){ return false; } },
+  clear(){ try { localStorage.removeItem(KEY); } catch(e){} }
+};
+function markSaved(ok){
+  const el = $('#saveStatus');
+  el.classList.toggle('saved', !!ok);
+  el.classList.toggle('error', ok === false);
+  el.lastChild.textContent = ok === false ? ' Kaydedilemedi (depolama kapalı)' : ' Kaydedildi';
+}
+function persist(){
+  const ok = store.set(JSON.stringify({ data: deepClone(stripBlobs(data)), active, settings }));
+  markSaved(ok);
+}
+function stripBlobs(d){
+  const c = deepClone(d);
+  c.courses.forEach(cr => cr.sections.forEach(s => s.lessons.forEach(l => l.pages.forEach(p => { delete p._blob; }))));
+  return c;
+}
+const autosave = debounce(persist, 600);
+function saveNow(){ persist(); toast('💾 Kaydedildi'); }
+function mqDesktop(){
+  try { return window.matchMedia ? window.matchMedia('(min-width: 1200px)').matches : true; }
+  catch(e){ return true; }
+}
+
+/* ============================================================
+   GEÇERLİ ÖĞE YARDIMCILARI
+============================================================ */
+function currentCourse(){ return data.courses.find(c => c.id === active.courseId) || null; }
+function currentSection(){ const c = currentCourse(); return c ? c.sections.find(s => s.id === active.sectionId) || null : null; }
+function currentLesson(){
+  const s = currentSection();
+  if(!s){ const c = currentCourse(); if(c) for(const sec of c.sections){ const l = sec.lessons.find(x => x.id === active.lessonId); if(l) return l; } }
+  return s ? s.lessons.find(l => l.id === active.lessonId) || null : null;
+}
+function currentPage(){ const l = currentLesson(); return l ? l.pages.find(p => p.id === active.pageId) || null : null; }
+function sectionOfLesson(lesson){
+  const c = currentCourse();
+  for(const s of (c ? c.sections : [])){ if(s.lessons.some(l => l.id === lesson.id)) return s; }
+  return null;
+}
+
+/* ============================================================
+   TOAST & MODAL
+============================================================ */
+let toastTimer = null;
+function toast(msg){
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+function openModal(title, bodyHTML, actions){
+  $('#modalTitle').textContent = title;
+  $('#modalBody').innerHTML = bodyHTML;
+  const box = $('#modalActions');
+  box.innerHTML = '';
+  actions.forEach(a => {
+    const b = document.createElement('button');
+    b.className = 'icon-btn' + (a.cls ? ' ' + a.cls : '');
+    b.textContent = a.label;
+    b.addEventListener('click', () => { if(!a.keep) closeModal(); a.fn && a.fn(); });
+    box.appendChild(b);
+  });
+  $('#modal').classList.add('open');
+}
+function closeModal(){ $('#modal').classList.remove('open'); }
+function promptModal(title, def, placeholder, onOk, extra){
+  const body = '<input class="input" id="pmInput" value="' + escapeHtml(def || '') + '" placeholder="' + escapeHtml(placeholder || '') + '">' + (extra || '');
+  openModal(title, body, [
+    { label: 'Vazgeç', fn: () => {} },
+    { label: 'Kaydet', cls: 'primary', keep: true, fn: () => {
+        const v = $('#pmInput').value.trim();
+        if(!v){ toast('⚠ Boş bırakılamaz'); return; }
+        closeModal(); onOk(v);
+    }}
+  ]);
+  setTimeout(() => { const el = $('#pmInput'); if(el){ el.focus(); el.select(); } }, 30);
+}
+function confirmModal(title, msg, onYes){
+  openModal(title, '<div class="hint">' + escapeHtml(msg) + '</div>', [
+    { label: 'Vazgeç', fn: () => {} },
+    { label: 'Evet, sil', cls: 'danger', fn: onYes }
+  ]);
+}
+
+/* ============================================================
+   SIDEBAR — KURSLAR / BÖLÜMLER / DERSLER (CRUD)
+============================================================ */
+function renderSidebar(){
+  const sel = $('#courseSelect');
+  sel.innerHTML = '';
+  data.courses.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c.id; o.textContent = c.title;
+    sel.appendChild(o);
+  });
+  sel.value = active.courseId || '';
+  $('#courseTitle').value = currentCourse() ? currentCourse().title : '';
+
+  const list = $('#sectionList');
+  const c = currentCourse();
+  if(!c){ list.innerHTML = '<div class="empty">Henüz kurs yok.<br>➕ Kurs butonuyla başla.</div>'; updateStat(); return; }
+  if(!c.sections.length){ list.innerHTML = '<div class="empty">Henüz bölüm yok.<br>➕ Bölüm butonuyla bir bölüm ekle.</div>'; updateStat(); return; }
+
+  list.innerHTML = '';
+  c.sections.forEach((sec, si) => {
+    const secEl = document.createElement('div');
+    secEl.className = 'sec';
+    if(sec.id === active.sectionId) secEl.classList.add('open');
+
+    const head = document.createElement('div');
+    head.className = 'sec-head';
+    head.innerHTML =
+      '<span class="chev">▼</span>' +
+      '<span class="tt">' + escapeHtml(sec.title) + '</span>' +
+      '<button class="mini" data-a="addL" title="Ders ekle">➕</button>' +
+      '<button class="mini" data-a="ren" title="Yeniden adlandır">✏️</button>' +
+      '<button class="mini" data-a="up" title="Yukarı taşı">▲</button>' +
+      '<button class="mini" data-a="down" title="Aşağı taşı">▼</button>' +
+      '<button class="mini danger" data-a="del" title="Bölümü sil">🗑</button>';
+    head.addEventListener('click', e => {
+      const a = e.target.getAttribute && e.target.getAttribute('data-a');
+      if(a){ e.stopPropagation(); sectionAction(a, sec.id, si); return; }
+      secEl.classList.toggle('closed');
+    });
+    secEl.appendChild(head);
+
+    const lessonsBox = document.createElement('div');
+    lessonsBox.className = 'lessons';
+    sec.lessons.forEach((ls, li) => {
+      const row = document.createElement('div');
+      row.className = 'lesson' + (ls.id === active.lessonId ? ' active' : '');
+      row.innerHTML =
+        '<span class="ic">📘</span>' +
+        '<span class="nm">' + escapeHtml(ls.title) + '</span>' +
+        '<span class="pg">' + ls.pages.length + ' sayfa</span>' +
+        '<span class="acts">' +
+          '<button data-a="ren" title="Yeniden adlandır / detay">✏️</button>' +
+          '<button data-a="up" title="Yukarı">▲</button>' +
+          '<button data-a="down" title="Aşağı">▼</button>' +
+          '<button data-a="del" class="del" title="Sil">🗑</button>' +
+        '</span>';
+      row.addEventListener('click', e => {
+        const a = e.target.getAttribute && e.target.getAttribute('data-a');
+        if(a){ e.stopPropagation(); lessonAction(a, sec.id, ls.id, li); return; }
+        selectLesson(sec.id, ls.id);
+      });
+      lessonsBox.appendChild(row);
+    });
+    secEl.appendChild(lessonsBox);
+    list.appendChild(secEl);
+  });
+  updateStat();
+}
+function sectionAction(a, secId, si){
+  const c = currentCourse();
+  if(a === 'addL'){ addLesson(secId); }
+  else if(a === 'ren'){ promptModal('Bölümü yeniden adlandır', c.sections[si].title, 'Bölüm adı', v => { c.sections[si].title = v; persist(); renderSidebar(); renderStageHead(); }); }
+  else if(a === 'up' && si > 0){ [c.sections[si-1], c.sections[si]] = [c.sections[si], c.sections[si-1]]; persist(); renderSidebar(); }
+  else if(a === 'down' && si < c.sections.length-1){ [c.sections[si+1], c.sections[si]] = [c.sections[si], c.sections[si+1]]; persist(); renderSidebar(); }
+  else if(a === 'del'){
+    confirmModal('Bölümü sil', 'Bu bölüm ve içindeki tüm dersler silinecek: ' + c.sections[si].title, () => {
+      if(active.sectionId === secId){ active.sectionId = null; active.lessonId = null; active.pageId = null; }
+      c.sections.splice(si, 1);
+      persist(); renderAll();
+    });
+  }
+}
+function lessonAction(a, secId, lessonId, li){
+  const sec = currentCourse().sections.find(s => s.id === secId);
+  const ls = sec.lessons[li];
+  if(a === 'ren'){ editLesson(secId, lessonId); }
+  else if(a === 'up' && li > 0){ [sec.lessons[li-1], sec.lessons[li]] = [sec.lessons[li], sec.lessons[li-1]]; persist(); renderSidebar(); }
+  else if(a === 'down' && li < sec.lessons.length-1){ [sec.lessons[li+1], sec.lessons[li]] = [sec.lessons[li], sec.lessons[li+1]]; persist(); renderSidebar(); }
+  else if(a === 'del'){
+    confirmModal('Dersi sil', 'Bu ders ve sayfaları silinecek: ' + ls.title, () => {
+      if(active.lessonId === lessonId){ active.lessonId = null; active.pageId = null; }
+      sec.lessons.splice(li, 1);
+      persist(); renderAll();
+    });
+  }
+}
+function addSection(){
+  const c = currentCourse();
+  if(!c){ toast('Önce bir kurs ekle'); return; }
+  promptModal('Yeni bölüm', '', 'Bölüm adı (örn: 1. Bölüm — Temeller)', v => {
+    c.sections.push({ id: uid(), title: v, lessons: [] });
+    persist(); renderSidebar();
+    toast('➕ Bölüm eklendi');
+  });
+}
+function addLesson(sectionId){
+  const sec = currentCourse().sections.find(s => s.id === sectionId);
+  if(!sec) return;
+  openModal('Yeni ders',
+    '<div class="field"><label>Ders başlığı</label><input class="input" id="nmTitle" placeholder="Ders adı"></div>' +
+    '<div class="field"><label>Açıklama (opsiyonel)</label><textarea class="input" id="nmDesc" placeholder="Dersin kısa açıklaması"></textarea></div>',
+    [
+      { label: 'Vazgeç', fn: () => {} },
+      { label: 'Ekle', cls: 'primary', keep: true, fn: () => {
+          const t = $('#nmTitle').value.trim();
+          if(!t){ toast('⚠ Başlık gerekli'); return; }
+          closeModal();
+          const lesson = { id: uid(), title: t, description: $('#nmDesc').value.trim(), pages: [ { id: uid(), title: 'Sayfa 1 — Giriş', video: { src: '' }, markdown: '' } ] };
+          sec.lessons.push(lesson);
+          active.sectionId = sectionId; active.lessonId = lesson.id; active.pageId = lesson.pages[0].id;
+          persist(); renderAll();
+          toast('➕ Ders eklendi');
+      }}
+    ]);
+  setTimeout(() => { const el = $('#nmTitle'); if(el){ el.focus(); } }, 30);
+}
+function editLesson(sectionId, lessonId){
+  const sec = currentCourse().sections.find(s => s.id === sectionId);
+  const ls = sec.lessons.find(l => l.id === lessonId);
+  openModal('Dersi düzenle',
+    '<div class="field"><label>Ders başlığı</label><input class="input" id="nmTitle" value="' + escapeHtml(ls.title) + '"></div>' +
+    '<div class="field"><label>Açıklama</label><textarea class="input" id="nmDesc">' + escapeHtml(ls.description || '') + '</textarea></div>',
+    [
+      { label: 'Vazgeç', fn: () => {} },
+      { label: 'Kaydet', cls: 'primary', keep: true, fn: () => {
+          const t = $('#nmTitle').value.trim();
+          if(!t){ toast('⚠ Başlık gerekli'); return; }
+          closeModal();
+          ls.title = t; ls.description = $('#nmDesc').value.trim();
+          persist(); renderSidebar(); renderStageHead();
+      }}
+    ]);
+  setTimeout(() => { const el = $('#nmTitle'); if(el){ el.focus(); el.select(); } }, 30);
+}
+function addCourse(){
+  promptModal('Yeni kurs', '', 'Kurs başlığı', v => {
+    const c = { id: uid(), title: v, sections: [] };
+    data.courses.push(c);
+    active.courseId = c.id; active.sectionId = null; active.lessonId = null; active.pageId = null;
+    persist(); renderAll();
+  });
+}
+function editCourse(){
+  const c = currentCourse(); if(!c) return;
+  promptModal('Kursu yeniden adlandır', c.title, 'Kurs başlığı', v => { c.title = v; persist(); renderSidebar(); });
+}
+function deleteCourse(){
+  const c = currentCourse(); if(!c) return;
+  confirmModal('Kursu sil', 'Bu kurs ve tüm içeriği silinecek: ' + c.title, () => {
+    data.courses = data.courses.filter(x => x.id !== c.id);
+    active = { courseId: data.courses[0] ? data.courses[0].id : null, sectionId: null, lessonId: null, pageId: null };
+    persist(); renderAll();
+  });
+}
+function selectLesson(sectionId, lessonId){
+  const lesson = currentCourse().sections.find(s => s.id === sectionId).lessons.find(l => l.id === lessonId);
+  active.sectionId = sectionId; active.lessonId = lessonId;
+  active.pageId = lesson.pages.length ? lesson.pages[0].id : null;
+  renderAll();
+}
+function updateStat(){
+  const c = currentCourse();
+  if(!c){ $('#statInfo').textContent = '0 bölüm · 0 ders · 0 sayfa'; return; }
+  let d = 0, p = 0;
+  c.sections.forEach(s => s.lessons.forEach(l => { d++; p += l.pages.length; }));
+  $('#statInfo').textContent = c.sections.length + ' bölüm · ' + d + ' ders · ' + p + ' sayfa';
+}
+
+/* ============================================================
+   SAYFALAR RAYI
+============================================================ */
+function renderPagesRail(){
+  const list = $('#pageList');
+  const lesson = currentLesson();
+  if(!lesson){ list.innerHTML = '<div class="empty">Ders seçilmedi.</div>'; return; }
+  if(!lesson.pages.length){ list.innerHTML = '<div class="empty">Bu dersin sayfası yok.<br>➕ ile ekle.</div>'; return; }
+  list.innerHTML = '';
+  lesson.pages.forEach((p, pi) => {
+    const card = document.createElement('div');
+    card.className = 'page-card' + (p.id === active.pageId ? ' active' : '');
+    const hasVideo = p.video && (p.video.src || videoBlobs[p.id]);
+    const thumb = hasVideo
+      ? '<div class="thumb"><video src="' + escapeAttr(videoBlobs[p.id] || p.video.src) + '" muted preload="metadata"></video></div>'
+      : '<div class="thumb">' + (pi + 1) + '</div>';
+    card.innerHTML =
+      thumb +
+      '<div class="pt">' + escapeHtml(p.title) + '</div>' +
+      '<div class="psub">' + (hasVideo ? '🎬 video' : '📝 metin') + ' · ' + (p.markdown ? p.markdown.length + ' k' : 'boş') + '</div>' +
+      '<div class="acts">' +
+        '<button data-a="ren" title="Yeniden adlandır">✏️</button>' +
+        '<button data-a="up" title="Yukarı">▲</button>' +
+        '<button data-a="down" title="Aşağı">▼</button>' +
+        '<button data-a="del" class="del" title="Sil">🗑</button>' +
+      '</div>';
+    card.addEventListener('click', e => {
+      const a = e.target.getAttribute && e.target.getAttribute('data-a');
+      if(a){ e.stopPropagation(); pageAction(a, pi); return; }
+      active.pageId = p.id;
+      persist(); renderAll();
+    });
+    list.appendChild(card);
+  });
+}
+function pageAction(a, pi){
+  const lesson = currentLesson();
+  if(a === 'ren'){
+    promptModal('Sayfayı yeniden adlandır', lesson.pages[pi].title, 'Sayfa başlığı', v => { lesson.pages[pi].title = v; persist(); renderAll(); });
+  } else if(a === 'up' && pi > 0){ [lesson.pages[pi-1], lesson.pages[pi]] = [lesson.pages[pi], lesson.pages[pi-1]]; persist(); renderPagesRail(); }
+  else if(a === 'down' && pi < lesson.pages.length-1){ [lesson.pages[pi+1], lesson.pages[pi]] = [lesson.pages[pi], lesson.pages[pi+1]]; persist(); renderPagesRail(); }
+  else if(a === 'del'){
+    confirmModal('Sayfayı sil', 'Bu sayfa silinecek: ' + lesson.pages[pi].title, () => {
+      lesson.pages.splice(pi, 1);
+      if(active.pageId && !lesson.pages.some(p => p.id === active.pageId)) active.pageId = lesson.pages[0] ? lesson.pages[0].id : null;
+      persist(); renderAll();
+    });
+  }
+}
+function addPage(){
+  const lesson = currentLesson();
+  if(!lesson){ toast('Önce bir ders seç'); return; }
+  const page = { id: uid(), title: 'Sayfa ' + (lesson.pages.length + 1) + ' — Başlık', video: { src: '' }, markdown: '' };
+  lesson.pages.push(page);
+  active.pageId = page.id;
+  persist(); renderAll();
+  toast('➕ Sayfa eklendi');
+}
+function navPage(dir){
+  const lesson = currentLesson();
+  if(!lesson || !lesson.pages.length) return;
+  const idx = lesson.pages.findIndex(p => p.id === active.pageId);
+  const next = lesson.pages[idx + dir];
+  if(next){ active.pageId = next.id; persist(); renderAll(); }
+}
+
+/* ============================================================
+   SAHNE + TYPEWRITER (kapsayıcı parametrik)
+============================================================ */
+const SPEEDS = { slow: 22, normal: 52, fast: 120, turbo: 300 };
+function renderStageHead(){
+  const c = currentCourse(), s = currentSection(), l = currentLesson(), p = currentPage();
+  const crumbs = $('#crumbs');
+  crumbs.innerHTML = '<b>' + escapeHtml(c ? c.title : 'Kurs yok') + '</b>' +
+    (s ? '<span class="sep">›</span><span>' + escapeHtml(s.title) + '</span>' : '') +
+    (l ? '<span class="sep">›</span><span>' + escapeHtml(l.title) + '</span>' : '');
+  $('#pageTitle').textContent = p ? p.title : '—';
+  $('#editorPageName').textContent = p ? p.title : '—';
+}
+function renderStage(){
+  const p = currentPage();
+  const cEl = $('#content');
+  stopTypewriter();
+  if(!p){ cEl.innerHTML = '<div style="color:var(--muted);font-size:16px;text-align:center;padding:40px 0">📘 Soldan bir ders ve sayfa seçin.</div>'; return; }
+  if(!p.markdown || !p.markdown.trim()){
+    cEl.innerHTML = '<div style="color:var(--muted);font-size:16px;text-align:center;padding:40px 0">✍️ Bu sayfa henüz boş. Aşağıdaki editörden anlatım yazın.</div>';
+    return;
+  }
+  cEl.innerHTML = markdownToHtml(p.markdown);
+  if(!presenting && settings.typewriterOn) beginTypewriter(cEl);
+}
+function beginTypewriter(container){
+  const nodes = [];
+  const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+  while(walker.nextNode()){
+    const n = walker.currentNode;
+    if(n.nodeValue && n.nodeValue.trim() !== '') nodes.push(n);
+  }
+  stopTypewriter();
+  if(!nodes.length) return;
+  tt.container = container;
+  tt.nodes = nodes;
+  tt.orig = nodes.map(n => n.nodeValue);
+  tt.i = 0; tt.pos = 0; tt.acc = 0; tt.done = false; tt.paused = false;
+  nodes.forEach(n => { n.nodeValue = ''; });
+  addCursor(container);
+  $('#btnTTPause').textContent = '⏸';
+  $('#pPause').textContent = '⏸';
+  tt.timer = setInterval(tick, 16);
+}
+function tick(){
+  const cps = SPEEDS[settings.speed] || 52;
+  tt.acc += cps * 0.016;
+  let budget = Math.floor(tt.acc);
+  tt.acc -= budget;
+  while(budget-- > 0){
+    if(tt.done){ finishTypewriter(); return; }
+    if(tt.i >= tt.nodes.length){ tt.done = true; finishTypewriter(); return; }
+    const node = tt.nodes[tt.i];
+    const orig = tt.orig[tt.i];
+    if(tt.pos < orig.length){
+      node.nodeValue = (node.nodeValue || '') + orig.charAt(tt.pos);
+      tt.pos++;
+    } else {
+      tt.i++; tt.pos = 0;
+    }
+  }
+  scrollFollow(tt.container);
+}
+function finishTypewriter(){
+  stopTypewriter();
+  tt.done = true;
+  scrollToBottom(tt.container);
+}
+function stopTypewriter(){ if(tt.timer){ clearInterval(tt.timer); tt.timer = null; } removeCursor(); }
+function showAll(){
+  if(tt.timer || tt.nodes.length){
+    tt.nodes.forEach((n, idx) => { n.nodeValue = tt.orig[idx]; });
+  }
+  finishTypewriter();
+}
+let scrollFollowLast = 0;
+function scrollFollow(el){
+  if(!el) return;
+  const now = Date.now();
+  if(now - scrollFollowLast < 90) return;
+  scrollFollowLast = now;
+  el.scrollTop = el.scrollHeight;
+}
+function scrollToBottom(el){ if(el) el.scrollTop = el.scrollHeight; }
+function pauseResumeTypewriter(){
+  if(tt.done){ if(presenting) renderPresentation(); else renderStage(); return; }
+  if(tt.timer){ clearInterval(tt.timer); tt.timer = null; tt.paused = true; $('#btnTTPause').textContent = '▶'; $('#pPause').textContent = '▶'; }
+  else { tt.paused = false; $('#btnTTPause').textContent = '⏸'; $('#pPause').textContent = '⏸'; tt.timer = setInterval(tick, 16); }
+}
+function addCursor(container){
+  if(!$('#typecursor')){
+    const s = document.createElement('span');
+    s.id = 'typecursor'; s.className = 'typecursor';
+    container.appendChild(s);
+  }
+}
+function removeCursor(){
+  const s = $('#typecursor');
+  if(s) s.remove();
+}
+
+/* ============================================================
+   VİDEO PANELİ (9:16) — Dashboard
+============================================================ */
+function renderVideo(){
+  const p = currentPage();
+  const v = $('#video');
+  const empty = $('#videoEmpty');
+  const urlInput = $('#videoUrl');
+  const info = $('#videoInfo');
+
+  const src = p ? (videoBlobs[p.id] || (p.video && p.video.src) || '') : '';
+
+  urlInput.value = (p && p.video && p.video.src) || '';
+  v.className = settings.videoFit === 'cover' ? '' : 'contain';
+  $('#btnVideoFit').textContent = settings.videoFit === 'cover' ? '📐 Kapla' : '📐 Sığdır';
+
+  if(!p){
+    v.pause(); v.removeAttribute('src'); v.load();
+    v.style.display = 'none'; empty.style.display = 'flex';
+    info.innerHTML = '—';
+    return;
+  }
+  if(src){
+    if(v.getAttribute('src') !== src){ v.src = src; }
+    v.style.display = 'block'; empty.style.display = 'none';
+    const mode = videoBlobs[p.id] ? 'dosya (oturum içi)' : 'URL';
+    info.innerHTML = '<b>' + escapeHtml(p.title) + '</b><br>Kaynak: ' + mode +
+      (videoBlobs[p.id] ? '<br><span style="color:var(--amber)">⚠ Dosya videoları tarayıcı belleğinde tutulur; kalıcılık için URL kullanın veya sayfayı yenilemeyin.</span>' : '') +
+      '<br>Çözünürlük: 9:16 dikey önerilir';
+  } else {
+    v.pause(); v.removeAttribute('src'); v.load();
+    v.style.display = 'none'; empty.style.display = 'flex';
+    info.innerHTML = '<b>' + escapeHtml(p.title) + '</b><br>Bu sayfada video yok.';
+  }
+}
+function applyVideoUrl(){
+  const p = currentPage(); if(!p) return;
+  const u = $('#videoUrl').value.trim();
+  if(u && videoBlobs[p.id]){ URL.revokeObjectURL(videoBlobs[p.id]); delete videoBlobs[p.id]; }
+  p.video = p.video || {}; p.video.src = u;
+  persist(); renderVideo(); renderPagesRail();
+  toast('🎬 Video URL güncellendi');
+}
+function handleVideoFile(file){
+  const p = currentPage(); if(!p) return;
+  if(!file) return;
+  if(file.size > 120 * 1024 * 1024){ toast('⚠ Dosya çok büyük (max 120MB)'); return; }
+  if(videoBlobs[p.id]) URL.revokeObjectURL(videoBlobs[p.id]);
+  const url = URL.createObjectURL(file);
+  videoBlobs[p.id] = url;
+  p.video = p.video || {}; p.video.src = '';
+  $('#videoUrl').value = '';
+  persist(); renderVideo(); renderPagesRail();
+  toast('🎬 Video yüklendi (bu oturum için)');
+}
+function clearVideo(){
+  const p = currentPage(); if(!p) return;
+  if(videoBlobs[p.id]){ URL.revokeObjectURL(videoBlobs[p.id]); delete videoBlobs[p.id]; }
+  p.video = p.video || {}; p.video.src = '';
+  $('#videoUrl').value = '';
+  persist(); renderVideo(); renderPagesRail();
+  toast('🗑 Video kaldırıldı');
+}
+async function downloadVideo(){
+  const p = currentPage(); if(!p) return;
+  let src = p.video && p.video.src;
+  if(videoBlobs[p.id]) src = videoBlobs[p.id];
+  if(!src){ toast('⚠ Video yok'); return; }
+  if(src.startsWith('blob:') || src.startsWith('data:')){
+    downloadFile('ders-videosu.mp4', null, null, src);
+    return;
+  }
+  try{
+    const r = await fetch(src, { mode: 'cors' });
+    if(!r.ok) throw new Error('bad');
+    const b = await r.blob();
+    const url = URL.createObjectURL(b);
+    downloadFile('ders-videosu.mp4', null, null, url);
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  }catch(e){
+    window.open(src, '_blank');
+    toast('⚠ CORS engeli — video yeni sekmede açıldı');
+  }
+}
+
+/* ============================================================
+   SUNUM MODU — ayrı görünüm (16:9 typewriter + sağda 9:16 video)
+============================================================ */
+function renderPresentation(){
+  const p = currentPage();
+  const l = currentLesson();
+  const c = currentCourse();
+  const s = currentSection();
+  const cEl = $('#presContent');
+
+  // üst bilgi
+  $('#pCourse').textContent = (c ? c.title : 'Kurs yok') + (s ? '  ·  ' + s.title : '');
+  $('#pPage').textContent = p ? p.title : '—';
+  const idx = l ? l.pages.findIndex(x => x.id === active.pageId) : -1;
+  $('#pIdx').textContent = (idx >= 0 ? (idx + 1) : '—') + ' / ' + (l ? l.pages.length : '—');
+
+  // video
+  const src = p ? (videoBlobs[p.id] || (p.video && p.video.src) || '') : '';
+  const pv = $('#presVideo');
+  pv.className = settings.videoFit === 'cover' ? '' : 'contain';
+  if(src){
+    if(pv.getAttribute('src') !== src) pv.src = src;
+    pv.style.display = 'block';
+    $('#presVideoEmpty').style.display = 'none';
+  } else {
+    pv.pause(); pv.removeAttribute('src'); pv.load();
+    pv.style.display = 'none';
+    $('#presVideoEmpty').style.display = 'flex';
+  }
+  $('#presVideoTitle').textContent = p ? p.title : '—';
+
+  // içerik + typewriter
+  if(!p){ cEl.innerHTML = '<div style="color:var(--muted);font-size:18px;text-align:center;padding:40px 0">📘 Sunulacak sayfa seçilmedi.</div>'; return; }
+  if(!p.markdown || !p.markdown.trim()){
+    cEl.innerHTML = '<div style="color:var(--muted);font-size:18px;text-align:center;padding:40px 0">✍️ Bu sayfa henüz boş.</div>';
+    return;
+  }
+  cEl.innerHTML = markdownToHtml(p.markdown);
+  if(settings.typewriterOn) beginTypewriter(cEl);
+}
+function startPresentation(){
+  presenting = true;
+  $('#presentView').classList.add('open');
+  const dv = $('#video'); dv.pause();
+  renderPresentation();
+  try{ if(!document.fullscreenElement) $('#presentView').requestFullscreen(); }catch(e){}
+  toast('▶ Sunum başladı — Esc veya "Panoya Dön" ile çık');
+}
+function endPresentation(){
+  presenting = false;
+  $('#presentView').classList.remove('open');
+  stopTypewriter();
+  const pv = $('#presVideo'); pv.pause();
+  try{ if(document.fullscreenElement) document.exitFullscreen(); }catch(e){}
+  renderStage();
+}
+function togglePresent(){ if(presenting) endPresentation(); else startPresentation(); }
+
+/* ============================================================
+   EDİTÖR
+============================================================ */
+const editor = $('#editor');
+function syncEditor(){
+  const p = currentPage();
+  if(!p){ editor.value = ''; return; }
+  if(editor.value !== p.markdown){ editor.value = p.markdown || ''; }
+  renderEditorPreview();
+}
+function renderEditorPreview(){
+  const p = currentPage();
+  $('#editorPreview').innerHTML = p ? markdownToHtml(editor.value || '') : '';
+}
+function editorInput(){
+  const p = currentPage();
+  if(!p) return;
+  p.markdown = editor.value;
+  renderEditorPreview();
+  autosave();
+  markDirty();
+}
+function markDirty(){
+  const el = $('#saveStatus');
+  el.classList.remove('saved','error');
+  el.lastChild.textContent = ' Kaydedilmedi…';
+}
+function applyToStage(){
+  const p = currentPage();
+  if(!p){ toast('⚠ Sayfa seçilmedi'); return; }
+  p.markdown = editor.value;
+  persist();
+  renderStage();
+  if(presenting) renderPresentation();
+  toast('▶ Sahneye uygulandı');
+}
+
+function insertTpl(before, after, sample){
+  const s = editor.selectionStart, e = editor.selectionEnd;
+  const t = editor.value.slice(s, e) || sample || '';
+  editor.setRangeText(before + t + after, s, e, 'end');
+  editor.focus();
+  editorInput();
+}
+function prefixLine(prefix){
+  const ls = editor.value.lastIndexOf('\n', editor.selectionStart - 1) + 1;
+  editor.setRangeText(prefix, ls, ls, 'end');
+  editor.focus();
+  editorInput();
+}
+function insertTable(){
+  const t = '\n| Başlık 1 | Başlık 2 | Başlık 3 |\n|:---|:---:|---:|\n| hücre | hücre | hücre |\n| hücre | hücre | hücre |\n';
+  const s = editor.selectionStart, e = editor.selectionEnd;
+  editor.setRangeText(t, s, e, 'end');
+  editor.focus(); editorInput();
+}
+function insertCallout(type){ insertTpl(':::' + type + '\n', '\n:::', 'Not metni'); }
+const TOOLBAR = [
+  { t: 'H1', title: 'Başlık 1', fn: () => prefixLine('# ') },
+  { t: 'H2', title: 'Başlık 2', fn: () => prefixLine('## ') },
+  { t: 'H3', title: 'Başlık 3', fn: () => prefixLine('### ') },
+  { sep: 1 },
+  { t: 'B', title: 'Kalın (** **)', style: 'font-weight:900', fn: () => insertTpl('**', '**', 'kalın metin') },
+  { t: 'I', title: 'İtalik (* *)', style: 'font-style:italic', fn: () => insertTpl('*', '*', 'italik') },
+  { t: 'S', title: 'Üstü çizili (~~ ~~)', style: 'text-decoration:line-through', fn: () => insertTpl('~~', '~~', 'metin') },
+  { t: '≡', title: 'Vurgula (== ==)', style: 'background:rgba(185,138,46,.25);border-radius:4px', fn: () => insertTpl('==', '==', 'vurgu') },
+  { t: '<>', title: 'Satır içi kod (` `)', style: 'font-family:var(--mono)', fn: () => insertTpl('`', '`', 'kod') },
+  { sep: 1 },
+  { t: '%%', title: 'Büyük kalın font (%% %%)', cls: 'hl', style: 'font-weight:900;font-size:13px', fn: () => insertTpl('%%', '%%', 'BÜYÜK METİN') },
+  { t: '🏷', title: 'Rozet @badge()', fn: () => insertTpl('@badge(', ')', 'Yeni') },
+  { t: '🔘', title: 'Buton @btn(etiket|url)', fn: () => insertTpl('@btn(', '|https://ornek.com)', 'Tıkla') },
+  { sep: 1 },
+  { t: '❝', title: 'Alıntı', fn: () => prefixLine('> ') },
+  { t: '•', title: 'Madde listesi', fn: () => prefixLine('- ') },
+  { t: '1.', title: 'Numaralı liste', fn: () => prefixLine('1. ') },
+  { t: '☑', title: 'Görev listesi', fn: () => prefixLine('- [ ] ') },
+  { t: '⊞', title: 'Tablo', cls: 'hl', fn: insertTable },
+  { t: '🔗', title: 'Bağlantı', fn: () => insertTpl('[', '](https://ornek.com)', 'bağlantı') },
+  { t: '🖼', title: 'Resim', fn: () => insertTpl('![', '](https://ornek.com/gorsel.jpg)', 'açıklama') },
+  { t: '―', title: 'Yatay çizgi', fn: () => insertTpl('\n\n---\n\n', '', '') },
+  { t: '{ }', title: 'Kod bloğu', style: 'font-family:var(--mono)', fn: () => insertTpl('```js\n', '\n```', '// kod') },
+  { sep: 1 },
+  { t: 'ℹ', title: 'Bilgi kutusu :::info', cls: 'hl', fn: () => insertCallout('info') },
+  { t: '⚠', title: 'Uyarı kutusu :::warning', fn: () => insertCallout('warning') },
+  { t: '✔', title: 'Başarı kutusu :::success', fn: () => insertCallout('success') },
+  { t: '✖', title: 'Tehlike kutusu :::danger', fn: () => insertCallout('danger') }
+];
+function buildToolbar(){
+  const box = $('#editorToolbar');
+  box.innerHTML = '';
+  TOOLBAR.forEach(b => {
+    if(b.sep){ const s = document.createElement('span'); s.className = 'tb-sep'; box.appendChild(s); return; }
+    const btn = document.createElement('button');
+    btn.className = 'tb-btn' + (b.cls ? ' ' + b.cls : '');
+    btn.textContent = b.t;
+    btn.title = b.title;
+    if(b.style) btn.setAttribute('style', b.style);
+    btn.addEventListener('click', b.fn);
+    box.appendChild(btn);
+  });
+}
+
+/* ============================================================
+   İNDİRME / DIŞA AKTARMA / İÇE AKTARMA
+============================================================ */
+function downloadFile(name, content, mime, blobUrl){
+  try{
+    const a = document.createElement('a');
+    if(blobUrl){ a.href = blobUrl; }
+    else{
+      const blob = new Blob([content], { type: mime || 'text/plain;charset=utf-8' });
+      a.href = URL.createObjectURL(blob);
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    }
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    toast('⬇️ İndirildi: ' + name);
+  }catch(e){
+    toast('⚠ İndirme engellendi (önizleme kısıtı). Dosyayı indirip tarayıcıda açın.');
+  }
+}
+function currentLessonMarkdown(){
+  const l = currentLesson(), s = sectionOfLesson(l), c = currentCourse();
+  if(!l) return '';
+  let out = '# ' + l.title + '\n\n';
+  if(l.description) out += '> ' + l.description + '\n\n';
+  out += '**Kurs:** ' + (c ? c.title : '') + '  ·  **Bölüm:** ' + (s ? s.title : '') + '\n\n---\n\n';
+  l.pages.forEach((p, pi) => {
+    out += '## Sayfa ' + (pi + 1) + ': ' + p.title + '\n\n';
+    const src = p.video && p.video.src;
+    if(src) out += '🎬 *Video:* ' + src + '\n\n';
+    out += (p.markdown || '*Boş sayfa*') + '\n\n---\n\n';
+  });
+  return out;
+}
+function currentLessonHTML(){
+  const l = currentLesson(), s = sectionOfLesson(l), c = currentCourse();
+  if(!l) return '';
+  const mdStyle = document.getElementById('md-style').textContent;
+  let pagesHtml = l.pages.map((p, pi) => {
+    const src = (p.video && p.video.src) || '';
+    const vid = src ? '<div style="margin:.6em 0;font-size:13px;color:#6d6859">🎬 Video: <a href="' + escapeAttr(src) + '">' + escapeHtml(src) + '</a></div>' : '';
+    return '<section style="margin:2em 0"><h2 style="border-left:5px solid #b98a2e;padding-left:.5em;color:#2c4a6e">Sayfa ' + (pi+1) + ': ' + escapeHtml(p.title) + '</h2>' + vid + '<div class="markdown-body">' + markdownToHtml(p.markdown || '') + '</div></section>';
+  }).join('<hr>');
+  return '<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">' +
+    '<title>' + escapeHtml(l.title) + '</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap" rel="stylesheet"><style>' + mdStyle + ' body{background:#f3efe6;color:#2c2a24;font-family:"Bricolage Grotesque",Georgia,serif;max-width:900px;margin:0 auto;padding:44px 28px;line-height:1.7}' +
+    ' h1.title{font-size:2.5em;margin-bottom:.2em;color:#1f3a5f;border-bottom:3px double #b98a2e;padding-bottom:.25em} .meta{color:#6d6859;margin-bottom:2em}</style></head><body>' +
+    '<h1 class="title">' + escapeHtml(l.title) + '</h1>' +
+    (l.description ? '<p class="meta">' + escapeHtml(l.description) + '</p>' : '') +
+    '<p class="meta">Kurs: ' + escapeHtml(c ? c.title : '') + ' · Bölüm: ' + escapeHtml(s ? s.title : '') + ' · ' + l.pages.length + ' sayfa</p>' +
+    pagesHtml + '</body></html>';
+}
+function exportFmt(fmt){
+  const l = currentLesson();
+  if(!l){ toast('⚠ Önce bir ders seçin'); return; }
+  const safe = (l.title || 'ders').replace(/[\\/:*?"<>|]+/g, '_');
+  if(fmt === 'md') downloadFile(safe + '.md', currentLessonMarkdown(), 'text/markdown;charset=utf-8');
+  else if(fmt === 'html') downloadFile(safe + '.html', currentLessonHTML(), 'text/html;charset=utf-8');
+  else if(fmt === 'json') downloadFile(safe + '.json', JSON.stringify(deepClone(stripBlobsDataLesson(l)), null, 2), 'application/json');
+  else if(fmt === 'course-json'){
+    const c = currentCourse(); if(!c) return;
+    downloadFile((c.title || 'kurs').replace(/[\\/:*?"<>|]+/g,'_') + '.json', JSON.stringify(deepClone(stripBlobs({ courses: [c] })), null, 2), 'application/json');
+  }
+  else if(fmt === 'all-json') downloadFile('akademi-studyo-yedek.json', JSON.stringify(deepClone(stripBlobs(data)), null, 2), 'application/json');
+}
+function stripBlobsDataLesson(l){
+  const c = deepClone(l);
+  c.pages.forEach(p => { delete p._blob; });
+  return c;
+}
+function importJSON(file){
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const obj = JSON.parse(reader.result);
+      if(obj.courses){ data = obj; }
+      else if(obj.sections){
+        const l = currentLesson();
+        if(l){ Object.assign(l, obj); active.pageId = l.pages[0] ? l.pages[0].id : null; }
+        else { toast('⚠ Aktif ders yok'); return; }
+      } else { toast('⚠ Geçersiz dosya'); return; }
+      active = (obj.active) ? obj.active : active;
+      if(settings) settings = Object.assign({}, settings, obj.settings || {});
+      normalizeActive();
+      persist(); renderAll();
+      toast('📥 İçe aktarıldı');
+    }catch(e){ toast('⚠ Dosya okunamadı'); }
+  };
+  reader.readAsText(file);
+}
+function normalizeActive(){
+  if(!data.courses.length){ active = { courseId:null, sectionId:null, lessonId:null, pageId:null }; return; }
+  if(!data.courses.some(c => c.id === active.courseId)) active.courseId = data.courses[0].id;
+  const c = data.courses.find(x => x.id === active.courseId);
+  if(!c.sections.length){ active.sectionId = null; active.lessonId = null; active.pageId = null; return; }
+  if(!c.sections.some(s => s.id === active.sectionId)) active.sectionId = c.sections[0].id;
+  const s = c.sections.find(x => x.id === active.sectionId);
+  if(!s.lessons.length){ active.lessonId = null; active.pageId = null; return; }
+  if(!s.lessons.some(l => l.id === active.lessonId)) active.lessonId = s.lessons[0].id;
+  const l = s.lessons.find(x => x.id === active.lessonId);
+  if(!l.pages.length){ active.pageId = null; return; }
+  if(!l.pages.some(p => p.id === active.pageId)) active.pageId = l.pages[0].id;
+}
+
+/* ============================================================
+   TAM EKRAN
+============================================================ */
+function toggleFullscreen(){
+  try{
+    if(document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen();
+  }catch(e){ toast('⚠ Tam ekran desteklenmiyor'); }
+}
+
+/* ============================================================
+   YARDIM
+============================================================ */
+function showHelp(){
+  openModal('İşaretleme (Markdown) Rehberi',
+    '<div class="hint" style="line-height:1.8">' +
+    '<b># Başlık 1</b> … <b>###### Başlık 6</b><br>' +
+    '<b>**kalın**</b> · <b>*italik*</b> · <b>~~üstü çizili~~</b> · <b>==vurgu==</b> · <b>`kod`</b><br>' +
+    '<b>%%BÜYÜK KALIN YAZI%%</b><br>' +
+    '<b>@badge(Etiket)</b> → rozet · <b>@btn(Etiket|url)</b> → buton<br>' +
+    '<b>- madde</b> · <b>1. numaralı</b> · <b>- [ ] görev</b><br>' +
+    '<b>&gt; alıntı</b> · <b>```kod bloğu```</b> · <b>---</b> çizgi<br>' +
+    '<b>[bağlantı](url)</b> · <b>![resim](url)</b><br>' +
+    '<b>Tablo:</b> başlık satırı | hücre | hücre | ardından |:---|:---:|<br>' +
+    '<b>:::info / :::warning / :::success / :::danger</b> → kutular (::: ile kapat)<br><br>' +
+    '<b>Kısayollar:</b> ← → sayfa · Boşluk: duraklat/sürdür · F: sunum · Esc: sunumdan çık · Ctrl+S: kaydet' +
+    '</div>',
+    [{ label: 'Kapat', cls: 'primary', fn: () => {} }]
+  );
+}
+
+/* ============================================================
+   OLAY BAĞLAMA & BAŞLATMA
+============================================================ */
+function renderAll(){
+  renderSidebar();
+  renderPagesRail();
+  renderStageHead();
+  renderStage();
+  renderVideo();
+  syncEditor();
+  applySettingsUI();
+  if(presenting) renderPresentation();
+}
+function applySettingsUI(){
+  $('#speedSel').value = settings.speed;
+  $('#pSpeed').value = settings.speed;
+  $('#btnTTToggle').classList.toggle('on', settings.typewriterOn);
+  $('#btnTTToggle').textContent = settings.typewriterOn ? '⌨ Efekt Açık' : '⌨ Efekt Kapalı';
+  $('#btnVideoFit').textContent = settings.videoFit === 'cover' ? '📐 Kapla' : '📐 Sığdır';
+  $('#editorPanel').classList.toggle('collapsed', !settings.editorOpen);
+  $('#btnEditor').classList.toggle('primary', settings.editorOpen);
+  $('#editorPreview').classList.toggle('show', settings.previewOn);
+  if(mqDesktop()){
+    $('#sidebar').classList.toggle('collapsed', !settings.sidebarOpen);
+  } else {
+    if(!settings.sidebarOpen) $('#sidebar').classList.remove('open');
+  }
+}
+
+function bindEvents(){
+  // Üst bar
+  $('#btnSidebar').addEventListener('click', () => {
+    if(mqDesktop()){
+      settings.sidebarOpen = !settings.sidebarOpen;
+      $('#sidebar').classList.toggle('collapsed', !settings.sidebarOpen);
+    } else {
+      $('#sidebar').classList.toggle('open');
+      $('#scrim').style.display = $('#sidebar').classList.contains('open') ? 'block' : 'none';
+    }
+  });
+  $('#scrim').addEventListener('click', () => {
+    $('#sidebar').classList.remove('open');
+    $('#scrim').style.display = 'none';
+  });
+  $('#courseTitle').addEventListener('change', e => {
+    const c = currentCourse(); if(!c) return;
+    c.title = e.target.value.trim() || c.title;
+    persist(); renderSidebar();
+  });
+  $('#btnVideo').addEventListener('click', () => $('#videoPanel').classList.toggle('hidden'));
+  $('#btnCloseVideo').addEventListener('click', () => $('#videoPanel').classList.add('hidden'));
+  $('#btnEditor').addEventListener('click', () => {
+    settings.editorOpen = !settings.editorOpen;
+    persist(); applySettingsUI();
+  });
+  $('#btnCollapseEditor').addEventListener('click', () => {
+    settings.editorOpen = false; persist(); applySettingsUI();
+  });
+  $('#btnFullscreen').addEventListener('click', toggleFullscreen);
+  $('#btnPresent').addEventListener('click', togglePresent);
+  $('#btnHelp').addEventListener('click', showHelp);
+
+  // İndirme menüsü
+  const drop = $('#exportDrop');
+  $('#btnExport').addEventListener('click', e => { e.stopPropagation(); drop.classList.toggle('open'); });
+  drop.querySelectorAll('.drop-menu button').forEach(b => {
+    b.addEventListener('click', () => { drop.classList.remove('open'); exportFmt(b.getAttribute('data-fmt')); });
+  });
+  document.addEventListener('click', e => { if(!drop.contains(e.target)) drop.classList.remove('open'); });
+
+  // İçe aktarma
+  $('#btnImport').addEventListener('click', () => $('#importFile').click());
+  $('#importFile').addEventListener('change', e => { if(e.target.files[0]) importJSON(e.target.files[0]); e.target.value = ''; });
+
+  // Kurs / bölüm / ders
+  $('#btnAddCourse').addEventListener('click', addCourse);
+  $('#btnEditCourse').addEventListener('click', editCourse);
+  $('#btnDelCourse').addEventListener('click', deleteCourse);
+  $('#courseSelect').addEventListener('change', e => {
+    active.courseId = e.target.value;
+    active.sectionId = null; active.lessonId = null; active.pageId = null;
+    normalizeActive(); persist(); renderAll();
+  });
+  $('#btnAddSection').addEventListener('click', addSection);
+  $('#btnSample').addEventListener('click', () => {
+    confirmModal('Örnek veri', 'Örnek akademik kurs verisi geri yüklensin mi? Mevcut veri değiştirilir.', () => {
+      data = { courses: [SAMPLE_COURSE(), SAMPLE_COURSE2()] };
+      active = { courseId: data.courses[0].id, sectionId: data.courses[0].sections[0].id, lessonId: data.courses[0].sections[0].lessons[0].id, pageId: data.courses[0].sections[0].lessons[0].pages[0].id };
+      persist(); renderAll();
+      toast('🔄 Örnek veri yüklendi');
+    });
+  });
+  $('#btnClear').addEventListener('click', () => {
+    confirmModal('Tümünü temizle', 'Tüm kurslar, bölümler, dersler ve sayfalar silinecek. Emin misin?', () => {
+      data = { courses: [] };
+      active = { courseId: null, sectionId: null, lessonId: null, pageId: null };
+      persist(); renderAll();
+    });
+  });
+
+  // Sayfalar
+  $('#btnAddPage').addEventListener('click', addPage);
+  $('#btnPrevPage').addEventListener('click', () => navPage(-1));
+  $('#btnNextPage').addEventListener('click', () => navPage(1));
+
+  // Typewriter
+  $('#speedSel').addEventListener('change', e => { settings.speed = e.target.value; $('#pSpeed').value = settings.speed; persist(); });
+  $('#btnTTPause').addEventListener('click', pauseResumeTypewriter);
+  $('#btnTTSkip').addEventListener('click', () => { showAll(); });
+  $('#btnTTToggle').addEventListener('click', () => {
+    settings.typewriterOn = !settings.typewriterOn;
+    persist(); applySettingsUI();
+    renderStage();
+    if(presenting) renderPresentation();
+  });
+
+  // Video
+  $('#videoUrl').addEventListener('change', applyVideoUrl);
+  $('#videoUrl').addEventListener('keydown', e => { if(e.key === 'Enter') applyVideoUrl(); });
+  $('#videoFile').addEventListener('change', e => { if(e.target.files[0]) handleVideoFile(e.target.files[0]); e.target.value = ''; });
+  $('#btnClearVideo').addEventListener('click', clearVideo);
+  $('#btnVideoFit').addEventListener('click', () => {
+    settings.videoFit = settings.videoFit === 'cover' ? 'contain' : 'cover';
+    persist(); renderVideo();
+    if(presenting) renderPresentation();
+  });
+  $('#btnDownloadVideo').addEventListener('click', downloadVideo);
+
+  // Editör
+  editor.addEventListener('input', editorInput);
+  $('#btnApply').addEventListener('click', applyToStage);
+  $('#btnTogglePreview').addEventListener('click', () => {
+    settings.previewOn = !settings.previewOn;
+    persist(); applySettingsUI();
+  });
+  $('#btnUndo').addEventListener('click', () => { editor.focus(); try{ document.execCommand('undo'); }catch(e){} });
+  $('#btnRedo').addEventListener('click', () => { editor.focus(); try{ document.execCommand('redo'); }catch(e){} });
+  editor.addEventListener('keydown', e => {
+    if((e.ctrlKey || e.metaKey) && e.key === 'b'){ e.preventDefault(); insertTpl('**','**','kalın'); }
+    else if((e.ctrlKey || e.metaKey) && e.key === 'i'){ e.preventDefault(); insertTpl('*','*','italik'); }
+    else if((e.ctrlKey || e.metaKey) && e.key === 'k'){ e.preventDefault(); insertTpl('[', '](https://ornek.com)', 'bağlantı'); }
+    else if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){ e.preventDefault(); applyToStage(); }
+    else if(e.key === 'Tab'){ e.preventDefault(); insertTpl('  ','',''); }
+  });
+
+  // Global kısayollar
+  document.addEventListener('keydown', e => {
+    if(e.target.matches('input,textarea,select,[contenteditable]')) return;
+    if(e.target && e.target.tagName === 'VIDEO') return;
+    if(e.key === 'Escape'){ if(presenting){ endPresentation(); return; } closeModal(); return; }
+    if(e.key === 'ArrowRight'){ navPage(1); }
+    else if(e.key === 'ArrowLeft'){ navPage(-1); }
+    else if(e.key === ' '){ e.preventDefault(); pauseResumeTypewriter(); }
+    else if(e.key === 'f' || e.key === 'F'){ e.preventDefault(); togglePresent(); }
+    else if((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')){ e.preventDefault(); saveNow(); }
+  });
+
+  // Sunum kontrolleri
+  $('#pExit').addEventListener('click', endPresentation);
+  $('#pPrev').addEventListener('click', () => navPage(-1));
+  $('#pNext').addEventListener('click', () => navPage(1));
+  $('#pReplay').addEventListener('click', () => { if(presenting) renderPresentation(); else renderStage(); });
+  $('#pPause').addEventListener('click', pauseResumeTypewriter);
+  $('#pSpeed').addEventListener('change', e => { settings.speed = e.target.value; $('#speedSel').value = settings.speed; persist(); });
+  $('#pFull').addEventListener('click', () => {
+    try{ if(document.fullscreenElement) document.exitFullscreen(); else $('#presentView').requestFullscreen(); }catch(e){}
+  });
+  // Sunum üst çubuğu otomatik gizle
+  const pTop = $('#presentTop');
+  let pHideTimer = null;
+  const pShowTop = () => {
+    pTop.classList.remove('hide');
+    clearTimeout(pHideTimer);
+    pHideTimer = setTimeout(() => { if(presenting) pTop.classList.add('hide'); }, 2600);
+  };
+  $('#presentView').addEventListener('mousemove', pShowTop);
+
+  // Modal kapat
+  $('#modal').addEventListener('click', e => { if(e.target === $('#modal')) closeModal(); });
+
+  // Editör yeniden boyutlandırma
+  const panel = $('#editorPanel'), handle = $('#editorHandle');
+  let drag = false;
+  handle.addEventListener('mousedown', e => { drag = true; e.preventDefault(); });
+  window.addEventListener('mousemove', e => {
+    if(!drag) return;
+    const h = window.innerHeight - e.clientY;
+    if(h > 120 && h < window.innerHeight - 120) panel.style.height = h + 'px';
+  });
+  window.addEventListener('mouseup', () => { drag = false; });
+
+  // Tam ekran değişimi
+  document.addEventListener('fullscreenchange', () => {
+    if(presenting && !document.fullscreenElement){
+      // Kullanıcı Esc ile tam ekrandan çıktı -> sunumu da kapat
+      endPresentation();
+    }
+  });
+}
+
+function init(){
+  buildToolbar();
+  bindEvents();
+
+  const raw = store.get();
+  if(raw){
+    try{
+      const obj = JSON.parse(raw);
+      if(obj && obj.data && obj.data.courses){
+        data = obj.data;
+        active = obj.active || active;
+        settings = Object.assign({}, settings, obj.settings || {});
+      } else {
+        data = { courses: [SAMPLE_COURSE(), SAMPLE_COURSE2()] };
+      }
+    }catch(e){
+      data = { courses: [SAMPLE_COURSE(), SAMPLE_COURSE2()] };
+    }
+  } else {
+    data = { courses: [SAMPLE_COURSE(), SAMPLE_COURSE2()] };
+    active = { courseId: data.courses[0].id, sectionId: data.courses[0].sections[0].id, lessonId: data.courses[0].sections[0].lessons[0].id, pageId: data.courses[0].sections[0].lessons[0].pages[0].id };
+  }
+  normalizeActive();
+  renderAll();
+  persist();
+
+  window.addEventListener('resize', () => {
+    if(mqDesktop()){
+      $('#scrim').style.display = 'none';
+      $('#sidebar').classList.remove('open');
+      $('#sidebar').classList.toggle('collapsed', !settings.sidebarOpen);
+    }
+  });
+}
+init();
+</script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3a2adb9f982ae50',t:'MTc4OTI1NTYwMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
