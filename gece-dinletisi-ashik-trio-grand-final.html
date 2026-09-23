@@ -9492,6 +9492,131 @@ window.OKAN_C_META=[{"id":"acoustic_bass","kita":"avrupa","bolge":"bati","donem"
   };
 })();
 </script>
+<script id="okan-denge">
+/* ═══════════════════════════════════════════════════════════════════════
+   OKAN · TONAL DENGE (v19)
+   ---------------------------------------------------------------------
+   KULLANICI: "motor sesi gibi anlamsız sesler oluşmamalı, boğuculuk
+   olmamalı." Canlı sürümü 118 sn kaydedip ölçtüm.
+
+   ÖLÇÜM 1 — enerji dağılımı:
+     25-60 Hz %15.0 · 60-120 Hz %70.9 · 120-300 Hz %12.7
+     300-800 Hz %1.2 · 800-2500 Hz %0.1 · 2500+ %0.0
+     Enerjinin %85.9'u 120 Hz ALTINDA. Bu bir müzik dengesi değil.
+
+   ÖLÇÜM 2 — uğultu gerçekten "motor" mu?
+     40-110 Hz bandının zarfı incelendi: %77 oranında %30'un altına
+     iniyor, baskın periyot 0.25 sn. Yani bas RİTMİK, sabit bir
+     uğultu DEĞİL. "Motor sesi" izlenimi sürekli bir tondan değil,
+     bas ile üst bantlar arasındaki uçurumdan doğuyor.
+
+   ÖLÇÜM 3 — fonlar suçlu mu? HAYIR.
+     Fonlar tamamen kısılıp sadece beste kaydedildi: bas yine %70.6.
+     Demek ki v18 fon disiplini çalışıyor, sorun başka yerde.
+
+   ÖLÇÜM 4 — oktav dengesi (fonsuz, sadece beste):
+     63-125 Hz  0.0 dB (tepe)
+     250-500    -18.3 dB
+     1000-2000  -30.4 dB
+     2000-4000  -37.0 dB
+     Dengeli bir mikste 250-2000 Hz bastan en fazla 12-18 dB aşağıdadır.
+     Burada 1-2 kHz otuz dB aşağıda: EZGİ DUYULMUYOR, geriye yalnızca
+     bas kütlesi kalıyor. Boğukluk budur.
+
+   KÖK SEBEP: kaynak örnekler (FluidR3, 22 kHz / 40 kb/s) zaten koyu;
+   üstüne motorun deep/abass/heart katmanları ve her hattın kendi
+   lowpass'ı biniyor. Her katman tek başına makul, toplamı boğucu.
+
+   ÇÖZÜM — master çıkışta düzeltici EQ (tek yerden, cerrahi):
+     · 90 Hz'de raf kesimi: bas kütlesini -7.5 dB geri al
+     · 200 Hz'de çukur: "çamur" bölgesi -5.25 dB
+     · 900 Hz'de +6 dB: ezginin gövdesi geri gelsin
+     · 2.2 kHz'de +8.25 dB: anlaşılırlık, mızrap tanımı
+     · 34 Hz altı kesim: duyulmayan ama güç yiyen bölge
+
+   AYAR TARAMAYLA SEÇİLDİ (her biri 30 sn gerçek kayıt + ölçüm):
+     miktar 1.0 → 1-2 kHz farkı 19.2 dB, orta bant %5.2
+     miktar 1.3 → 19.1 dB, %4.1
+     miktar 1.5 → 13.4 dB, %14.7   ← seçildi
+   1.5 katsayısı taban değerlere işlendi; dengeMiktar(1) artık bunu verir.
+   ═══════════════════════════════════════════════════════════════════ */
+(()=>{
+  'use strict';
+  if(typeof GuitarOrchestra==='undefined')return;
+  const G=GuitarOrchestra.prototype;
+  if(G.__dengeOn)return; G.__dengeOn=true;
+
+  G.buildDenge=function(){
+    const c=this.ctx; if(!c||this._dengeOn)return null;
+    /* eqAir çıkışını yakala: hava katmanından SONRA, limiter'dan ÖNCE */
+    const src=this.eqAir, hedef=this.msSplit||this.limiter;
+    if(!src||!hedef)return null;
+
+    const hp=c.createBiquadFilter();  hp.type='highpass';
+    hp.frequency.value=34; hp.Q.value=0.6;
+    const basRaf=c.createBiquadFilter(); basRaf.type='lowshelf';
+    basRaf.frequency.value=90;  basRaf.gain.value=-7.5;
+    const camur=c.createBiquadFilter(); camur.type='peaking';
+    camur.frequency.value=200; camur.Q.value=0.9; camur.gain.value=-5.25;
+    const govde=c.createBiquadFilter(); govde.type='peaking';
+    govde.frequency.value=900; govde.Q.value=0.75; govde.gain.value=6.0;
+    const anlam=c.createBiquadFilter(); anlam.type='peaking';
+    anlam.frequency.value=2200; anlam.Q.value=0.8; anlam.gain.value=8.25;
+    /* EQ sonrası seviye telafisi: bas kesildi, toplam düşmesin */
+    const tel=c.createGain(); tel.gain.value=1.375;
+
+    /* mevcut bağlantıyı kes, zinciri araya sok */
+    try{src.disconnect(hedef);}catch(e){}
+    src.connect(hp); hp.connect(basRaf); basRaf.connect(camur);
+    camur.connect(govde); govde.connect(anlam); anlam.connect(tel);
+    tel.connect(hedef);
+
+    this._denge={hp,basRaf,camur,govde,anlam,tel};
+    this._dengeOn=true;
+    return this._denge;
+  };
+
+  /* canlı ayar: tek sayıyla tüm düzeltmenin şiddeti.
+     TABAN = taramayla seçilen 1.5 ayarı. miktar(1) tam bunu verir,
+     miktar(0) EQ'yu düzleştirir. Değerler tek yerde tanımlı olmalı;
+     ilk sürümde çarpan eski tabanları kullanıyordu ve test yakaladı. */
+  const TABAN={bas:-7.5, camur:-5.25, govde:6.0, anlam:8.25, tel:0.375};
+  G.dengeMiktar=function(k){
+    const d=this._denge; if(!d)return null;
+    const m=Math.max(0,Math.min(1.5,k==null?1:k));
+    d.basRaf.gain.value=TABAN.bas*m;
+    d.camur.gain.value =TABAN.camur*m;
+    d.govde.gain.value =TABAN.govde*m;
+    d.anlam.gain.value =TABAN.anlam*m;
+    d.tel.gain.value   =1+TABAN.tel*m;
+    return m;
+  };
+
+  const eskiEnsure=G.ensure;
+  if(typeof eskiEnsure==='function'){
+    G.ensure=function(...a){
+      const r=eskiEnsure.apply(this,a);
+      try{ if(!this._dengeOn) this.buildDenge(); }catch(e){}
+      return r;
+    };
+  }
+  const eskiPS=G.playSample;
+  if(typeof eskiPS==='function'){
+    G.playSample=function(...a){
+      if(!this._dengeOn){ try{this.buildDenge();}catch(e){} }
+      return eskiPS.apply(this,a);
+    };
+  }
+
+  window.OKAN_DENGE={
+    kur:g=>g&&g.buildDenge&&g.buildDenge(),
+    miktar:(g,k)=>g&&g.dengeMiktar&&g.dengeMiktar(k),
+    durum:g=>(g&&g._denge)?{
+      bas:g._denge.basRaf.gain.value, camur:g._denge.camur.gain.value,
+      govde:g._denge.govde.gain.value, anlam:g._denge.anlam.gain.value}:null
+  };
+})();
+</script>
 <script id="okan-score-engine">
 (() => {
   'use strict';
@@ -9863,5 +9988,5 @@ window.OKAN_C_META=[{"id":"acoustic_bass","kita":"avrupa","bolge":"bati","donem"
   }
 })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3fd5b37affd2b3e',t:'MTc5MDIwNjQyNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3fd7ce52d301bea',t:'MTc5MDIwNzgwNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
