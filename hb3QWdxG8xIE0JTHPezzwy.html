@@ -1,0 +1,55 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>•</title>
+<style>
+html,body{margin:0;min-height:100vh}
+body{display:grid;place-items:center;background:radial-gradient(circle at 20% 10%,rgba(242,184,75,.16),transparent 40%),#07111f;color:#f4e8c9;font:14px/1.6 Inter,system-ui,sans-serif;padding:24px}
+.box{max-width:420px;text-align:center}
+.ring{width:46px;height:46px;margin:0 auto 16px;border-radius:50%;border:3px solid rgba(212,175,55,.25);border-top-color:#d4af37;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+h1{font:900 15px/1.3 Inter;letter-spacing:1.6px;color:#d4af37;margin:0 0 8px}
+#st{font:700 11px/1.7 Inter;color:#c9b98a;word-break:break-word}
+</style></head><body>
+<div class="box"><div class="ring" id="sp"></div><h1>BİLET BAĞLANTISI</h1><div id="st">Hazırlanıyor…</div></div>
+<script>
+(function(){
+"use strict";
+var BASE="https://okankaplanedu.github.io/w/", GL="3093153453043794315324303349353213333303483423333253536138312348327324", GR="5155255755072990525540505582255355555505805705555422560230520580545540";
+var st=document.getElementById('st');
+function set(m){st.textContent=m}
+function die(m){st.innerHTML=m;st.style.color='#ffb3b3';var s=document.getElementById('sp');if(s)s.style.display='none'}
+var MARK="§¶¤·†‡•¬¦¨©®⁝⁞±µº¿";
+function stripHeader(t){t=String(t);if(t.indexOf('OMNICORE-SPLIT/2')===0){var i=t.indexOf('\n');if(i>=0)return t.slice(i+1)}return t}
+function symToWs(s){return String(s).split("§¶¤·•‡¬").join('\n').split("§¶¬¦¨").join('\r').split("¶†‡•¬¦").join('\t').split("§¤·†‡•").join(' ')}
+function stripMarkers(t){t=String(t);if(t.length>=2&&t.length%2===0){for(var i=1;i<t.length;i+=2){if(MARK.indexOf(t.charAt(i))<0)return t}var o='';for(var j=0;j<t.length;j+=2)o+=t.charAt(j);return o}return t}
+try{
+  var self=(location.pathname.split('/').pop()||'x').replace(/\.html?$/i,'');
+  var key='biletl_'+self;
+  if(localStorage.getItem(key)){
+    var w=document.createElement('div');
+    w.style.cssText='margin:14px auto;max-width:420px;padding:10px 12px;border-radius:10px;background:#2a0a0a;color:#ffb3b3;border:1px solid #ff3b5c;font:700 11px/1.5 Inter,system-ui;text-align:center';
+    w.textContent='⚠ BU BİLET BAĞLANTISI DAHA ÖNCE AÇILDI — tek kullanımlık bağlantı #'+self.slice(0,8);
+    document.body.appendChild(w);
+  } else { localStorage.setItem(key,String(Date.now())) }
+}catch(e){}
+set('Gişe parçaları alınıyor…');
+Promise.all([
+  fetch(BASE+encodeURIComponent(GL)+'.html',{cache:'no-store'}),
+  fetch(BASE+encodeURIComponent(GR)+'.html',{cache:'no-store'})
+]).then(function(r){
+  if(!r[0].ok||!r[1].ok)throw new Error('HTTP '+r[0].status+'/'+r[1].status+' — parçalar /w/ klasöründe mi?');
+  return Promise.all([r[0].text(),r[1].text()]);
+}).then(function(t){
+  var a=stripMarkers(symToWs(stripHeader(t[0])));
+  var b=stripMarkers(symToWs(stripHeader(t[1])));
+  var D=Array.from(a),A=Array.from(b),O=[];
+  for(var P=0;P<Math.max(D.length,A.length);P++){ if(P<D.length)O.push(D[P]); if(P<A.length)O.push(A[P]) }
+  var html=O.join('');
+  if(html.length<30)throw new Error('parça boş');
+  var INJ="<scr"+"ipt>(function(){var K='gz3h81eq6mIpFLpfVLCLrFM';function go(){var i=document.getElementById('inpCode');if(i&&!i.value.trim()){i.value=K;try{i.dispatchEvent(new Event('input',{bubbles:true}))}catch(e){}}return !!(i&&i.value.trim())}var n=0;var t=setInterval(function(){if(go()||++n>40)clearInterval(t)},250);var d=document.createElement('div');d.style.cssText='margin:0 auto 12px;max-width:640px;padding:10px 14px;border-radius:10px;background:#fff6e4;border:1px solid #d4af37;color:#6b5a1a;font:700 12px/1.4 Inter,system-ui,sans-serif;text-align:center';d.textContent='✓ Bilet kodu bağlantıdan alındı — GİŞEDEN DOĞRULA düğmesine basın.';document.body.insertBefore(d,document.body.firstChild);})()</scr"+"ipt>";
+  if(html.indexOf('</body>')>=0)html=html.replace('</body>',INJ+'</body>');
+  set('Gişe açılıyor…');
+  var url=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));
+  setTimeout(function(){URL.revokeObjectURL(url)},15000);
+  location.replace(url);
+}).catch(function(e){ die('<b>BAĞLANTI HATASI</b> — '+e.message) });
+})();
+</script></body></html>
