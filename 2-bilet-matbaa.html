@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Matbaa • Gişeden Geçer PDF Bilet</title>
+<style>
+:root{--bg:#06080f;--panel:#0e1422;--panel2:#0a101d;--line:#1c2a41;--line2:#24344f;--gold:#d4af37;--gold2:#b9972f;--accent:#00ff88;--accent2:#00d4ff;--text:#e6eef8;--muted:#7e8ca6;--radius:14px}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(800px 500px at 15% -10%,#152040 0%,transparent 60%),var(--bg);color:var(--text);font:12px/1.5 Inter,system-ui,sans-serif;padding:16px}
+.container{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.header{padding:14px 16px;border-radius:var(--radius);background:linear-gradient(180deg,#131c2e,#0d1528);border:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.header h1{margin:0;font:800 14px/1 Inter;letter-spacing:.3px}
+.header h1 span{color:var(--gold)}
+.header p{margin:3px 0 0;color:var(--muted);font-size:11px}
+.badge{padding:6px 10px;border-radius:999px;background:rgba(212,175,55,.12);border:1px solid rgba(212,175,55,.35);color:var(--gold);font:700 10px/1 Inter}
+.grid{display:grid;grid-template-columns:360px 1fr;gap:14px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.card h2{margin:0 0 10px;font:800 11px/1 Inter;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
+.card h2 b{color:var(--gold)}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.field label{font:700 10px/1 Inter;letter-spacing:.7px;text-transform:uppercase;color:var(--muted)}
+.field input{padding:10px 11px;border-radius:10px;border:1px solid #26344d;background:#070b14;color:var(--text);font:600 12px/1 Inter;outline:none}
+.field input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,175,55,.15)}
+.row{display:flex;gap:8px}
+.row .field{flex:1}
+.btn{padding:11px 14px;border-radius:10px;border:0;cursor:pointer;font:800 11px/1 Inter;letter-spacing:.5px;text-transform:uppercase;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:.15s}
+.btn:active{transform:translateY(1px)}
+.btn-gold{background:linear-gradient(180deg,var(--gold),var(--gold2));color:#1a1400;box-shadow:0 8px 20px rgba(212,175,55,.3)}
+.btn-ghost{background:#141e32;color:var(--text);border:1px solid var(--line2)}
+.btn-accent{background:var(--accent);color:#00261a}
+.hint{color:var(--muted);font-size:10px;line-height:1.5;margin-top:6px}
+.preview-wrap{background:linear-gradient(180deg,#0a0f1c,#070b14);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;place-items:center;overflow:auto}
+.kv{display:grid;grid-template-columns:110px 1fr;gap:8px;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.04);font-size:11px;margin-bottom:6px}
+.kv b{color:var(--muted)} .kv span{color:var(--text);font-weight:600;word-break:break-all}
+.status{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:#060a12;border:1px solid var(--line);font-size:11px;color:var(--muted);margin-top:8px}
+.dot{width:8px;height:8px;border-radius:999px;background:var(--muted)}
+.dot.ok{background:var(--accent)} .dot.bad{background:#ff3b5c} .dot.run{background:var(--gold);animation:pulse 1s infinite}
+/* ANTİ-KOPYA — matbaa sayfası */
+.no-copy, #previewWrap, #ticketSvg{ -webkit-user-select:none !important; user-select:none !important; -webkit-touch-callout:none !important; }
+.ticket-watermark{ position:absolute; inset:0; pointer-events:none; display:grid; place-items:center; opacity:.07; transform:rotate(-28deg); font:900 32px/1 Inter; color:#8c6a0a; letter-spacing:2px; text-transform:uppercase; }
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.divider{height:1px;background:var(--line);margin:8px 0}
+@media print{
+  body{background:#fff;padding:0}
+  .no-print{display:none !important}
+  .card{border:0;box-shadow:none;background:#fff;padding:0}
+  .preview-wrap{border:0;background:#fff;padding:0}
+  @page{size:A4 portrait;margin:10mm}
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div>
+      <h1>MATBAA <span>• GİŞEDEN GEÇER PDF BİLET</span></h1>
+      <p>Bu matbaadan çıkan PDF bilet, GitHub gişeden <b>doğrulamalı</b> geçer → müşteri cihazına iner</p>
+    </div>
+    <div class="badge">V13 UYUMLU • BOŞLUKSUZ</div>
+  </div>
+
+  <div class="grid">
+    <div class="card no-print">
+      <h2><b>01 //</b> Manuel Kod Adresi</h2>
+      <div class="field">
+        <label>Bilet Kodu (.html) — Gişe bu kodu arayacak</label>
+        <input id="inpFileName" value="orkestra.html" placeholder="örn. orkestra.html veya MYTICKET-001.html">
+      </div>
+      <div class="field">
+        <label>Kod Adresi / Link (QR)</label>
+        <input id="inpLink" value="https://okankaplanedu.github.io/w/orkestra.html">
+      </div>
+      <div class="row">
+        <div class="field"><label>Etkinlik</label><input id="inpEvent" value="" placeholder="örn. Orkestra Stüdyosu • Canlı Kayıt"></div>
+        <div class="field"><label>Koltuk</label><input id="inpSeat" value="" placeholder="örn. A-12"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Tarih</label><input id="inpDate" value="" placeholder="örn. 12 Eylül 2025"></div>
+        <div class="field"><label>Saat</label><input id="inpTime" value="" placeholder="örn. 20:30"></div>
+      </div>
+      <div class="field"><label>Mekan</label><input id="inpVenue" value="" placeholder="örn. AKM • İstanbul"></div>
+      <div class="field"><label>İsim</label><input id="inpName" value="" placeholder="örn. Misafir"></div>
+      <div class="field"><label>Not</label><input id="inpNote" value="" placeholder="örn. Kapıda QR okutunuz"></div>
+      <div class="field" style="margin-top:8px; padding:10px; border:1px dashed rgba(212,175,55,.35); border-radius:10px; background:rgba(212,175,55,.06)">
+        <label style="display:flex; align-items:center; gap:6px"><span style="font-size:14px">🖼️</span> Kapak Görseli — QR alanında kare cover (vintage hatıra)</label>
+        <input type="file" id="inpCover" accept="image/*" style="padding:8px; background:#070b14; border:1px solid #26344d; border-radius:8px; color:var(--muted); font-size:11px">
+        <div class="hint">Seçtiğin resim bilet ortasında <b>kare, cover, merkez</b> yerleşir — vintage biletin hatırası</div>
+        <div id="coverPreview" style="display:none; margin-top:8px; width:100%; aspect-ratio:1; border-radius:10px; overflow:hidden; border:1px solid #d9c7a0; background:#fff"><img id="coverPreviewImg" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block"></div>
+      </div>
+
+      <div class="kv"><b>ID-3</b><span id="kvId3">—</span></div>
+      <div class="kv"><b>ID-5</b><span id="kvId5">—</span></div>
+      <div class="kv"><b>GitHub Link</b><span id="kvLink">—</span></div>
+      <div class="status" id="status"><div class="dot" id="dot"></div><div id="statusText"><b>HAZIR</b> — kod gir</div></div>
+
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button id="btnCalc" class="btn btn-ghost" style="flex:1">🔢 ID HESAPLA</button>
+        <button id="btnTest" class="btn btn-ghost" style="flex:1">✅ GİŞEDEN GEÇER Mİ?</button>
+      </div>
+      <div class="hint">
+        <b>orkestra.html</b> zaten GitHub'da var → direkt geçer.<br>
+        Yeni kod (örn. <code>MYTICKET-001.html</code>) için alttaki <b>Parsel LEFT/RIGHT</b>'ı indirip <code>https://github.com/okankaplanedu/okankaplanedu.github.io/tree/main/w</code> içine yüklemen gerekir — sonra gişeden geçer.
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><b>02 //</b> Önizleme — SVG Bilet (Matbaa)</h2>
+      <div class="preview-wrap" id="previewWrap" style="background:radial-gradient(600px 400px at 50% 0%, #1a1405 0%, #070b14 60%), #070b14; border-color:#2a1f0a">
+        <svg id="ticketSvg" width="360" height="560" viewBox="0 0 360 560" xmlns="http://www.w3.org/2000/svg" style="width:340px;max-width:100%;height:auto;filter:drop-shadow(0 18px 40px rgba(0,0,0,.65))">
+          <defs>
+            <linearGradient id="goldGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f8e8a0"/><stop offset="45%" stop-color="#d4af37"/><stop offset="100%" stop-color="#7a5a0a"/></linearGradient>
+            <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fffaf0"/><stop offset="55%" stop-color="#f6ead0"/><stop offset="100%" stop-color="#e8d8b0"/></linearGradient>
+            <pattern id="vintagePaper" width="100" height="100" patternUnits="userSpaceOnUse"><rect width="100" height="100" fill="url(#paper)"/><circle cx="20" cy="30" r=".7" fill="#c9b896" opacity=".18"/><circle cx="70" cy="80" r=".9" fill="#b8a080" opacity=".14"/><circle cx="45" cy="60" r=".5" fill="#a89060" opacity=".12"/></pattern>
+            <filter id="shadow"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity=".18"/></filter>
+          </defs>
+          <!-- Ana gövde — vintage hatıra bileti -->
+          <rect x="6" y="6" width="348" height="548" rx="18" fill="url(#vintagePaper)" stroke="#c9a84a" stroke-width="1.4"/>
+          <!-- Dış çift çerçeve -->
+          <rect x="10" y="10" width="340" height="540" rx="14" fill="none" stroke="#d4af37" stroke-width=".9" opacity=".9"/>
+          <rect x="14" y="14" width="332" height="532" rx="11" fill="none" stroke="#8c6a0a" stroke-width=".45" opacity=".55" stroke-dasharray="6 4"/>
+          <!-- Köşe süsleri -->
+          <g fill="none" stroke="#b8962a" stroke-width=".9" opacity=".7">
+            <path d="M22 22 h18 v18" stroke-linecap="round"/><path d="M338 22 h-18 v18" stroke-linecap="round"/><path d="M22 538 h18 v-18" stroke-linecap="round"/><path d="M338 538 h-18 v-18" stroke-linecap="round"/>
+            <circle cx="22" cy="22" r="2.2" fill="#d4af37" stroke="none" opacity=".9"/><circle cx="338" cy="22" r="2.2" fill="#d4af37" stroke="none" opacity=".9"/><circle cx="22" cy="538" r="2.2" fill="#d4af37" stroke="none" opacity=".9"/><circle cx="338" cy="538" r="2.2" fill="#d4af37" stroke="none" opacity=".9"/>
+          </g>
+          <!-- Üst bant — vintage -->
+          <rect x="14" y="14" width="332" height="38" rx="10" fill="url(#goldGrad)"/>
+          <rect x="14" y="36" width="332" height="10" fill="url(#goldGrad)"/>
+          <text x="24" y="32" font-family="Inter" font-size="7.5" font-weight="800" fill="#1a1400" letter-spacing=".45">OKAN KAPLAN • ORKESTRA</text>
+          <text x="336" y="32" text-anchor="end" font-family="Inter" font-size="6" font-weight="700" fill="#1a1400" id="svgCodeTop">—</text>
+          <text x="180" y="42" text-anchor="middle" font-family="Inter" font-size="5" font-weight="700" fill="#1a1400" opacity=".7" letter-spacing="1.2">HATIRA BİLETİ • VINTAGE EDITION</text>
+          <!-- Başlık alanı — boş bırakılabilir -->
+          <text x="180" y="76" text-anchor="middle" font-family="Inter" font-size="15" font-weight="900" fill="#1a1400" id="svgTitle" style="font-style:italic"></text>
+          <text x="180" y="89" text-anchor="middle" font-family="Inter" font-size="6.5" font-weight="700" fill="#7a5a0a" letter-spacing=".9">MATBAA • GİŞEDEN GEÇER • KOPYALANAMAZ</text>
+          <!-- Bilgi şeridi — sadece dolu ise gösterilir -->
+          <g id="svgInfoGroup" opacity=".95">
+            <text x="24" y="110" font-family="Inter" font-size="7.5" fill="#2a1f0a" id="svgInfoLine" text-anchor="start"></text>
+          </g>
+          <!-- KOD ADRESİ şeridi -->
+          <rect x="18" y="118" width="324" height="28" rx="7" fill="#111" stroke="#d4af37" stroke-width=".7"/>
+          <text x="26" y="129" font-family="Inter" font-size="5.5" font-weight="700" fill="#d4af37" letter-spacing=".6">KOD ADRESİ</text>
+          <text x="26" y="141" font-family="ui-monospace,monospace" font-size="5.5" font-weight="700" fill="#fff" id="svgLink">—</text>
+          <!-- ORTA SANAT KARE — file input ile cover (vintage çerçeve) -->
+          <g id="artFrame">
+            <rect x="69" y="152" width="222" height="222" rx="13" fill="#fff" stroke="#c9a84a" stroke-width="1.1" filter="url(#shadow)"/>
+            <rect x="71" y="154" width="218" height="218" rx="11" fill="none" stroke="#8c6a0a" stroke-width=".45" opacity=".5"/>
+            <!-- Kapak görseli cover kare -->
+            <clipPath id="coverClip"><rect x="72" y="155" width="216" height="216" rx="10"/></clipPath>
+            <image id="svgCoverImage" x="72" y="155" width="216" height="216" preserveAspectRatio="xMidYMid slice" clip-path="url(#coverClip)" href="" style="display:none"/>
+            <!-- Placeholder — vintage -->
+            <g id="svgPlaceholder">
+              <rect x="72" y="155" width="216" height="216" rx="10" fill="#fdf6e3"/>
+              <text x="180" y="250" text-anchor="middle" font-family="Inter" font-size="22">◈</text><text x="180" y="270" text-anchor="middle" font-family="Inter" font-size="7" font-weight="700" fill="#8c6a0a" letter-spacing=".6">HATIRA GÖRSELİ</text><text x="180" y="282" text-anchor="middle" font-family="Inter" font-size="6" fill="#a99b7a">soldan görsel seç</text>
+            </g>
+            <!-- QR küçük rozet — vintage köşe (kapak varsa üzerinde) -->
+            <g id="qrBadge" style="display:none">
+              <rect x="212" y="310" width="68" height="68" rx="8" fill="#fff" stroke="#d4af37" stroke-width="1" filter="url(#shadow)"/>
+              <foreignObject x="216" y="314" width="60" height="60"><div xmlns="http://www.w3.org/1999/xhtml" style="width:60px;height:60px;display:grid;place-items:center;background:#fff"><canvas id="qrCanvas" width="60" height="60" style="width:60px;height:60px"></canvas></div></foreignObject>
+            </g>
+            <!-- Altındaki gizli büyük QR (gişe doğrulama için, baskıda küçük rozette) -->
+            <g id="qrHidden" style="display:none"><foreignObject x="80" y="218" width="200" height="200"><div xmlns="http://www.w3.org/1999/xhtml" style="width:200px;height:200px;display:grid;place-items:center;background:#fff"><canvas id="qrCanvasLarge" width="180" height="180" style="width:180px;height:180px"></canvas></div></foreignObject></g>
+          </g>
+          <!-- Alt vintage şeritler -->
+          <text x="180" y="398" text-anchor="middle" font-family="Inter" font-size="6.5" font-weight="700" fill="#6b5a1a" letter-spacing=".5">— HATIRA —</text>
+          <text x="180" y="412" text-anchor="middle" font-family="Inter" font-size="7" font-weight="600" fill="#1a1400" id="svgVenueLine"></text>
+          <text x="180" y="426" text-anchor="middle" font-family="Inter" font-size="7" font-weight="500" fill="#3a2a0a" id="svgNameLine"></text>
+          <text x="180" y="442" text-anchor="middle" font-family="Inter" font-size="6" fill="#8a7a52" id="svgNoteLine" style="font-style:italic"></text>
+          <!-- Ayırıcı vintage çizgi + makas -->
+          <g opacity=".55">
+            <line x1="26" y1="456" x2="334" y2="456" stroke="#c9a84a" stroke-width=".5" stroke-dasharray="5 4"/>
+            <text x="18" y="460" font-size="10" fill="#8c6a0a">✂</text>
+          </g>
+          <!-- Dip — kod ve ID -->
+          <text x="24" y="476" font-family="ui-monospace,monospace" font-size="5.5" fill="#3a2a0a" font-weight="700" id="svgCode">—</text>
+          <text x="336" y="476" text-anchor="end" font-family="ui-monospace,monospace" font-size="5" fill="#a99b7a" id="svgIds">—</text>
+          <text x="180" y="492" text-anchor="middle" font-family="Inter" font-size="5" fill="#a99b7a" letter-spacing=".7">© 2025 • KOPYALANAMAZ • TEK KULLANIM • GİŞE DOĞRULAMALI</text>
+          <text x="180" y="504" text-anchor="middle" font-family="Inter" font-size="4.5" fill="#b8a47a" letter-spacing=".4">Bu bilet bir hatıradır — çoğaltılamaz, devredilemez</text>
+          <!-- Antika köşe damgası -->
+          <g opacity=".18">
+            <circle cx="306" cy="58" r="22" fill="none" stroke="#8c6a0a" stroke-width=".7" stroke-dasharray="2 2"/><text x="306" y="62" text-anchor="middle" font-family="Inter" font-size="6" font-weight="800" fill="#8c6a0a" letter-spacing=".3">VINTAGE</text>
+          </g>
+        </svg>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px" class="no-print">
+        <button id="btnPdf" class="btn btn-gold" style="flex:1">🖨️ PDF BİLET İNDİR</button>
+        <button id="btnPng" class="btn btn-ghost" style="flex:1">🖼️ PNG</button>
+      </div>
+      <div class="hint no-print" style="text-align:center">PDF Shopier PDF gibi — OCR ile kodu okunur, gişeden geçer</div>
+    </div>
+  </div>
+
+  <div class="card no-print">
+    <h2><b>03 //</b> Parseller — GitHub'a Yüklenecek (Yeni kod için)</h2>
+    <p class="hint" style="margin:0 0 8px">Bu matbaadan çıkan biletin gişeden geçmesi için bu 2 dosyanın GitHub <code>/w</code> klasörüne yüklenmesi gerekir. Mevcut <b>orkestra.html</b> için zaten yüklü.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div>
+        <div class="kv"><b>LEFT</b><span id="kvLeftName">—</span></div>
+        <div style="background:#04070c;border:1px solid var(--line);border-radius:8px;padding:8px;max-height:160px;overflow:auto;font:9px/1.4 ui-monospace,monospace;white-space:pre-wrap;word-break:break-all;color:#7ee787" id="parselLeft">—</div>
+        <button id="btnDownLeft" class="btn btn-ghost" style="width:100%;margin-top:6px">⬇️ LEFT .html İNDİR</button>
+      </div>
+      <div>
+        <div class="kv"><b>RIGHT</b><span id="kvRightName">—</span></div>
+        <div style="background:#04070c;border:1px solid var(--line);border-radius:8px;padding:8px;max-height:160px;overflow:auto;font:9px/1.4 ui-monospace,monospace;white-space:pre-wrap;word-break:break-all;color:#7ee787" id="parselRight">—</div>
+        <button id="btnDownRight" class="btn btn-ghost" style="width:100%;margin-top:6px">⬇️ RIGHT .html İNDİR</button>
+      </div>
+    </div>
+    <div class="status" id="parselStatus"><div class="dot" id="parselDot"></div><div id="parselStatusText">Henüz oluşturulmadı</div></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const REPOSITORY_BASE="https://okankaplanedu.github.io/w/";
+  const SPACE_REPL="§¤·†‡•", NL_REPL="§¶¤·•‡¬", TAB_REPL="¶†‡•¬¦";
+  let lastSourceHtml="", lastIds=null;
+
+  function calcIds(name){
+    let dec=""; for(let i=0;i<name.length;i++) dec+=name.charCodeAt(i).toString(10);
+    const v=BigInt(dec); return {l:(v*3n).toString(), r:(v*5n).toString()};
+  }
+  function wsToSym(s){
+    let out=""; for(const c of String(s)){
+      if(c===" ") out+=SPACE_REPL; else if(c==="\t") out+=TAB_REPL; else if(c==="\n") out+=NL_REPL; else if(c==="\r") out+="§¶¬¦¨"; else out+=c;
+    } return out;
+  }
+  let lastAutoLink = "";
+  function updateAll(){
+    const fileName = $("inpFileName").value.trim() || "bilet.html";
+    const linkInput = $("inpLink").value.trim();
+    const event = $("inpEvent").value.trim()||"—";
+    const seat = $("inpSeat").value.trim()||"—";
+    const date = $("inpDate").value.trim()||"—";
+    const time = $("inpTime").value.trim()||"—";
+    const venue = $("inpVenue").value.trim()||"—";
+    const name = $("inpName").value.trim()||"Misafir";
+    const note = $("inpNote").value.trim()||"";
+
+    // Calculate IDs
+    try{
+      const ids = calcIds(fileName);
+      lastIds=ids;
+      $("kvId3").textContent = ids.l + ".html";
+      $("kvId5").textContent = ids.r + ".html";
+      const directLink = REPOSITORY_BASE + fileName;
+      $("kvLink").textContent = directLink;
+      // KOD İSMİNE UYUMLU: Kod değişince Kod Adresi otomatik güncellenir
+      // Eğer input boşsa veya önceki otomatik link ile aynıysa, yeni koda göre güncelle
+      if(!linkInput || linkInput === lastAutoLink || linkInput.startsWith(REPOSITORY_BASE)){
+        $("inpLink").value = directLink;
+        lastAutoLink = directLink;
+      }
+      $("svgIds").textContent = `ID-3: ${ids.l.slice(0,12)}… • ID-5: ${ids.r.slice(0,12)}…`;
+      $("status").innerHTML=`<div class="dot ok"></div><div><b>HESAPLANDI</b> — ${fileName} → GitHub: ${directLink}</div>`;
+    }catch(e){
+      $("kvId3").textContent="—"; $("kvId5").textContent="—";
+    }
+
+    const code = fileName;
+    // KOD ADRESİ / Link (QR) — Bilet kod ismi ne ise GitHub link sonunda o olmalı
+    const giseLink = REPOSITORY_BASE + fileName;
+    const displayLink = linkInput || giseLink;
+    // GitHub Link (doğrulama için) her zaman hashed ID — ayrı gösterilir
+    // SVG'de gösterilecek link: KULLANICININ MANUEL KOD ADRESİ
+    $("svgCode").textContent = code.length>30?code.slice(0,30)+"…":code;
+    document.getElementById("svgCodeTop").textContent = code || "—";
+    document.getElementById("svgLink").textContent = displayLink.length>52?displayLink.slice(0,52)+"…":displayLink;
+    // Vintage hatıra: başlık ve bilgiler — boş ise gizle, dolu ise göster
+    const titleEl = document.getElementById("svgTitle");
+    if(event && event!=="—"){ titleEl.textContent = event.slice(0,34); titleEl.style.display="block"; } else { titleEl.textContent = ""; }
+    // Tek satırlık bilgi — sadece dolu alanları birleştir (boş olmalı isteği)
+    const parts = [];
+    if(date && date!=="—") parts.push(date);
+    if(time && time!=="—") parts.push(time);
+    if(seat && seat!=="—") parts.push("Koltuk "+seat);
+    const infoLine = parts.join(" • ");
+    const infoEl = document.getElementById("svgInfoLine");
+    if(infoLine) infoEl.textContent = infoLine;
+    const venueEl = document.getElementById("svgVenueLine");
+    if(venueEl) venueEl.textContent = (venue && venue!=="—") ? venue.slice(0,38) : "";
+    const nameEl = document.getElementById("svgNameLine");
+    if(nameEl){
+      const n = (name && name!=="—");
+      nameEl.textContent = n ? ("— " + name.slice(0,26) + " —") : "";
+    }
+    const noteEl = document.getElementById("svgNoteLine");
+    if(noteEl) noteEl.textContent = (note && note!=="—") ? note.slice(0,48) : "";
+    // Alt kod satırı
+    const codeEl = document.getElementById("svgCode");
+    if(codeEl) codeEl.textContent = code;
+
+    // QR — KOD ADRESİ (manuel) ile oluştur — kullanıcı ne yazdıysa o (vintage rozet + gizli büyük)
+    drawQR(displayLink);
+
+    // Kapak görseli dataURL (varsa) — cover merkez kare hatıra
+    const coverDataUrl = window._coverDataUrl || "";
+    // ANTİ-KOPYA — kopyalanamaz tek kullanımlık bilet HTML (boşluksuz split öncesi enjekte)
+    const ticketNonce = Date.now().toString(36) + Math.random().toString(36).slice(2,7).toUpperCase();
+    const ticketId = code + "#" + ticketNonce;
+    const antiCopyStyle = `<style>
+*{ -webkit-user-select:none !important; user-select:none !important; -webkit-touch-callout:none !important}
+html,body{margin:0;padding:0;background:#fffdf7}
+@media print{body{display:none !important} html::after{content:"YAZDIRMA KAPALI — KOPYALANAMAZ BİLET"; display:grid; place-items:center; height:100vh; font:800 14px/1 Inter; color:#8c6a0a}}
+#ticket-root{ position:relative; max-width:520px; margin:18px auto; background:#fff; border:1px solid #d9c7a0; border-radius:14px; overflow:hidden; }
+.watermark{ position:absolute; inset:0; pointer-events:none; display:grid; place-items:center; opacity:.09; transform:rotate(-26deg); font:900 28px/1 Inter; letter-spacing:1.8px; color:#8c6a0a; text-transform:uppercase; }
+.seal{ position:absolute; top:10px; right:10px; font:700 9px/1 Inter; background:#111; color:#d4af37; padding:6px 8px; border-radius:999px; border:1px solid #d4af37;}
+</style>`;
+    const antiCopyScript = `<script>
+(function(){
+  const ID="`+ticketId+`"; const CODE="`+code+`";
+  // sağ tık / kopyala / kes / sürükle / seçme kapalı
+  document.addEventListener('contextmenu', e=>{ e.preventDefault(); toast(); });
+  document.addEventListener('copy', e=>{ e.preventDefault(); toast(); });
+  document.addEventListener('cut', e=> e.preventDefault());
+  document.addEventListener('dragstart', e=> e.preventDefault());
+  document.addEventListener('selectstart', e=>{ if(e.target.closest('#ticket-root')) e.preventDefault(); });
+  document.addEventListener('keydown', e=>{
+    if((e.ctrlKey||e.metaKey) && ['c','p','s','u','a'].includes(e.key.toLowerCase())){ e.preventDefault(); toast(); }
+    if(e.key==='F12' || (e.ctrlKey&&e.shiftKey&&['I','J','C'].includes(e.key.toUpperCase()))){ e.preventDefault(); toast(); }
+    if(e.key==='PrintScreen'){ e.preventDefault(); toast(); navigator.clipboard.writeText('KOPYALANAMAZ BİLET'); }
+  });
+  window.addEventListener('beforeprint', e=>{ e.preventDefault(); alert('YAZDIRMA KAPALI — Bu bilet tek kullanımlık ve kopyalanamaz.'); return false; });
+  function toast(){
+    let t=document.getElementById('__copyToast');
+    if(!t){ t=document.createElement('div'); t.id='__copyToast'; t.style.cssText='position:fixed;left:50%;top:18px;transform:translateX(-50%);background:#111;color:#d4af37;padding:8px 12px;border-radius:999px;border:1px solid #d4af37;font:700 11px/1 Inter;z-index:9999;box-shadow:0 8px 20px rgba(0,0,0,.3)'; document.body.appendChild(t); }
+    t.textContent='KOPYALANAMAZ — Tek kullanımlık bilet #' + CODE;
+    t.style.display='block'; clearTimeout(t._t); t._t=setTimeout(()=>t.style.display='none',1800);
+  }
+  // tek kullanımlık kontrol — localStorage damgası (cihaz bazlı çoğaltma tespiti)
+  try{
+    const key='used_'+CODE;
+    const prev=localStorage.getItem(key);
+    if(prev){
+      const w=document.createElement('div');
+      w.style.cssText='margin:12px;padding:10px 12px;border-radius:10px;background:#2a0a0a;color:#ffb3b3;border:1px solid #ff3b5c;font:700 11px/1 Inter;text-align:center';
+      w.textContent='⚠️ BU BİLET ZATEN AÇILDI — KOPYA/ÇOĞALTMA TESPİTİ #' + prev.slice(0,8) + ' (tek kullanımlık)';
+      document.body.prepend(w);
+    } else {
+      localStorage.setItem(key, ID + '|' + new Date().toISOString());
+    }
+    // giriş kaydı (opsiyonel: aynı kod 2. cihazda da uyarı için localStorage'da bayrak)
+    sessionStorage.setItem('ticket_'+CODE, ID);
+  }catch(e){}
+  // ekran görüntüsü caydırma — görünür filigran zaten var
+})();
+<\/script>`;
+    const sourceHtml = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>`+code+`</title>`+antiCopyStyle+`</head><body>
+<div id="ticket-root">
+  <div class="watermark">KOPYALANAMAZ • `+code+`</div>
+  <div class="seal">TEK KULLANIM • `+ticketNonce+`</div>
+  <div style="padding:14px">
+    <div style="font:800 12px/1 Inter; letter-spacing:.4px">OKAN KAPLAN • ORKESTRA <span style="float:right; font:700 10px/1 Inter; background:#d4af37; color:#1a1400; padding:4px 7px; border-radius:999px;">`+code+`</span></div>
+    `+(event && event!=="—" ? `<h1 style="margin:10px 0 6px; font:900 18px/1 Inter; font-style:italic;">`+event+`</h1>` : ``)+`
+    `+([date,time,seat,venue,name].some(v=>v && v!=="—") ? `<div style="font:600 11px/1 Inter; color:#6b5a1a; margin-bottom:10px">`+([date,time].filter(v=>v&&v!=="—").join(" • ") + (seat&&seat!=="—" ? " • Koltuk "+seat : "") + (venue&&venue!=="—" ? " • "+venue : "") + (name&&name!=="—" ? " • "+name : ""))+`</div>` : ``)+`
+    <div style="background:#111; color:#d4af37; padding:8px 10px; border-radius:8px; font:700 10px/1 ui-monospace,monospace; word-break:break-all; border:1px solid #d4af37">`+displayLink+`</div>
+    `+(coverDataUrl ? `<div style="margin-top:10px; position:relative; width:100%; aspect-ratio:1; border-radius:10px; overflow:hidden; border:1px solid #d9c7a0; background:#fff"><img src="`+coverDataUrl+`" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block"><div style="position:absolute; right:8px; bottom:8px; background:#fff; border:1px solid #d4af37; border-radius:8px; padding:4px; box-shadow:0 4px 12px rgba(0,0,0,.2)"><canvas id="qrSmall" width="56" height="56"></canvas></div></div>` : `<div style="margin-top:10px; display:grid; place-items:center; background:#fff; border:1px solid #d9c7a0; border-radius:10px; padding:12px"><canvas id="qr" width="160" height="160"></canvas></div>`)+`
+    <div style="text-align:center; font:700 9px/1 Inter; color:#8a7a52; margin-top:8px">QR OKUT • GİŞE DOĞRULAMA • `+ticketId+`</div>
+    <div style="text-align:center; font:600 8px/1 Inter; color:#a99b7a; margin-top:4px">Bu bilet kişiye özeldir, devredilemez, çoğaltılamaz. Tek kullanımlıktır.</div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"><\/script>
+<script>
+try{
+  if(document.getElementById('qr')) QRCode.toCanvas(document.getElementById('qr'), "`+displayLink+`", {width:160, margin:1});
+  if(document.getElementById('qrSmall')) QRCode.toCanvas(document.getElementById('qrSmall'), "`+displayLink+`", {width:56, margin:1});
+}catch(e){}
+<\/script>
+`+antiCopyScript+`
+</body></html>`;
+    lastSourceHtml = sourceHtml;
+    // Split into left/right with V13 whitespace-to-symbols (boşluksuz)
+    const units = Array.from(sourceHtml);
+    const leftRaw = units.filter((_,i)=>i%2===0).join("");
+    const rightRaw = units.filter((_,i)=>i%2===1).join("");
+    const leftFilled = wsToSym(leftRaw);
+    const rightFilled = wsToSym(rightRaw);
+    $("parselLeft").textContent = leftFilled.slice(0,800) + (leftFilled.length>800?"…":"");
+    $("parselRight").textContent = rightFilled.slice(0,800) + (rightFilled.length>800?"…":"");
+    $("kvLeftName").textContent = lastIds ? lastIds.l + ".html ("+leftFilled.length+")" : "—";
+    $("kvRightName").textContent = lastIds ? lastIds.r + ".html ("+rightFilled.length+")" : "—";
+    $("parselStatus").innerHTML=`<div class="dot ok"></div><div>Parseller hazır — ${leftFilled.length} / ${rightFilled.length} char • LEFT/RIGHT'ta boşluk YOK</div>`;
+    // Store for download
+    window._leftFilled = leftFilled;
+    window._rightFilled = rightFilled;
+  }
+
+  function drawQR(text){
+    const c=$("qrCanvas");
+    const cl=$("qrCanvasLarge");
+    if(window.QRCode){
+      if(c) QRCode.toCanvas(c, text, {width:60, margin:1, color:{dark:"#111", light:"#ffffff"}}, ()=>{});
+      if(cl) QRCode.toCanvas(cl, text, {width:180, margin:1, color:{dark:"#111", light:"#ffffff"}}, ()=>{});
+      // kapak varsa rozeti göster, yoksa gizli (yine de gişe için large var)
+      const badge = document.getElementById("qrBadge");
+      // rozet her zaman göster — vintage köşe QR
+      if(badge) badge.style.display="block";
+    }
+  }
+
+  ["inpFileName","inpLink","inpEvent","inpSeat","inpDate","inpTime","inpVenue","inpName","inpNote"].forEach(id=>{
+    $(id).addEventListener("input", updateAll);
+  });
+  $("btnCalc").addEventListener("click", updateAll);
+  $("btnTest").addEventListener("click", async ()=>{
+    const fileName=$("inpFileName").value.trim();
+    if(!fileName) return alert("Kod gir");
+    const ids=calcIds(fileName);
+    $("parselStatus").innerHTML=`<div class="dot run"></div><div>GitHub gişeden kontrol ediliyor...</div>`;
+    try{
+      const [lr,rr]=await Promise.all([
+        fetch(REPOSITORY_BASE+encodeURIComponent(ids.l)+".html",{cache:"no-store"}),
+        fetch(REPOSITORY_BASE+encodeURIComponent(ids.r)+".html",{cache:"no-store"})
+      ]);
+      if(lr.ok && rr.ok){
+        $("parselStatus").innerHTML=`<div class="dot ok"></div><div><b>GEÇER</b> — GitHub'da bulundu (ID-3/ID-5 var) → gişeden geçer</div>`;
+      } else {
+        $("parselStatus").innerHTML=`<div class="dot bad"></div><div><b>GEÇMEZ</b> — GitHub'da yok (HTTP ${lr.status}/${rr.status}) → önce LEFT/RIGHT'ı GitHub /w klasörüne yükle</div>`;
+      }
+    }catch(e){
+      $("parselStatus").innerHTML=`<div class="dot bad"></div><div>Hata: ${e.message}</div>`;
+    }
+  });
+
+  // Download handlers
+  function downloadBlob(content, name, type){
+    const blob=new Blob([content],{type});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url; a.download=name; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+  $("btnDownLeft").addEventListener("click", ()=>{
+    if(!window._leftFilled) return alert("Önce kod gir");
+    downloadBlob(window._leftFilled, (lastIds.l+".html"), "text/html;charset=utf-8");
+  });
+  $("btnDownRight").addEventListener("click", ()=>{
+    if(!window._rightFilled) return alert("Önce kod gir");
+    downloadBlob(window._rightFilled, (lastIds.r+".html"), "text/html;charset=utf-8");
+  });
+  $("btnPdf").addEventListener("click", ()=>{
+    // For matbaa PDF, we print the ticket SVG
+    window.print();
+  });
+  $("btnPng").addEventListener("click", ()=>{
+    const svg=document.getElementById("ticketSvg");
+    const data=new XMLSerializer().serializeToString(svg);
+    const blob=new Blob([data],{type:"image/svg+xml"});
+    const url=URL.createObjectURL(blob);
+    const img=new Image();
+    img.onload=()=>{
+      const c=document.createElement("canvas");
+      const s=3; c.width=360*s; c.height=520*s;
+      const ctx=c.getContext("2d");
+      ctx.fillStyle="#fff"; ctx.fillRect(0,0,c.width,c.height);
+      ctx.drawImage(img,0,0,c.width,c.height);
+      URL.revokeObjectURL(url);
+      const a=document.createElement("a");
+      const code=($("inpFileName").value.trim()||"bilet").replace(/[^A-Z0-9\-_\.]/gi,"_");
+      a.download=`bilet-${code}.png`;
+      a.href=c.toDataURL("image/png");
+      a.click();
+    };
+    img.src=url;
+  });
+
+  // Kapak görseli — file input -> SVG cover kare (vintage)
+  window._coverDataUrl = "";
+  const coverInput = $("inpCover");
+  if(coverInput){
+    coverInput.addEventListener("change", e=>{
+      const f=e.target.files[0];
+      if(!f) return;
+      const reader=new FileReader();
+      reader.onload=ev=>{
+        const dataUrl=ev.target.result;
+        window._coverDataUrl=dataUrl;
+        const imgEl=$("svgCoverImage");
+        const ph=$("svgPlaceholder");
+        if(imgEl){
+          imgEl.setAttribute("href", dataUrl);
+          // also set xlink:href for compatibility
+          imgEl.setAttributeNS('http://www.w3.org/1999/xlink','href', dataUrl);
+          imgEl.style.display="block";
+        }
+        if(ph) ph.style.display="none";
+        const prev=$("coverPreview");
+        const prevImg=$("coverPreviewImg");
+        if(prev && prevImg){ prevImg.src=dataUrl; prev.style.display="block"; }
+        // regenerate parsels with new cover (so PDF hatıra retains image)
+        updateAll();
+        // re-apply cover after updateAll (since updateAll rebuilds but we keep dataUrl)
+        const imgEl2=$("svgCoverImage");
+        if(imgEl2){ imgEl2.setAttribute("href", dataUrl); imgEl2.setAttributeNS('http://www.w3.org/1999/xlink','href', dataUrl); imgEl2.style.display="block"; const ph2=$("svgPlaceholder"); if(ph2) ph2.style.display="none"; }
+      };
+      reader.readAsDataURL(f);
+    });
+  }
+
+  // Init
+  updateAll();
+})();
+</script>
+</body>
+</html>
