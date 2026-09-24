@@ -1,0 +1,852 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>Bilet Girişi — Gişe &amp; Bilet Blob</title>
+<style>
+:root{--bg:#07111f;--bg2:#0c1c33;--card:#fffaf0;--ink:#14110d;--muted:#6f6458;--gold:#b8860b;--gold2:#f2b84b;--green:#169b68;--red:#c64232;--navy:#0e1c30}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{margin:0;padding:26px 16px 40px;color:var(--ink);font:14px/1.55 Inter,ui-sans-serif,system-ui,sans-serif;background:radial-gradient(circle at 15% 8%,rgba(242,184,75,.22),transparent 34%),radial-gradient(circle at 85% 92%,rgba(54,163,255,.10),transparent 40%),linear-gradient(160deg,var(--bg),var(--bg2) 60%,var(--bg));background-attachment:fixed}
+.wrap{max-width:680px;margin:0 auto}
+header.top{text-align:center;color:#f4e8c9;margin-bottom:20px}
+header.top h1{margin:0;font:900 24px/1.15 Inter,sans-serif;letter-spacing:1.5px;color:var(--gold2);text-transform:uppercase}
+header.top .sub{margin:8px auto 0;max-width:540px;font:600 12px/1.6 Inter,sans-serif;color:#c9b98a}
+header.top .sub b{color:var(--gold2)}
+section.panel{background:var(--card);border:1px solid #d9c7a0;border-radius:16px;box-shadow:0 18px 50px rgba(0,0,0,.35);padding:18px 20px;margin:14px 0}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
+.btn{appearance:none;border:1.5px solid var(--gold);background:var(--navy);color:var(--gold2);border-radius:12px;padding:15px 20px;font:800 13px/1 Inter,sans-serif;letter-spacing:1px;cursor:pointer;text-transform:uppercase;transition:.15s;box-shadow:0 6px 18px rgba(0,0,0,.28)}
+.btn:hover{background:#16294a;transform:translateY(-1px)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+.small{font:600 10.5px/1.5 Inter,sans-serif;color:var(--muted)}
+.status{font:700 11px/1.5 Inter,sans-serif;color:var(--muted);min-height:16px;word-break:break-word}
+.tag{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:999px;font:800 10px/1 Inter,sans-serif}
+.tag.ok{background:#e3f5ec;color:#0d7a50;border:1px solid #9fd8bd}
+.tag.bad{background:#fdeaea;color:#a33325;border:1px solid #f0b6ad}
+.tag.plain{background:#f1e9d6;color:#6b5a1a;border:1px solid #ddceaa}
+input[type=text]{width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid #cbb787;background:#fff;font:700 14px/1.4 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.3px}
+input[type=text]:focus{outline:3px solid rgba(184,134,11,.35);border-color:var(--gold)}
+textarea{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid #cbb787;background:#fff;font:600 12px/1.6 Inter,sans-serif;resize:vertical}
+label.f{display:block;font:800 9px/1 Inter,sans-serif;letter-spacing:1.1px;color:var(--muted);text-transform:uppercase;margin-bottom:5px}
+.linkrow{display:flex;gap:8px;align-items:flex-start;font:600 10.5px/1.6 ui-monospace,Menlo,Consolas,monospace;color:#8c6a0a;word-break:break-all;background:#fffdf5;border:1px dashed #c9b98a;border-radius:10px;padding:8px 10px;margin:6px 0}
+.dot{flex:0 0 auto;width:14px;height:14px;border-radius:50%;display:inline-grid;place-items:center;font:800 9px/1 Inter,sans-serif;background:#e3d5b3;color:#6b5a1a;margin-top:1px}
+.dot.ok{background:#169b68;color:#fff}
+.dot.bad{background:#c64232;color:#fff}
+.codebox{background:#0e1c30;color:#ffe9b3;border:1px solid #d4af37;border-radius:10px;padding:10px 12px;font:700 11px/1.6 ui-monospace,Menlo,Consolas,monospace;word-break:break-all;user-select:all}
+.copybtn{appearance:none;border:1px solid #c9b98a;background:#fffdf5;border-radius:7px;padding:4px 9px;font:800 9px/1 Inter,sans-serif;color:#8c6a0a;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border-color:#c9b98a;box-shadow:none;padding:10px 14px}
+.copybtn:hover{background:#f6ecd6}
+details.src{margin:10px 0 0}
+details.src summary{cursor:pointer;font:800 10px/1 Inter,sans-serif;letter-spacing:.8px;color:var(--gold);text-transform:uppercase}
+.suggest{margin:8px 0;padding:9px 12px;border-radius:10px;background:#fff6e4;border:1px solid #ecd189;font:700 11px/1.5 Inter,sans-serif;color:#6b5a1a;word-break:break-all}
+footer{text-align:center;color:#8a7a52;font:600 10px/1.7 Inter,sans-serif;margin-top:22px}
+footer code{background:rgba(255,250,240,.1);padding:2px 6px;border-radius:6px;color:#ecd189}
+</style></head><body>
+<div class="wrap">
+
+<header class="top">
+  <h1>🎟 Bilet Girişi</h1>
+  <div class="sub">Ürününün <b>tam dosya adını</b> yaz — sol/sağ parçaları otomatik algılanır, <b>gişe blob</b> olarak açılır, biletin doğrulanır ve <b>çalışma alanın blob</b> olarak açılır.</div>
+</header>
+
+<section class="panel">
+  <label class="f" for="inpTarget">Dosya adı (satın aldığın ürünün kodu)</label>
+  <input type="text" id="inpTarget" placeholder="ör: bootstrap-ide.html" spellcheck="false" autocomplete="off">
+  <div class="row" style="margin-top:10px">
+    <span class="tag plain" id="tagPair">—</span>
+  </div>
+  <div class="row" style="margin-top:8px">
+    <div style="flex:1;min-width:200px"><label class="f">Müşteriye özel kod (opsiyonel — /w/'ye YÜKLEME GEREKMEZ)</label><input type="text" id="inpYeni" placeholder="(boş bırak = ürün adı kod olur)" spellcheck="false"></div>
+    <button class="btn ghost" id="btnYeni" style="align-self:flex-end">🎲 ÜRET</button>
+  </div>
+  <div class="small" id="yeniInfo" style="display:none;margin-top:2px"></div>
+  <div class="linkrow"><span class="dot" id="dotL">•</span><span id="linkL">SOL&nbsp; (v×3): bekleniyor…</span></div>
+  <div class="linkrow"><span class="dot" id="dotR">•</span><span id="linkR">SAĞ (v×5): bekleniyor…</span></div>
+  <div class="suggest" id="suggest" style="display:none"></div>
+  <div class="row" style="margin-top:12px">
+    <button class="btn" id="btnGo" disabled>🎟 GİŞEYİ AÇ — DOĞRULA — BİLET BLOB</button>
+  </div>
+  <div class="status" id="stGo"></div>
+  <div class="small" style="margin-top:8px">Akış: parçalar birleşir → gişe blob açılır → bildirimi sen onaylarsın → kod yazılır, doğrulama ve bilet blob otomatik açılır. Pop-up engellenirse gişedeki düğmeye bir kez tıklarsın.</div>
+</section>
+
+<section class="panel">
+  <details class="src" open><summary>✉ MAIL SAYFASI ÜRET — müşteriye gönderilecek tek HTML (bilgiler + içindekiler + gişe blob)</summary>
+    <div class="row">
+      <div style="flex:1;min-width:160px"><label class="f">Müşteri adı</label><input type="text" id="inpMusteri" placeholder="Misafir"></div>
+      <div style="flex:1;min-width:160px"><label class="f">Başlık</label><input type="text" id="inpBaslik" placeholder="(otomatik: dosya adı)"></div>
+    </div>
+    <div style="margin-top:8px"><label class="f">Not</label><input type="text" id="inpNot" placeholder="ör: Erişim ömür boyudur, teşekkürler!"></div>
+    <div style="margin-top:8px"><label class="f">İçindekiler — her satır bir madde (md dersleri / modüller)</label><textarea id="taModuller" rows="4" placeholder="Bootstrap 5 giriş.md&#10;Grid sistemi.md&#10;Örnek proje.md"></textarea></div>
+    <div class="row" style="margin-top:8px">
+      <div style="flex:1;min-width:220px"><label class="f">Mail türü</label><select id="selMailTur" style="width:100%;padding:8px;border:1px solid #d9c7a0;border-radius:8px;background:#fffdf5"><option value="sunucu" selected>🔗 Sunucu linki — bilgibeceri.com/soket.asp</option><option value="offline">💾 Kendinden bağımsız (offline)</option></select></div>
+      <div style="flex:1;min-width:220px"><label class="f">Sunucu kapısı (soket.asp)</label><input type="text" id="inpSoket" value="https://bilgibeceri.com/soket.asp"></div>
+    </div>
+    <div class="small" style="margin-top:6px">Sunucu modunda maile sadece kişiye özel şifreli link gömülür: gişe + bilet bilgibeceri.com/soket.asp üzerinden açılır, GitHub /w/ tarayıcıya hiç görünmez ve yeni müşteri kodları için /w/'ye yükleme GEREKMEZ. soket.asp içindeki SOKET_KEY ile bu sayfadaki SOKET_KEY aynı olmalı.</div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn" id="btnMailUret">✉ ÜRET</button>
+      <button class="btn" id="btnMailIndir" disabled>⬇ İNDİR (HTML)</button>
+      <button class="btn" id="btnMailTest" disabled>👁 TEST ET</button>
+    </div>
+    <div class="status" id="stMail">Dosya adı algılandıktan sonra ÜRET'e bas — inen tek HTML'i maille gönder: müşteri tıklar, gişe açılır; onay sonrası kod yazma, doğrulama ve bilet blob otomatik.</div>
+  </details>
+  <details class="src"><summary>MAİL LİNKİ (bu sayfaya kodla gel)</summary>
+    <div class="codebox" id="mailLink">—</div>
+    <div class="row" style="margin-top:8px">
+      <button class="copybtn" id="btnCopy">⧉ KOPYALA</button>
+      <span class="status" id="stCopy"></span>
+    </div>
+  </details>
+  <details class="src"><summary>SUNUCU KLASÖRÜ (otomatik algılandı)</summary>
+    <div style="margin-top:8px"><input type="text" id="inpBase"></div>
+    <div class="small" style="margin-top:4px">Sayfa /w/ içinde sunuluyorsa kendi klasörünü kullanır; lokalde açıldıysa GitHub /w/ adresine düşer. Değiştirebilirsin.</div>
+  </details>
+</section>
+
+<footer>
+  Bağlantı: <code>calcIds(ad)</code> → sol <code>v×3</code>, sağ <code>v×5</code> • birleşim: <code>omniParse</code> (tüm eski formatlar) → sol-sağ harman → <code>Blob</code> • gişe: <code>gise-bilet-kontrol-x</code> standart parçaları.
+</footer>
+
+</div>
+
+<script id="coreScript">
+"use strict";
+/* ---------- Bölme / birleştirme çekirdeği (gise-bilet-kontrol-x.html ile birebir uyumlu) ---------- */
+var SPACE_REPL="§¤·†‡•", NL_REPL="§¶¤·•‡¬", TAB_REPL="¶†‡•¬¦", CR_REPL="§¶¬¦¨";
+var MARKSET=["§","¶","¤","·","†","‡","•","¬","¦","¨","©","®","⁝","⁞","±","µ","º","¿"];
+function wsToSym(s){var o="";for(var k=0;k<String(s).length;k++){var c=String(s).charAt(k);if(c===" ")o+=SPACE_REPL;else if(c==="\t")o+=TAB_REPL;else if(c==="\n")o+=NL_REPL;else if(c==="\r")o+=CR_REPL;else o+=c;}return o;}
+function symToWs(s){return String(s).split(NL_REPL).join("\n").split(CR_REPL).join("\r").split(TAB_REPL).join("\t").split(SPACE_REPL).join(" ");}
+function splitPair(src){src=String(src).replace(/^\uFEFF/,"");var u=Array.from(src);var L=u.filter(function(_,i){return i%2===0}).join("");var R=u.filter(function(_,i){return i%2===1}).join("");return{left:wsToSym(L),right:wsToSym(R)};}
+function stripHeader(t){t=String(t);if(t.indexOf("OMNICORE-SPLIT/2")===0){var i=t.indexOf("\n");if(i>=0)return t.slice(i+1);}return t;}
+function stripMarkers(t){t=String(t);if(t.length>=2&&t.length%2===0){for(var i=1;i<t.length;i+=2){if(MARKSET.indexOf(t.charAt(i))<0)return t;}var o="";for(var j=0;j<t.length;j+=2)o+=t.charAt(j);return o;}return t;}
+/* ---------- TOLERANSLI MERGE — github-left-right.html (OmniCore PRO) ile birebir ----------
+   Desteklenen formatlar: V13 güncel • V2 başlık (OMNICORE-SPLIT/2) • V12 gap (§¤·†, §¤·†‡)
+   • V8/V9 filler (ㅤ blokları) • legacy ghost (tek pozisyonda hayalet işaretli) */
+function omniParse(raw){
+  var value=String(raw);
+  if(value.indexOf("OMNICORE-SPLIT/2")===0){var nl=value.indexOf("\n");if(nl>=0)value=value.slice(nl+1);}
+  var cleaned=value.split("§¶¤·•‡¬").join("\n").split("§¶¬¦¨").join("\r").split("¶†‡•¬¦").join("\t").split("§¤·†‡•").join(" ");
+  var gaps=["§¤·†","§¤·†‡"];
+  for(var i=0;i<gaps.length;i++){
+    var g=gaps[i];
+    if(cleaned.indexOf(g)>=0)cleaned=cleaned.split(g).join("");
+    if(value.indexOf(g)>=0&&cleaned.indexOf(g)<0)value=value.split(g).join("");
+  }
+  var fillers=["ㅤ".repeat(18)+" ".repeat(12),"ㅤ".repeat(16)+"·".repeat(8)+"•".repeat(4),"§".repeat(4)+"¶".repeat(4)+"¤".repeat(4)+"·".repeat(6)+"•".repeat(4)];
+  for(var j=0;j<fillers.length;j++){
+    var f=fillers[j];
+    if(cleaned.indexOf("\n"+f)>=0)cleaned=cleaned.split("\n"+f).join("\n");
+    if(cleaned.indexOf(" "+f)>=0)cleaned=cleaned.split(" "+f).join(" ");
+  }
+  var LG="§¶¤†‡±µº¿¬¦©®⁝⁞";
+  if(cleaned.length>=2&&cleaned.length%2===0){
+    var ghostOk=true;
+    for(var k=1;k<cleaned.length;k+=2){if(LG.indexOf(cleaned.charAt(k))<0){ghostOk=false;break}}
+    if(ghostOk){var pay="";for(var m=0;m<cleaned.length;m+=2)pay+=cleaned.charAt(m);cleaned=pay;}
+  }
+  return cleaned;
+}
+function gateMerge(Lt,Rt){
+  var a=Array.from(omniParse(Lt)),b=Array.from(omniParse(Rt));
+  if(Math.abs(a.length-b.length)>1)throw new Error("Parsel hatası — sol/sağ uzunlukları uyuşmuyor");
+  var O=[];
+  for(var P=0;P<Math.max(a.length,b.length);P++){if(P<a.length)O.push(a[P]);if(P<b.length)O.push(b[P]);}
+  return O.join("");
+}
+function calcIds(name){name=String(name);var dec="";for(var i=0;i<name.length;i++)dec+=String(name.charCodeAt(i));var v=BigInt(dec);return{l:(v*3n).toString(),r:(v*5n).toString()};}
+function chrSum(s){var t=0;for(var k=0;k<String(s).length;k++)t+=String(s).charCodeAt(k);return t;}
+
+/* ---------- Rastgele kod: chr toplamı hedefe eşit, salt [A-Za-z0-9], ilk karakter harf ---------- */
+function randCode(target,maxLen){target=Math.floor(Number(target)||1973);maxLen=Math.min(maxLen||28,30);
+  var POOL="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",CODES=[],i;
+  for(i=0;i<POOL.length;i++)CODES.push(POOL.charCodeAt(i));
+  function inPool(c){return CODES.indexOf(c)>=0;}
+  for(var a=0;a<3000;a++){
+    var len=Math.max(12,Math.min(maxLen,Math.round(target/85)+((Math.random()*3)|0)-1));
+    if(target<len*48||target>len*122)continue;
+    var rem=target,out="";
+    for(i=0;i<len;i++){
+      var slots=len-1-i;
+      var lo=Math.max(i===0?65:48,rem-122*slots),hi=Math.min(122,rem-48*slots);
+      if(lo>hi){out="";break;}
+      var cand=CODES.filter(function(c){return c>=lo&&c<=hi});
+      if(slots===1)cand=cand.filter(function(c){return inPool(rem-c)});
+      if(!cand.length){out="";break;}
+      var c=cand[(Math.random()*cand.length)|0];
+      out+=String.fromCharCode(c);rem-=c;
+    }
+    if(out&&rem===0)return out;
+  }
+  return null;
+}
+
+/* ---------- Bilet sayfası üretici (matbaa2 şablonu uyarlaması) ---------- */
+function buildTicketHtml(o){
+  o=o||{};var code=String(o.code||"BILET"),loaderUrl=String(o.loaderUrl||""),nonce=String(o.nonce||"NONCE");
+  function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+  var ev=o.event&&o.event!=="—"?esc(o.event):"";
+  var dt=esc(o.date||""),tm=esc(o.time||""),st=esc(o.seat||""),vn=esc(o.venue||""),nm=esc(o.name||""),nt=esc(o.note||"");
+  var info=[dt&&dt!=="—"?dt:"",tm&&tm!=="—"?tm:""].filter(Boolean).join(" • ");
+  if(st&&st!=="—")info+=(info?" • ":"")+"Koltuk "+st;
+  if(vn&&vn!=="—")info+=(info?" • ":"")+vn;
+  if(nm&&nm!=="—")info+=(info?" • ":"")+nm;
+  var antiCopyStyle="<style>\n"+
+"*{ -webkit-user-select:none !important; user-select:none !important; -webkit-touch-callout:none !important}\n"+
+"html,body{margin:0;padding:0;background:#fffdf7}\n"+
+"@media print{body{display:none !important} html::after{content:\"YAZDIRMA KAPALI — KOPYALANAMAZ BİLET\"; display:grid; place-items:center; height:100vh; font:800 14px/1 Inter; color:#8c6a0a}}\n"+
+"#ticket-root{ position:relative; max-width:520px; margin:18px auto; background:#fff; border:1px solid #d9c7a0; border-radius:14px; overflow:hidden; }\n"+
+".watermark{ position:absolute; inset:0; pointer-events:none; display:grid; place-items:center; opacity:.09; transform:rotate(-26deg); font:900 28px/1 Inter; letter-spacing:1.8px; color:#8c6a0a; text-transform:uppercase; }\n"+
+".seal{ position:absolute; top:10px; right:10px; font:700 9px/1 Inter; background:#111; color:#d4af37; padding:6px 8px; border-radius:999px; border:1px solid #d4af37;}\n"+
+"</style>";
+  var antiCopyScript="<script>\n"+
+"(function(){\n"+
+"  var ID=\""+code+"#"+nonce+"\"; var CODE=\""+code+"\";\n"+
+"  function toast(){\n"+
+"    var t=document.getElementById('__copyToast');\n"+
+"    if(!t){ t=document.createElement('div'); t.id='__copyToast'; t.style.cssText='position:fixed;left:50%;top:18px;transform:translateX(-50%);background:#111;color:#d4af37;padding:8px 12px;border-radius:999px;border:1px solid #d4af37;font:700 11px/1 Inter;z-index:9999;box-shadow:0 8px 20px rgba(0,0,0,.3)'; document.body.appendChild(t); }\n"+
+"    t.textContent='KOPYALANAMAZ — bilet #' + CODE;\n"+
+"    t.style.display='block'; clearTimeout(t._t); t._t=setTimeout(function(){t.style.display='none'},1800);\n"+
+"  }\n"+
+"  document.addEventListener('contextmenu',function(e){ if(e.target.closest('input,textarea'))return; e.preventDefault(); toast(); });\n"+
+"  document.addEventListener('copy',function(e){ e.preventDefault(); toast(); });\n"+
+"  document.addEventListener('cut',function(e){ e.preventDefault(); });\n"+
+"  document.addEventListener('dragstart',function(e){ e.preventDefault(); });\n"+
+"  document.addEventListener('selectstart',function(e){ if(!e.target.closest('input,textarea'))e.preventDefault(); });\n"+
+"  document.addEventListener('keydown',function(e){\n"+
+"    var k=(e.key||'').toLowerCase();\n"+
+"    if((e.ctrlKey||e.metaKey)&&['c','x','a','s','p','u'].indexOf(k)>=0){ e.preventDefault(); toast(); }\n"+
+"    if(e.key==='PrintScreen'){ e.preventDefault(); toast(); try{navigator.clipboard.writeText('KOPYALANAMAZ BİLET')}catch(_){} }\n"+
+"  });\n"+
+"  window.addEventListener('beforeprint',function(e){ e.preventDefault(); alert('YAZDIRMA KAPALI — bu bilet kopyalanamaz.'); return false; });\n"+
+"})();\n"+
+"<\/script>";
+  var h="<!doctype html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"robots\" content=\"noindex,nofollow\"><title>"+esc(code)+"</title>"+antiCopyStyle+"</head><body>\n"+
+"<div id=\"ticket-root\">\n"+
+"  <div class=\"watermark\">KOPYALANAMAZ • "+esc(code)+"</div>\n"+
+"  <div class=\"seal\">KİŞİYE ÖZEL • "+esc(nonce)+"</div>\n"+
+"  <div style=\"padding:14px\">\n"+
+"    <div style=\"font:800 12px/1 Inter; letter-spacing:.4px\">OKAN KAPLAN • ORKESTRA <span style=\"float:right; font:700 10px/1 Inter; background:#d4af37; color:#1a1400; padding:4px 7px; border-radius:999px;\">"+esc(code)+"</span></div>\n"+
+( ev ? "    <h1 style=\"margin:10px 0 6px; font:900 18px/1 Inter; font-style:italic;\">"+ev+"</h1>\n" : "" )+
+( info ? "    <div style=\"font:600 11px/1 Inter; color:#6b5a1a; margin-bottom:10px\">"+info+"</div>\n" : "" )+
+( nt ? "    <div style=\"font:600 10px/1 Inter; color:#8a7a52; margin-bottom:10px\">"+nt+"</div>\n" : "" )+
+"    <div style=\"background:#111; color:#d4af37; padding:8px 10px; border-radius:8px; font:700 10px/1 ui-monospace,monospace; word-break:break-all; border:1px solid #d4af37\">"+esc(loaderUrl)+"</div>\n"+
+"    <div style=\"margin-top:10px; display:grid; place-items:center; background:#fff; border:1px solid #d9c7a0; border-radius:10px; padding:12px\"><canvas id=\"qr\" width=\"160\" height=\"160\"></canvas></div>\n"+
+"    <div style=\"text-align:center; font:700 9px/1 Inter; color:#8a7a52; margin-top:8px\">QR OKUT • GİŞE DOĞRULAMA • "+esc(code)+"#"+esc(nonce)+"</div>\n"+
+"    <div style=\"text-align:center; font:600 8px/1 Inter; color:#a99b7a; margin-top:4px\">Bu bilet kişiye özeldir, devredilemez, çoğaltılamaz.</div>\n"+
+"  </div>\n"+
+"</div>\n"+
+"<script src=\"https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js\"><\/script>\n"+
+"<script>\n"+
+"try{\n"+
+"  if(document.getElementById('qr')) QRCode.toCanvas(document.getElementById('qr'), "+JSON.stringify(loaderUrl)+", {width:160, margin:1});\n"+
+"}catch(e){}\n"+
+"<\/script>\n"+
+antiCopyScript+"\n"+
+"</body></html>";
+  return h;
+}
+
+/* ---------- TEK SAYFA BİLET PDF (tam sayfa tıklanabilir + gizli ASCII kod) ---------- */
+function pdfTr(s){
+  var M={"\u00e7":"c","\u00c7":"C","\u011f":"g","\u011e":"G","\u0131":"i","\u0130":"I","\u00f6":"o","\u00d6":"O","\u015f":"s","\u015e":"S","\u00fc":"u","\u00dc":"U","\u00e2":"a","\u00c2":"A","\u00ee":"i","\u00ce":"I","\u00fb":"u","\u00db":"U","\u00e9":"e","\u00c9":"E","\u00e8":"e","\u00ea":"e","\u00e1":"a","\u00e0":"a","\u00ed":"i","\u00f3":"o","\u00fa":"u","\u00f1":"n","\u2022":"-","\u2192":">","\u2190":"<","\u2013":"-","\u2014":"-","\u2018":"'","\u2019":"'","\u201c":'"',"\u201d":'"',"\u2026":"...","\u2713":"OK","\u26a0":"!"};
+  s=String(s);var out="";
+  for(var i=0;i<s.length;i++){var ch=s.charAt(i),cc=s.charCodeAt(i);
+    if(M[ch]!==undefined)out+=M[ch];else if(cc<128)out+=ch;}
+  return out;
+}
+function pdfEsc(s){return String(s).replace(/\\/g,"\\\\").replace(/\(/g,"\\(").replace(/\)/g,"\\)");}
+function pdfW(t,f,size){var k=(f==="F3"||f==="F4")?0.6:(f==="F2")?0.58:(f==="F5"||f==="F6"||f==="F7")?0.5:0.53;return String(t).length*size*k;}
+function pdfRR(x,y,w,h,r){var k=0.5523*r;
+  return (x+r)+" "+y+" m "+(x+w-r)+" "+y+" l "+(x+w-r+k)+" "+y+" "+(x+w)+" "+(y+r-k)+" "+(x+w)+" "+(y+r)+" y "+
+  (x+w)+" "+(y+h-r)+" l "+(x+w)+" "+(y+h-r+k)+" "+(x+w-k)+" "+(y+h)+" "+(x+w-r)+" "+(y+h)+" y "+
+  (x+r)+" "+(y+h)+" l "+(x+r-k)+" "+(y+h)+" "+x+" "+(y+h-k)+" "+x+" "+(y+h-r)+" y "+
+  x+" "+(y+r)+" l "+x+" "+(y+r-k)+" "+(x+r-k)+" "+y+" "+(x+r)+" "+y+" y h";}
+function pdfTxt(f,size,x,y,s,invis){return "BT /"+f+" "+size+" Tf "+(invis?"3":"0")+" Tr "+Number(x).toFixed(1)+" "+Number(y).toFixed(1)+" Td ("+pdfEsc(s)+") Tj ET";}
+function pdfHash(s){var h=2166136261;for(var i=0;i<String(s).length;i++){h^=String(s).charCodeAt(i);h=(h*16777619)>>>0;}return h>>>0;}
+function pdfPseudoQr(code,n){ /* dekoratif yedek (çevrimdışı) — taranmaz */
+  n=n||25;var h=pdfHash(code),row=Math.ceil(n/8),rows=new Uint8Array(row*n);
+  for(var i=0;i<rows.length;i++)rows[i]=0xFF;
+  function rnd(){h=(h*1103515245+12345)>>>0;return (h>>>16)/65536;}
+  function black(x,y){if(x>=0&&x<n&&y>=0&&y<n)rows[y*row+(x>>3)]&=~(0x80>>(x&7));}
+  function finder(ox,oy){for(var y=-1;y<=7;y++)for(var x=-1;x<=7;x++){var on=(x>=0&&x<7&&y>=0&&y<7)&&(x===0||x===6||y===0||y===6||(x>=2&&x<=4&&y>=2&&y<=4));if(on)black(ox+x,oy+y);}}
+  finder(0,0);finder(n-7,0);finder(0,n-7);
+  for(var y=8;y<n-8;y++)if(y%2===0)black(6,y);
+  for(var yy=8;yy<n-8;yy++)for(var xx=8;xx<n-8;xx++)if(rnd()<0.45)black(xx,yy);
+  return {w:n,h:n,rows:rows};
+}
+function buildTicketPdf(o){
+  o=o||{};
+  var code=pdfTr(o.code||"BILET"),link=String(o.link||""),auto=o.auto!==false;
+  var ev=pdfTr(o.event||""),dt=pdfTr(o.date||""),tm=pdfTr(o.time||""),st=pdfTr(o.seat||""),vn=pdfTr(o.venue||""),nm=pdfTr(o.name||""),nt=pdfTr(o.note||"");
+  var qr=o.qr||pdfPseudoQr(code);
+  var W=560,H=250,PX=396,MX=24,MW=PX-MX-14;
+  var NAVY="0.055 0.11 0.19",GOLD="0.831 0.686 0.216",GOLDD="0.957 0.824 0.416",BROWN="0.42 0.35 0.22",GRAY="0.55 0.49 0.40",CREAM="1 0.980 0.941";
+  var c=[];
+  /* GİZLİ ASCII katmanı ÖNCE — metin çıkarıcıda en başa düşer (Tr 3: görünmez) */
+  c.push("q 0 0 0 rg "+pdfTxt("F3",6,MX,12,"Kod: "+code+"   Bilet No: "+code+"   Siparis No: "+code+"   Dosya: "+code+".pdf",true)+" Q");
+  c.push("q 0 0 0 rg "+pdfTxt("F3",6,MX,H-6,"Kod: "+code,true)+" Q");
+  /* zemin + çerçeve */
+  c.push("q "+CREAM+" rg 0 0 "+W+" "+H+" re f Q");
+  c.push("q "+NAVY+" RG 2.2 w "+pdfRR(7,7,W-14,H-14,10)+" S Q");
+  /* perfore çizgisi + kesiş delikleri */
+  c.push("q 0.84 0.79 0.66 RG [3 3] 0 d 1.2 w "+PX+" 20 m "+PX+" "+(H-20)+" l S Q");
+  c.push("q "+CREAM+" rg "+NAVY+" RG 1.4 w "+pdfRR(PX-7,0,14,14,7)+" f S "+pdfRR(PX-7,H-14,14,14,7)+" f S Q");
+  /* ana bölüm — üst */
+  c.push("q "+NAVY+" rg "+pdfTxt("F2",8.5,MX,222,"OKAN KAPLAN  |  ORKESTRA")+" Q");
+  var pw=Math.round(0.6*8*code.length+16);
+  c.push("q "+GOLD+" rg "+pdfRR(PX-14-pw,213,pw,17,8)+" f Q");
+  c.push("q "+NAVY+" rg "+pdfTxt("F4",8,PX-14-pw+8,218.5,code)+" Q");
+  c.push("q "+GOLD+" rg "+MX+" 206 "+MW+" 1.4 re f Q");
+  /* etkinlik */
+  var evs=ev||"BILET";var evsize=23;
+  while(pdfW(evs,"F6",evsize)>MW-6&&evsize>13)evsize-=0.5;
+  if(pdfW(evs,"F6",evsize)>MW-6)evs=evs.slice(0,Math.floor((MW-6)/(evsize*0.5))-3)+"...";
+  c.push("q "+NAVY+" rg "+pdfTxt("F6",evsize,MX,182,evs)+" Q");
+  /* bilgi satırı */
+  var info=[dt&&dt!=="—"?dt:"",tm&&tm!=="—"?tm:"",st&&st!=="—"?("Koltuk "+st):"",vn&&vn!=="—"?vn:"",nm&&nm!=="—"?nm:""].filter(Boolean).join("  |  ");
+  if(info){var isz=9;while(pdfW(info,"F1",isz)>MW&&isz>6.5)isz-=0.5;c.push("q "+BROWN+" rg "+pdfTxt("F1",isz,MX,164,info)+" Q");}
+  if(nt){var nt2=nt;while(pdfW(nt2,"F7",8)>MW)nt2=nt2.slice(0,-2);c.push("q "+GRAY+" rg "+pdfTxt("F7",8,MX,152,nt2)+" Q");}
+  /* kod kutusu */
+  c.push("q "+NAVY+" rg "+pdfRR(MX,116,250,24,6)+" f Q");
+  c.push("q "+GOLD+" rg "+pdfTxt("F4",11.5,MX+12,123,"Kod: "+code)+" Q");
+  /* büyük tıklanabilir talimat bandı (tam sayfa link anotasyonu bunu hedefler) */
+  c.push("q "+GOLDD+" rg "+pdfRR(MX,62,MW,46,8)+" f Q");
+  var l1="BU ALANA TIKLA - BILET GISESI ACILIR";
+  var l2=auto?"Tikla  >  Gise acilir  >  kodu otomatik dolar  >  DOGRULA  >  calisma alanin acilir"
+            :"Tikla  >  Gise acilir  >  bu PDFi giseye yukle  >  DOGRULA  >  calisma alanin acilir";
+  while(pdfW(l2,"F1",8)>MW-16)l2=l2.slice(0,-2);
+  c.push("q "+NAVY+" rg "+pdfTxt("F2",14.5,MX+(MW-pdfW(l1,"F2",14.5))/2,90,l1)+" Q");
+  c.push("q "+NAVY+" rg "+pdfTxt("F1",8,MX+(MW-pdfW(l2,"F1",8))/2,74,l2)+" Q");
+  /* link (yazılı — yazdırılınca elle girilebilir) */
+  if(link){var ls="Baglanti: "+pdfTr(link);var sz=6.4;while(pdfW(ls,"F3",sz)>MW&&sz>4.5)sz-=0.2;c.push("q "+GRAY+" rg "+pdfTxt("F3",sz,MX,52,ls)+" Q");}
+  c.push("q "+GRAY+" rg "+pdfTxt("F1",7,MX,40,"Bu bilet kisiye ozeldir, devredilemez, tek kullanimlidir.  Shopier: bilgibeceri_dijital")+" Q");
+  c.push("q "+GRAY+" rg "+pdfTxt("F1",6.5,MX,29,"Okan Kaplan - bilgibeceri_dijital - interaktif ders destek bilet sistemi")+" Q");
+  /* kupon (stub) */
+  var SX=PX+8,SW=W-14-SX,SC=SX+SW/2;
+  c.push("q "+NAVY+" rg "+pdfTxt("F2",13,SX+(SW-pdfW("BILET","F2",13))/2,220,"BILET")+" Q");
+  c.push("q "+GRAY+" rg "+pdfTxt("F1",6.5,SX+(SW-pdfW("TEK KULLANIM","F1",6.5))/2,209,"TEK KULLANIM")+" Q");
+  c.push("q "+GOLD+" rg "+(SX+2)+" 202 "+(SW-4)+" 1 re f Q");
+  c.push("q 1 1 1 rg "+pdfRR(SC-49,97,98,98,8)+" f "+NAVY+" RG 1.4 w "+pdfRR(SC-49,97,98,98,8)+" S Q");
+  c.push("q 90 0 0 90 "+(SC-45).toFixed(1)+" 101 cm /QR Do Q");
+  c.push("q "+NAVY+" rg "+pdfTxt("F3",7,SC-pdfW(code,"F3",7)/2,86,code)+" Q");
+  c.push("q "+GRAY+" rg "+pdfTxt("F1",6.5,SX+(SW-pdfW("QR OKUT ya da ANA ALANA TIKLA","F1",6.5))/2,75,"QR OKUT ya da ANA ALANA TIKLA")+" Q");
+  /* barkod (dekoratif, koddan türetilir) */
+  var bh=pdfHash(code+"bar");function brnd(){bh=(bh*1103515245+12345)>>>0;return (bh>>>16)/65536;}
+  c.push("q "+NAVY+" rg");var bx=SX+6;
+  while(bx<W-20){var bw=0.8+brnd()*3.2;if(brnd()<0.62)c.push(bx.toFixed(1)+" 34 "+bw.toFixed(1)+" 22 re f");bx+=bw+0.9+brnd()*1.6;}
+  c.push("Q");
+  c.push("q "+GRAY+" rg "+pdfTxt("F1",5.5,SX+(SW-pdfW("GISE DOGRULAMALI","F1",5.5))/2,26,"GISE DOGRULAMALI")+" Q");
+  var content=c.join("\n");
+  /* nesneler */
+  var rowB=Math.ceil(qr.w/8),qrLen=rowB*qr.h,qrStr="";
+  for(var qi=0;qi<qrLen;qi++)qrStr+=String.fromCharCode(qr.rows[qi]);
+  var objs={};
+  objs[1]="<< /Type /Catalog /Pages 2 0 R >>";
+  objs[2]="<< /Type /Pages /Kids [3 0 R] /Count 1 >>";
+  objs[3]="<< /Type /Page /Parent 2 0 R /MediaBox [0 0 "+W+" "+H+"] /Resources << /Font << /F1 6 0 R /F2 7 0 R /F3 8 0 R /F4 9 0 R /F5 10 0 R /F6 11 0 R /F7 12 0 R >> /XObject << /QR 5 0 R >> >> /Contents 4 0 R /Annots [13 0 R] >>";
+  objs[4]="<< /Length "+content.length+" >>\nstream\n"+content+"\nendstream";
+  objs[5]="<< /Type /XObject /Subtype /Image /Width "+qr.w+" /Height "+qr.h+" /ColorSpace /DeviceGray /BitsPerComponent 1 /Length "+qrLen+" >>\nstream\n"+qrStr+"\nendstream";
+  var fonts=[["Helvetica"],["Helvetica-Bold"],["Courier"],["Courier-Bold"],["Times-Roman"],["Times-BoldItalic"],["Helvetica-Oblique"]];
+  for(var fi=0;fi<fonts.length;fi++)objs[6+fi]="<< /Type /Font /Subtype /Type1 /BaseFont /"+fonts[fi][0]+" /Encoding /WinAnsiEncoding >>";
+  objs[13]="<< /Type /Annot /Subtype /Link /Rect [0 0 "+W+" "+H+"] /Border [0 0 0] /A << /Type /Action /S /URI /URI ("+pdfEsc(link)+") >> >>";
+  objs[14]="<< /Title ("+pdfEsc(code+".pdf")+") /Author (OKAN KAPLAN) /Creator (bilet-matbaa-3) >>";
+  var N=14,head="%PDF-1.4\n%\u00E2\u00E3\u00CF\u00D3\n",chunks=[head],offsets=[],pos=head.length;
+  for(var i=1;i<=N;i++){offsets[i]=pos;var b=i+" 0 obj\n"+objs[i]+"\nendobj\n";chunks.push(b);pos+=b.length;}
+  var xr="xref\n0 "+(N+1)+"\n0000000000 65535 f \n";
+  for(var j=1;j<=N;j++)xr+=("0000000000"+offsets[j]).slice(-10)+" 00000 n \n";
+  xr+="trailer\n<< /Size "+(N+1)+" /Root 1 0 R /Info 14 0 R >>\nstartxref\n"+pos+"\n%%EOF";
+  chunks.push(xr);
+  var all=chunks.join(""),bytes=new Uint8Array(all.length);
+  for(var bi=0;bi<all.length;bi++)bytes[bi]=all.charCodeAt(bi)&0xFF;
+  return bytes;
+}
+
+/* ---------- Loader (mail linki sayfası): parçaları çeker, birleştirir, gişeyi blob açar ---------- */
+/* otomatik enjeksiyon: onay BEKLENİR (işaretlenmez) — kullanıcı onaylayınca kod + otomatik doğrulama */
+function injScript(kod){
+  return "(function(){var K="+JSON.stringify(String(kod))+";function q(id){return document.getElementById(id)}"+
+  "function kd(){var i=q('inpCode');if(i&&!i.value.trim()){i.value=K;try{i.dispatchEvent(new Event('input',{bubbles:true}))}catch(e){}}return !!(i&&i.value.trim())}"+
+  "function dogrula(){if(kd()){var b=q('btnGise');if(b){try{b.disabled=false;b.classList.add('auto-anim')}catch(e){}try{b.click()}catch(e){}}}}"+
+  "var started=false;"+
+  "function izle(){var c=q('consent');if(c&&c.checked&&!started){started=true;setTimeout(dogrula,350)}}"+
+  "try{var d=document.createElement('div');d.style.cssText='margin:0 auto 12px;max-width:640px;padding:10px 14px;border-radius:10px;background:#fff6e4;border:1px solid #d4af37;color:#6b5a1a;font:700 12px/1.4 Inter,system-ui,sans-serif;text-align:center';d.textContent='Bildirimi oku ve onayla — onayladığında kodun yazılır ve doğrulama otomatik başlar.';document.body.insertBefore(d,document.body.firstChild)}catch(e){}"+
+  "try{var c0=q('consent');if(c0&&c0.addEventListener)c0.addEventListener('change',izle)}catch(e){}"+
+  "var n=0,t=setInterval(function(){izle();if(started||++n>600)clearInterval(t)},250)"+
+  "})()";
+}
+function buildLoaderHtml(o){
+  o=o||{};var base=String(o.base||""),gateL=String(o.gateL||""),gateR=String(o.gateR||""),kod=String(o.kod||""),auto=!!o.auto;
+  var injBlock="";
+  if(auto&&kod){
+    /* Enjeksiyon: birleştirilen GİŞE html'inin içine gömülecek script (loader bağlamında değil!) */
+    injBlock="  var INJB="+JSON.stringify(injScript(kod))+";\n"+
+"  var INJ=\"<scr\"+\"ipt>\"+INJB+\"</scr\"+\"ipt>\";\n"+
+"  if(html.indexOf('</body>')>=0)html=html.replace('</body>',INJ+'</body>');\n";
+  }
+  return "<!doctype html><html lang=\"tr\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"robots\" content=\"noindex,nofollow\"><title>•</title>\n"+
+"<style>\n"+
+"html,body{margin:0;min-height:100vh}\n"+
+"body{display:grid;place-items:center;background:radial-gradient(circle at 20% 10%,rgba(242,184,75,.16),transparent 40%),#07111f;color:#f4e8c9;font:14px/1.6 Inter,system-ui,sans-serif;padding:24px}\n"+
+".box{max-width:420px;text-align:center}\n"+
+".ring{width:46px;height:46px;margin:0 auto 16px;border-radius:50%;border:3px solid rgba(212,175,55,.25);border-top-color:#d4af37;animation:sp 1s linear infinite}\n"+
+"@keyframes sp{to{transform:rotate(360deg)}}\n"+
+"h1{font:900 15px/1.3 Inter;letter-spacing:1.6px;color:#d4af37;margin:0 0 8px}\n"+
+"#st{font:700 11px/1.7 Inter;color:#c9b98a;word-break:break-word}\n"+
+"</style></head><body>\n"+
+"<div class=\"box\"><div class=\"ring\" id=\"sp\"></div><h1>BİLET BAĞLANTISI</h1><div id=\"st\">Hazırlanıyor…</div></div>\n"+
+"<script>\n"+
+"(function(){\n"+
+"\"use strict\";\n"+
+"var BASE="+JSON.stringify(base)+", GL="+JSON.stringify(gateL)+", GR="+JSON.stringify(gateR)+";\n"+
+"var st=document.getElementById('st');\n"+
+"function set(m){st.textContent=m}\n"+
+"function die(m){st.innerHTML=m;st.style.color='#ffb3b3';var s=document.getElementById('sp');if(s)s.style.display='none'}\n"+
+"var MARK="+JSON.stringify(MARKSET.join(""))+";\n"+
+"var omniParse="+omniParse.toString()+";\n"+
+"function stripHeader(t){t=String(t);if(t.indexOf('OMNICORE-SPLIT/2')===0){var i=t.indexOf('\\n');if(i>=0)return t.slice(i+1)}return t}\n"+
+"function symToWs(s){return String(s).split("+JSON.stringify(NL_REPL)+").join('\\n').split("+JSON.stringify(CR_REPL)+").join('\\r').split("+JSON.stringify(TAB_REPL)+").join('\\t').split("+JSON.stringify(SPACE_REPL)+").join(' ')}\n"+
+"function stripMarkers(t){t=String(t);if(t.length>=2&&t.length%2===0){for(var i=1;i<t.length;i+=2){if(MARK.indexOf(t.charAt(i))<0)return t}var o='';for(var j=0;j<t.length;j+=2)o+=t.charAt(j);return o}return t}\n"+
+"set('Gişe parçaları alınıyor…');\n"+
+"Promise.all([\n"+
+"  fetch(BASE+encodeURIComponent(GL)+'.html',{cache:'no-store'}),\n"+
+"  fetch(BASE+encodeURIComponent(GR)+'.html',{cache:'no-store'})\n"+
+"]).then(function(r){\n"+
+"  if(!r[0].ok||!r[1].ok)throw new Error('HTTP '+r[0].status+'/'+r[1].status+' — parçalar /w/ klasöründe mi?');\n"+
+"  return Promise.all([r[0].text(),r[1].text()]);\n"+
+"}).then(function(t){\n"+
+"  var a=omniParse(t[0]);\n"+
+"  var b=omniParse(t[1]);\n"+
+"  var D=Array.from(a),A=Array.from(b),O=[];\n"+
+"  for(var P=0;P<Math.max(D.length,A.length);P++){ if(P<D.length)O.push(D[P]); if(P<A.length)O.push(A[P]) }\n"+
+"  var html=O.join('');\n"+
+"  if(html.length<30)throw new Error('parça boş');\n"+
+injBlock+
+"  set('Gişe açılıyor…');\n"+
+"  var url=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));\n"+
+"  setTimeout(function(){URL.revokeObjectURL(url)},15000);\n"+
+"  location.replace(url);\n"+
+"}).catch(function(e){ die('<b>BAĞLANTI HATASI</b> — '+e.message) });\n"+
+"})();\n"+
+"<\/script></body></html>";
+}
+/* ---------- ENTEGRE TEK DOSYA (Shopier ZIP'i için) ----------
+   Tek tık → gişe parçaları birleşir → gişe blob açılır (içinde sanal parça sunucusu) →
+   kod otomatik dolar → DOĞRULA → pdfe özel HTML blob açılır. Tamamen offline. */
+function buildIntegratedHtml(o){
+  o=o||{};
+  var D={pl:omniParse(o.gateL||""),pr:omniParse(o.gateR||""),tl:String(o.ticketL||""),tr:String(o.ticketR||""),
+         tn:String(o.ticketLName||""),trn:String(o.ticketRName||""),kod:String(o.code||""),auto:!!o.auto};
+  var payload=JSON.stringify(D).replace(/<\//g,"<\\/");
+  return "<!doctype html><html lang=\"tr\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"robots\" content=\"noindex,nofollow\"><title>•</title>\n"+
+"<style>\n"+
+"html,body{margin:0;min-height:100vh}\n"+
+"body{display:grid;place-items:center;background:radial-gradient(circle at 20% 10%,rgba(242,184,75,.16),transparent 40%),#07111f;color:#f4e8c9;font:14px/1.6 Inter,system-ui,sans-serif;padding:24px}\n"+
+".box{max-width:460px;text-align:center}\n"+
+".ring{width:40px;height:40px;margin:0 auto 14px;border-radius:50%;border:3px solid rgba(212,175,55,.25);border-top-color:#d4af37;animation:sp 1s linear infinite}\n"+
+"@keyframes sp{to{transform:rotate(360deg)}}\n"+
+"h1{font:900 15px/1.3 Inter,sans-serif;letter-spacing:1.8px;color:#d4af37;margin:0 0 8px}\n"+
+"#st{font:700 11px/1.8 Inter,sans-serif;color:#c9b98a;word-break:break-word}\n"+
+"#st.bad{color:#ffb3b3}\n"+
+".kapi{display:inline-block;margin-top:16px;padding:16px 22px;border:1.5px solid #d4af37;border-radius:14px;font:800 14px/1 Inter,sans-serif;letter-spacing:1.2px;color:#1a1400;background:linear-gradient(135deg,#f2b84b,#ffe6a7);cursor:pointer;box-shadow:0 10px 26px rgba(212,175,55,.28)}\n"+
+".kapi:hover{transform:translateY(-2px)}\n"+
+".kapi:disabled{opacity:.5;cursor:wait}\n"+
+".foot{margin-top:18px;font:600 9px/1.6 Inter,sans-serif;color:#6f6458}\n"+
+"</style></head><body>\n"+
+"<div class=\"box\">\n"+
+"  <div class=\"ring\" id=\"sp\"></div>\n"+
+"  <h1>BİLET BAĞLANTISI</h1>\n"+
+"  <div id=\"st\">Hazırlanıyor…</div>\n"+
+"  <button class=\"kapi\" id=\"btn\" type=\"button\" disabled>YÜKLENİYOR…</button>\n"+
+"  <div class=\"foot\">Bu bağlantı kişiye özeldir, satın aldığın ürüne aittir ve istediğin kadar tekrar açabilirsin.<br>İnternet bağlantısı gerektirmez — gişe tarayıcında güvenle açılır.</div>\n"+
+"</div>\n"+
+"<script>\n"+
+"(function(){\n"+
+"\"use strict\";\n"+
+"var D="+payload+";\n"+
+"var MARK=\"§¶¤·†‡•¬¦¨©®⁝⁞±µº¿\";\n"+
+"function stripHeader(t){t=String(t);if(t.indexOf(\"OMNICORE-SPLIT/2\")===0){var i=t.indexOf(\"\\n\");if(i>=0)return t.slice(i+1)}return t}\n"+
+"function symToWs(s){return String(s).split(\"§¶¤·•‡¬\").join(\"\\n\").split(\"§¶¬¦¨\").join(\"\\r\").split(\"¶†‡•¬¦\").join(\"\\t\").split(\"§¤·†‡•\").join(\" \")}\n"+
+"function stripMarkers(t){t=String(t);if(t.length>=2&&t.length%2===0){for(var i=1;i<t.length;i+=2){if(MARK.indexOf(t.charAt(i))<0)return t}var o=\"\";for(var j=0;j<t.length;j+=2)o+=t.charAt(j);return o}return t}\n"+
+"function harman(a,b){var X=Array.from(a),Y=Array.from(b),O=[];for(var P=0;P<Math.max(X.length,Y.length);P++){if(P<X.length)O.push(X[P]);if(P<Y.length)O.push(Y[P])}return O.join(\"\")}\n"+
+"var st=document.getElementById(\"st\"),btn=document.getElementById(\"btn\");\n"+
+"function set(m){st.textContent=m}\n"+
+"function die(m){st.className=\"bad\";st.innerHTML=m;var s=document.getElementById(\"sp\");if(s)s.style.display=\"none\";btn.disabled=!1}\n"+
+"var blobUrl=null;\n"+
+"function shimUret(){\n"+
+"  return \"(function(){\\\"use strict\\\";var P={};P[\"+JSON.stringify(D.tn)+\"]=\"+JSON.stringify(D.tl)+\";P[\"+JSON.stringify(D.trn)+\"]=\"+JSON.stringify(D.tr)+\";\"+\n"+
+"  \"var OF=window.fetch?window.fetch.bind(window):null;\"+\n"+
+"  \"window.fetch=function(u,o){var n=String(u).split(\\\"/\\\").pop().split(\\\"?\\\")[0];try{n=decodeURIComponent(n)}catch(e){}\"+\n"+
+"  \"if(Object.prototype.hasOwnProperty.call(P,n))return Promise.resolve(new Response(P[n],{status:200,headers:{\\\"Content-Type\\\":\\\"text/html; charset=utf-8\\\"}}));\"+\n"+
+"  \"if(/\\\\.html?$/i.test(n))return Promise.resolve(new Response(\\\"\\\",{status:404}));\"+\n"+
+"  \"return OF?OF(u,o):Promise.reject(new Error(\\\"Cevrimdisi\\\"))};\"+\n"+
+"  \"try{var ps=history.pushState&&history.pushState.bind(history);history.pushState=function(a,b,c){try{ps(a,b,c)}catch(e){}}}catch(e){}})()\";\n"+
+"}\n"+
+"  var INJB="+JSON.stringify(injScript(D.kod))+";\n"+
+"  var INJ=\"<scr\"+\"ipt>\"+INJB+\"</scr\"+\"ipt>\";\n"+
+"function ac(){\n"+
+"  if(blobUrl){try{location.replace(blobUrl)}catch(e){}return}\n"+
+"  try{\n"+
+"    set(\"Gişe parçaları birleştiriliyor…\");\n"+
+"    var gate=harman(D.pl,D.pr);\n"+
+"    if(gate.length<30||!/^<!doctype|^<html/i.test(gate))throw new Error(\"gişe birleşmedi\");\n"+
+"    set(\"Gişe hazırlanıyor…\");\n"+
+"    var shim=\"<scr\"+\"ipt>\"+shimUret()+\"</scr\"+\"ipt>\";\n"+
+"    if(gate.indexOf(\"<head>\")>=0)gate=gate.replace(\"<head>\",\"<head>\"+shim);\n"+
+"    gate=gate.split(\"setTimeout(function(){location.href=e},1400)\").join(\"setTimeout(function(){},1400)\");\n"+
+"    if(D.auto&&D.kod&&gate.indexOf(\"</body>\")>=0)gate=gate.replace(\"</body>\",INJ+\"</body>\");\n"+
+"    blobUrl=URL.createObjectURL(new Blob([gate],{type:\"text/html;charset=utf-8\"}));\n"+
+"    setTimeout(function(){URL.revokeObjectURL(blobUrl)},60000);\n"+
+"    set(\"Gişe açılıyor…\");\n"+
+"    try{location.replace(blobUrl)}catch(e){set(\"Açılış engellendi — düğmeye yeniden tıkla.\")}\n"+
+"  }catch(e){die(\"<b>HATA</b> — \"+e.message)}\n"+
+"}\n"+
+"if(D.pl&&D.pr){btn.disabled=!1;btn.textContent=\"🎟 TEK TIKLA — BİLET GİŞESİ AÇILSIN\";set(\"Hazır — düğmeye tıkla.\");btn.onclick=ac}\n"+
+"else{die(\"<b>BİLET VERİSİ EKSİK</b> — bu dosya hasarlı görünüyor. Lütfen satın aldığın üründen yeniden indir.\")}\n"+
+"})();\n"+
+"<\/script></body></html>";
+}
+
+
+/* ---------- MAIL SAYFASI ÜRETİCİ — müşteriye gönderilen tek HTML ----------
+   GÜVENLİK: dosya kodu ve gişe parça adları düz metin YERİNE rastgele anahtarlı
+   XOR+hex gömülür; yalnızca müşteri tarayıcısında çalışma anında çözülür.
+   Mail dosyasında kod/parça adı düz metin GEÇMEZ. (Not: statik hostingte gerçek
+   tek-kullanım imkânsızdır; asıl koruma tahmin edilemez dosya adlarıdır.) */
+/* denklem shim'i: yeni kodun (v×3/v×5) isteklerini ORIJINAL parcalara yonlendirir.
+   Boylece yeni kod icin /w/'ye yukleme GEREKMEZ. */
+function shimFn(nl,nr,ol,or,base){
+  return "(function(){var NL="+JSON.stringify(String(nl))+",NR="+JSON.stringify(String(nr))+",OL="+JSON.stringify(String(ol))+",OR="+JSON.stringify(String(or))+",B="+JSON.stringify(String(base))+";var OF=window.fetch?window.fetch.bind(window):null;window.fetch=function(u,o){try{var s=decodeURIComponent(String(u));if(s.indexOf(NL+'.html')>=0)return OF(B+encodeURIComponent(OL)+'.html',o);if(s.indexOf(NR+'.html')>=0)return OF(B+encodeURIComponent(OR)+'.html',o)}catch(e){}return OF?OF(u,o):Promise.reject(new Error('cevrimdisi'))}})()";
+}
+function escHtml(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function xorHex(s,k){var b=unescape(encodeURIComponent(String(s))),o="";for(var i=0;i<b.length;i++){o+=("0"+(255&(b.charCodeAt(i)^k.charCodeAt(i%k.length))).toString(16)).slice(-2)}return o}
+function mailKey(){var A="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",t="";for(var i=0;i<16;i++)t+=A[(Math.random()*62)|0];return t}
+function buildMailHtml(o){
+  o=o||{};
+  var base=String(o.base||""),kod=String(o.kod||"");
+  var yeni=String(o.yeni||"");
+  var musKod=(yeni&&yeni!==kod)?yeni:kod;
+  var g2=calcIds(kod);
+  var musteri=escHtml(o.musteri||"Misafir"),baslik=escHtml(o.baslik||"Dijital Bilet"),not=escHtml(o.not||"");
+  var mods=Array.isArray(o.moduller)?o.moduller.map(function(m){return escHtml(String(m))}):[];
+  var g=calcIds("gise-bilet-kontrol-x.html");
+  var key=mailKey();
+  var modList=mods.map(function(m,i){return "      <li><span class=\"mn\">"+(i+1)+"</span> "+m+"</li>"}).join("\n");
+  var script=
+"(function(){\n"+
+"\"use strict\";\n"+
+"var BASE="+JSON.stringify(base)+";\n"+
+"var _k="+JSON.stringify(key)+";\n"+
+"function _d(h){var s=\"\";for(var i=0;i<h.length;i+=2)s+=String.fromCharCode(parseInt(h.substr(i,2),16)^_k.charCodeAt((i/2)%_k.length));return decodeURIComponent(escape(s))}\n"+
+"var _x1=_d("+JSON.stringify(xorHex(g.l,key))+"),_x2=_d("+JSON.stringify(xorHex(g.r,key))+"),_x3=_d("+JSON.stringify(xorHex(musKod,key))+"),_x4=_d("+JSON.stringify(xorHex(kod,key))+");\n"+
+omniParse.toString()+"\n"+
+injScript.toString()+"\n"+
+"function harman(a,b){var X=Array.from(a),Y=Array.from(b),O=[];for(var P=0;P<Math.max(X.length,Y.length);P++){if(P<X.length)O.push(X[P]);if(P<Y.length)O.push(Y[P])}return O.join(\"\")}\n"+
+"var st=document.getElementById(\"st\"),btn=document.getElementById(\"btn\");\n"+
+"function set(m){st.textContent=m}\n"+
+"var _SH="+JSON.stringify((yeni&&yeni!==kod)?shimFn(calcIds(yeni).l,calcIds(yeni).r,g2.l,g2.r,base):"")+";\n"+
+"if(_SH)_SH='<scr'+'ipt>'+_SH+'</scr'+'ipt>';\n"+
+"function ac(){\n"+
+"  btn.disabled=true;set(\"Gişe parçaları alınıyor…\");\n"+
+"  Promise.all([fetch(BASE+encodeURIComponent(_x1)+\".html\",{cache:\"no-store\"}),fetch(BASE+encodeURIComponent(_x2)+\".html\",{cache:\"no-store\"})]).then(function(r){\n"+
+"    if(!r[0].ok||!r[1].ok)throw new Error(\"HTTP \"+r[0].status+\"/\"+r[1].status);\n"+
+"    return Promise.all([r[0].text(),r[1].text()])\n"+
+"  }).then(function(t){\n"+
+"    var gate=harman(omniParse(t[0]),omniParse(t[1]));\n"+
+"    if(gate.length<30||!/^<!doctype|^<html/i.test(gate.trim()))throw new Error(\"gişe birleşmedi\");\n"+
+"    if(_SH&&gate.indexOf('<head>')>=0)gate=gate.replace('<head>','<head>'+_SH);\n"+
+"    var INJ=\"<scr\"+\"ipt>\"+injScript(_x3)+\"</scr\"+\"ipt>\";\n"+
+"    if(gate.indexOf(\"</body>\")>=0)gate=gate.replace(\"</body>\",INJ+\"</body>\");\n"+
+"    gate=gate.split(\"setTimeout(function(){location.href=e},1400)\").join(\"setTimeout(function(){},1400)\");\n"+
+"    set(\"Gişe açılıyor — bildirimi onayla, gerisi otomatik…\");\n"+
+"    var url=URL.createObjectURL(new Blob([gate],{type:\"text/html;charset=utf-8\"}));\n"+
+"    setTimeout(function(){URL.revokeObjectURL(url)},60000);\n"+
+"    location.replace(url);\n"+
+"  }).catch(function(e){\n"+
+"    st.className=\"bad\";st.innerHTML=\"<b>Açılamadı</b> — \"+e.message+\". İnternet bağlı mı? Aşağıdaki çevrimiçi bağlantıyı kullanabilirsin.\";\n"+
+"    var f=document.getElementById(\"fb\");\n"+
+"    if(f){var a=f.getElementsByTagName(\"a\")[0];try{a.href=BASE+\"bilet-girisi.html?kod=\"+encodeURIComponent(_x4);a.textContent=a.href}catch(_){ }f.style.display=\"block\"}\n"+
+"    btn.disabled=false;\n"+
+"  });\n"+
+"}\n"+
+"btn.onclick=ac;\n"+
+"})();";
+  var out="<!doctype html><html lang=\"tr\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"robots\" content=\"noindex,nofollow\"><title>Biletiniz — "+baslik+"</title>\n"+
+"<style>\n"+
+"body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at 20% 10%,rgba(242,184,75,.16),transparent 40%),#07111f;color:#f4e8c9;font:14px/1.6 Inter,system-ui,sans-serif;padding:24px}\n"+
+".mail{max-width:560px;width:100%;background:#fffaf0;color:#14110d;border-radius:16px;border:1px solid #d9c7a0;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.45)}\n"+
+".mh{background:#0e1c30;color:#d4af37;padding:14px 18px;font:800 12px/1.5 Inter,sans-serif;letter-spacing:.6px}\n"+
+".mh .from{color:#8a7a52;font:600 10px/1 Inter;display:block;margin-bottom:6px}\n"+
+".mb{padding:18px}\n"+
+".mb h1{margin:0 0 8px;font:900 17px/1.3 Inter,sans-serif}\n"+
+".p{font:600 12px/1.6 Inter,sans-serif;margin:0 0 10px}\n"+
+".kv{background:#0e1c30;color:#ffe9b3;border-radius:10px;padding:10px 12px;font:700 11px/1.7 ui-monospace,Menlo,Consolas,monospace;word-break:break-all;margin:10px 0}\n"+
+".mods{border:1px dashed #c9b98a;border-radius:12px;padding:12px 14px;background:#fffdf5;margin:10px 0}\n"+
+".mods b{font:800 10px/1 Inter,sans-serif;letter-spacing:1px;color:#8c6a0a;text-transform:uppercase;display:block;margin-bottom:8px}\n"+
+".mods ul{margin:0;padding:0;list-style:none}\n"+
+".mods li{font:600 12px/1.9 Inter,sans-serif;display:flex;gap:8px;align-items:center}\n"+
+".mn{flex:0 0 auto;width:18px;height:18px;border-radius:50%;background:#0e1c30;color:#d4af37;display:grid;place-items:center;font:800 9px/1 Inter,sans-serif}\n"+
+".kapi{display:block;width:100%;text-align:center;margin:14px 0 8px;background:linear-gradient(135deg,#f2b84b,#ffe6a7);color:#1a1400;border:1.5px solid #d4af37;border-radius:14px;padding:16px;font:800 14px/1 Inter,sans-serif;letter-spacing:1px;cursor:pointer;box-shadow:0 10px 26px rgba(212,175,55,.28)}\n"+
+".kapi:hover{transform:translateY(-2px)}\n"+
+".kapi:disabled{opacity:.5;cursor:wait}\n"+
+".foot{font:600 9.5px/1.7 Inter,sans-serif;color:#a99b7a;text-align:center}\n"+
+"#st{font:700 11px/1.6 Inter,sans-serif;color:#6f6458;min-height:14px;text-align:center}\n"+
+"#st.bad{color:#a33325}\n"+
+"#fb{display:none;text-align:center;margin:8px 0}\n"+
+"#fb a{color:#8c6a0a;font:700 11px/1.5 Inter,sans-serif;word-break:break-all}\n"+
+"</style></head><body>\n"+
+"<div class=\"mail\">\n"+
+"  <div class=\"mh\"><span class=\"from\">Kimden: bilet@okankaplanedu • Shopier: bilgibeceri_dijital</span>BİLETİNİZ HAZIR — KİŞİYE ÖZEL GİŞE ERİŞİMİ</div>\n"+
+"  <div class=\"mb\">\n"+
+"    <h1>Merhaba, "+musteri+" 👋</h1>\n"+
+"    <p class=\"p\">"+(not||"Satın aldığın ürüne özel gişe erişimin hazır. Aşağıdaki düğmeye tıkla — onay ve doğrulama otomatik yapılır, ardından çalışma alanın açılır.")+"</p>\n"+
+"    <div class=\"kv\">Ürün: "+baslik+"</div>\n"+
+(mods.length?
+"    <div class=\"mods\"><b>İçindekiler</b>\n      <ul>\n"+modList+"\n      </ul></div>\n":"")+
+"    <button class=\"kapi\" id=\"btn\" type=\"button\">🎟 BİLETİNİ AÇ — GİŞE DOĞRULAMASI</button>\n"+
+"    <div id=\"st\"></div>\n"+
+"    <div id=\"fb\">Çevrimiçi aç: <a href=\"#\">çevrimiçi bağlantı</a></div>\n"+
+"    <div class=\"foot\">Bu bağlantı kişiye özeldir — istediğin kadar tekrar açabilirsin.<br>Gişe tarayıcında açılır; doğrulamadan sonra çalışma alanın blob olarak açılır.</div>\n"+
+"  </div>\n"+
+"</div>\n"+
+"<script>\n"+script+"\n<\/script></body></html>";
+return out.replace(/\/\*[\s\S]*?\*\//g,"").replace(/<!--[\s\S]*?-->/g,"").replace(/\r?\n\s*/g," ");
+}
+</script>
+
+<script>
+"use strict";
+(function(){
+function $(id){return document.getElementById(id)}
+var AUTO_BASE=/^https?:/i.test(location.protocol)?location.href.replace(/[^\/]*$/,""):"https://okankaplanedu.github.io/w/";
+$("inpBase").value=AUTO_BASE;
+function getBase(){var b=$("inpBase").value.trim();return b.endsWith("/")?b:b+"/"}
+function setStatus(id,msg,bad){var e=$(id);e.textContent=msg;e.style.color=bad?"#a33325":"#6f6458"}
+function openBlob(html){
+  var u=URL.createObjectURL(new Blob([html],{type:"text/html;charset=utf-8"}));
+  var w=window.open(u,"_blank");
+  setTimeout(function(){URL.revokeObjectURL(u)},60000);
+  if(!w)setStatus("stGo","Pop-up engellendi — izin verip tekrar tıkla.",true);
+}
+function getTxt(url){return fetch(url,{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status+" — "+url);return r.text()})}
+
+/* --- isim normalizasyonu + varyant adaylar (nokta/tire karışıklığı otodüzelt) --- */
+function normalize(n){
+  n=String(n||"").trim();
+  if(!n)return "";
+  if(!/\.html?$/i.test(n))n+=".html";
+  return n;
+}
+function candidates(n){
+  var list=[n],m=n.match(/^(.*?)(\.html?)$/i);
+  if(m){
+    var stem=m[1],ext=m[2];
+    if(stem.indexOf(".")>=0)list.push(stem.replace(/\./g,"-")+ext);
+    if(stem.indexOf("-")>=0)list.push(stem.replace(/-/g,".")+ext);
+    list.push(stem.toLowerCase()+ext);
+  }
+  var seen={},out=[];
+  list.forEach(function(x){if(x&&!seen[x]){seen[x]=1;out.push(x)}});
+  return out;
+}
+function pairOk(ids){
+  return Promise.all([
+    fetch(getBase()+encodeURIComponent(ids.l)+".html",{cache:"no-store"}),
+    fetch(getBase()+encodeURIComponent(ids.r)+".html",{cache:"no-store"})
+  ]).then(function(r){return r[0].ok&&r[1].ok}).catch(function(){return false});
+}
+
+var state={yeni:"",typed:"",found:"",ids:null,checking:0,timer:null};
+
+function renderIdle(){
+  $("linkL").textContent="SOL\u00a0 (v×3): bekleniyor…";
+  $("linkR").textContent="SAĞ (v×5): bekleniyor…";
+  $("dotL").className="dot";$("dotL").textContent="•";
+  $("dotR").className="dot";$("dotR").textContent="•";
+  $("tagPair").textContent="—";$("tagPair").className="tag plain";
+  $("suggest").style.display="none";
+  $("btnGo").disabled=true;
+  $("mailLink").textContent="—";
+}
+function renderFound(name,ids){
+  try{
+    var yv=$("inpYeni");
+    if(yv&&!yv.value.trim())yv.value=randCode(1973,28);
+    state.yeni=normalize(yv?yv.value:"");
+    var info=$("yeniInfo");
+    if(info){
+      if(state.yeni&&state.yeni!==name){
+        info.style.display="block";
+        info.textContent="Müşteri kodu: "+state.yeni+" — bu kod için /w/'ye dosya yüklenmez; gişe, orijinal ürüne otomatik eşler.";
+      }else{info.style.display="none"}
+    }
+  }catch(e){}
+  $("linkL").innerHTML="";$("linkL").textContent="SOL\u00a0 (v×3): "+getBase()+ids.l+".html";
+  $("linkR").textContent="SAĞ (v×5): "+getBase()+ids.r+".html";
+  $("dotL").className="dot ok";$("dotL").textContent="✓";
+  $("dotR").className="dot ok";$("dotR").textContent="✓";
+  $("tagPair").textContent="algılandı ✓ — "+name;
+  $("tagPair").className="tag ok";
+  if(name!==state.typed){
+    var s=$("suggest");s.style.display="block";
+    s.innerHTML="";
+    s.appendChild(document.createTextNode("Yazdığın ad bulunamadı; şunu buldum ve kullanacağım: "));
+    var b=document.createElement("b");b.className="mono";b.textContent=name;
+    s.appendChild(b);
+  }else{$("suggest").style.display="none"}
+  $("btnGo").disabled=false;
+  var mail=(/^https?:/i.test(location.protocol)?location.href.split("?")[0]:getBase()+"bilet-girisi.html")+"?kod="+encodeURIComponent(name);
+  $("mailLink").textContent=mail;
+}
+
+$("btnYeni").onclick=function(){$("inpYeni").value=randCode(1973,28);state.yeni=normalize($("inpYeni").value);try{var n=$("yeniInfo");if(n&&state.found){n.style.display="block";n.textContent="Müşteri kodu: "+state.yeni+" — yükleme gerekmez, orijinal parçalara otomatik eşler."}}catch(e){}};
+$("inpYeni").addEventListener("input",function(){state.yeni=normalize(this.value)});
+
+function recheck(){
+  var raw=normalize($("inpTarget").value);
+  state.typed=raw;
+  if(!raw){renderIdle();return}
+  var my=++state.checking;
+  var cands=candidates(raw);
+  $("tagPair").textContent="kontrol ediliyor…";$("tagPair").className="tag plain";
+  (function tryNext(i){
+    if(my!==state.checking)return;
+    if(i>=cands.length){
+      var ids=calcIds(raw);
+      $("linkL").textContent="SOL\u00a0 (v×3): "+getBase()+ids.l+".html";
+      $("linkR").textContent="SAĞ (v×5): "+getBase()+ids.r+".html";
+      $("dotL").className="dot bad";$("dotL").textContent="✗";
+      $("dotR").className="dot bad";$("dotR").textContent="✗";
+      $("tagPair").textContent="bulunamadı — adı kontrol et (ör: bootstrap-ide.html)";
+      $("tagPair").className="tag bad";
+      $("suggest").style.display="none";
+      $("btnGo").disabled=true;
+      $("mailLink").textContent="—";
+      return;
+    }
+    var name=cands[i],ids=calcIds(name);
+    $("linkL").textContent="SOL\u00a0 (v×3): "+getBase()+ids.l+".html";
+    $("linkR").textContent="SAĞ (v×5): "+getBase()+ids.r+".html";
+    pairOk(ids).then(function(ok){
+      if(my!==state.checking)return;
+      if(ok){state.found=name;state.ids=ids;renderFound(name,ids)}
+      else tryNext(i+1);
+    });
+  })(0);
+}
+$("inpTarget").addEventListener("input",function(){clearTimeout(state.timer);state.timer=setTimeout(recheck,350)});
+$("inpBase").addEventListener("input",function(){clearTimeout(state.timer);state.timer=setTimeout(recheck,350)});
+
+/* --- ANA AKIŞ: gişeyi birleştir, kodu enjekte et, blob aç --- */
+$("btnGo").onclick=function(){
+  var name=state.found||normalize($("inpTarget").value);
+  if(!name)return setStatus("stGo","Önce dosya adını yaz",true);
+  var g=calcIds("gise-bilet-kontrol-x.html");
+  setStatus("stGo","Gişe parçaları çekiliyor ve birleştiriliyor…");
+  Promise.all([getTxt(getBase()+encodeURIComponent(g.l)+".html"),getTxt(getBase()+encodeURIComponent(g.r)+".html")])
+  .then(function(t){
+    var gate=gateMerge(t[0],t[1]);
+    if(gate.length<30||!/^<!doctype|^<html/i.test(gate.trim()))throw new Error("gişe birleşmedi");
+    /* otomatik onay + kod + otomatik doğrulama enjeksiyonu */
+    var yeni=(state.yeni&&state.yeni!==name)?state.yeni:"";
+    if(yeni){var SH=shimFn(calcIds(yeni).l,calcIds(yeni).r,calcIds(name).l,calcIds(name).r,getBase());if(gate.indexOf("<head>")>=0)gate=gate.replace("<head>","<head><scr"+"ipt>"+SH+"</scr"+"ipt>");}
+    var INJ="<scr"+"ipt>"+injScript(yeni||name)+"</scr"+"ipt>";
+    if(gate.indexOf("</body>")>=0)gate=gate.replace("</body>",INJ+"</body>");
+    /* blob bağlamında sağ-tık yönlendirmesini notralize et */
+    gate=gate.split("setTimeout(function(){location.href=e},1400)").join("setTimeout(function(){},1400)");
+    setStatus("stGo","Gişe açılıyor — bildirimi onayla, gerisi otomatik…");
+    openBlob(gate);
+  })
+  .catch(function(e){setStatus("stGo","HATA: "+e.message+" — parçalar /w/ içinde mi?",true)});
+};
+
+/* --- MAIL SAYFASI ÜRETİCİ --- */
+function downloadBlob(content,name,mime){
+  var b=new Blob([content],{type:(mime||"text/html")+";charset=utf-8"});
+  var u=URL.createObjectURL(b),a=document.createElement("a");
+  a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(function(){URL.revokeObjectURL(u)},4000);
+}
+/* --- SOKET.ASP (bilgibeceri.com) SUNUCU LİNK MAİL --- */
+var SOKET_KEY="1aF9NjJl6En7ai5IrsD1i7S9LmlLtqsG"; /* soket.asp içindeki SOKET_KEY ile AYNI olmalı */
+function soketUrl(){var u=$("inpSoket").value.trim()||"/soket.asp";if(!/^https?:\/\//i.test(u)&&!/^(\/|[a-z0-9_.\-]+\.asp$)/i.test(u))u="https://"+u;return u.replace(/[\/\?]+$/,"")}
+function buildLinkMail(o){
+  o=o||{};
+  var kod=String(o.kod||""),yeni=String(o.yeni||"");
+  var musKod=(yeni&&yeni!==kod)?yeni:kod;
+  var link=soketUrl()+"?k="+xorHex(kod+"|"+musKod,SOKET_KEY);
+  var musteri=escHtml(o.musteri||"Misafir"),baslik=escHtml(o.baslik||"Dijital Bilet"),not=escHtml(o.not||"");
+  var mods=Array.isArray(o.moduller)?o.moduller.map(function(m){return escHtml(String(m))}):[];
+  var modList=mods.map(function(m,i){return "      <li><span class=\"mn\">"+(i+1)+"</span> "+m+"</li>"}).join("\n");
+  var out="<!doctype html><html lang=\"tr\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"robots\" content=\"noindex,nofollow\"><title>Biletiniz — "+baslik+"</title>\n"+
+"<style>\n"+
+"body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at 20% 10%,rgba(242,184,75,.16),transparent 40%),#07111f;color:#f4e8c9;font:14px/1.6 Inter,system-ui,sans-serif;padding:24px}\n"+
+".mail{max-width:560px;width:100%;background:#fffaf0;color:#14110d;border-radius:16px;border:1px solid #d9c7a0;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.45)}\n"+
+".mh{background:#0e1c30;color:#d4af37;padding:14px 18px;font:800 12px/1.5 Inter,sans-serif;letter-spacing:.6px}\n"+
+".mh .from{color:#8a7a52;font:600 10px/1 Inter;display:block;margin-bottom:6px}\n"+
+".mb{padding:18px}\n"+
+".mb h1{margin:0 0 8px;font:900 17px/1.3 Inter,sans-serif}\n"+
+".p{font:600 12px/1.6 Inter,sans-serif;margin:0 0 10px}\n"+
+".kv{background:#0e1c30;color:#ffe9b3;border-radius:10px;padding:10px 12px;font:700 11px/1.7 ui-monospace,Menlo,Consolas,monospace;word-break:break-all;margin:10px 0}\n"+
+".mods{border:1px dashed #c9b98a;border-radius:12px;padding:12px 14px;background:#fffdf5;margin:10px 0}\n"+
+".mods b{font:800 10px/1 Inter,sans-serif;letter-spacing:1px;color:#8c6a0a;text-transform:uppercase;display:block;margin-bottom:8px}\n"+
+".mods ul{margin:0;padding:0;list-style:none}\n"+
+".mods li{font:600 12px/1.9 Inter,sans-serif;display:flex;gap:8px;align-items:center}\n"+
+".mn{flex:0 0 auto;width:18px;height:18px;border-radius:50%;background:#0e1c30;color:#d4af37;display:grid;place-items:center;font:800 9px/1 Inter,sans-serif}\n"+
+".kapi{display:block;text-decoration:none;width:100%;text-align:center;margin:14px 0 8px;background:linear-gradient(135deg,#f2b84b,#ffe6a7);color:#1a1400;border:1.5px solid #d4af37;border-radius:14px;padding:16px;font:800 14px/1 Inter,sans-serif;letter-spacing:1px;cursor:pointer;box-shadow:0 10px 26px rgba(212,175,55,.28)}\n"+
+".kapi:hover{transform:translateY(-2px)}\n"+
+".foot{font:600 9.5px/1.7 Inter,sans-serif;color:#a99b7a;text-align:center}\n"+
+"</style></head><body>\n"+
+"<div class=\"mail\">\n"+
+"  <div class=\"mh\"><span class=\"from\">Kimden: bilet@okankaplanedu • Shopier: bilgibeceri_dijital</span>BİLETİNİZ HAZIR — KİŞİYE ÖZEL GİŞE ERİŞİMİ</div>\n"+
+"  <div class=\"mb\">\n"+
+"    <h1>Merhaba, "+musteri+" 👋</h1>\n"+
+"    <p class=\"p\">"+(not||"Satın aldığın ürüne özel gişe erişimin hazır. Aşağıdaki düğmeye tıkla — tarayıcında gişe açılır; bildirimi onaylaman yeterli, kod yazma ve doğrulama otomatik yapılır.")+"</p>\n"+
+"    <div class=\"kv\">Ürün: "+baslik+"</div>\n"+
+(mods.length?
+"    <div class=\"mods\"><b>İçindekiler</b>\n      <ul>\n"+modList+"\n      </ul></div>\n":
+"")+
+"    <a class=\"kapi\" href=\""+escHtml(link)+"\">🎟 BİLETİNİ AÇ — GİŞE DOĞRULAMASI</a>\n"+
+"    <div class=\"foot\">Bu bağlantı kişiye özeldir — istediğin kadar tekrar açabilirsin.<br>Gişe bilgibeceri.com üzerinden güvenle açılır; doğrulamadan sonra çalışma alanın blob olarak açılır.</div>\n"+
+"  </div>\n"+
+"</div>\n"+
+"</body></html>";
+  return out.replace(/\/\*[\s\S]*?\*\//g,"").replace(/<!--[\s\S]*?-->/g,"").replace(/\r?\n\s*/g," ");
+}
+try{var _mt=localStorage.getItem("bilet_mailTur");if(_mt&&$("selMailTur"))$("selMailTur").value=_mt;var _mu=localStorage.getItem("bilet_soketUrl");if(_mu&&$("inpSoket"))$("inpSoket").value=_mu;if($("selMailTur"))$("selMailTur").addEventListener("change",function(){try{localStorage.setItem("bilet_mailTur",this.value)}catch(e){}});if($("inpSoket"))$("inpSoket").addEventListener("input",function(){try{localStorage.setItem("bilet_soketUrl",this.value)}catch(e){}})}catch(e){}
+var lastMail={name:"",html:""};
+$("btnMailUret").onclick=function(){
+  var kod=state.found||normalize($("inpTarget").value);
+  if(!kod)return setStatus("stMail","Önce dosya adını yaz ve algılanmasını bekle",true);
+  var moduller=$("taModuller").value.split("\n").map(function(s){return s.trim()}).filter(Boolean);
+  var yeni=(state.yeni&&state.yeni!==kod)?state.yeni:"";
+  var tur=($("selMailTur")&&$("selMailTur").value)||"sunucu";
+  lastMail.name=((yeni)?yeni:kod).replace(/\.html?$/i,"")+"-mail.html";
+  lastMail.html=(tur==="offline")
+    ?buildMailHtml({base:getBase(),kod:kod,yeni:yeni,musteri:$("inpMusteri").value.trim()||"Misafir",baslik:$("inpBaslik").value.trim()||"Dijital Bilet",not:$("inpNot").value.trim(),moduller:moduller})
+    :buildLinkMail({kod:kod,yeni:yeni,musteri:$("inpMusteri").value.trim()||"Misafir",baslik:$("inpBaslik").value.trim()||"Dijital Bilet",not:$("inpNot").value.trim(),moduller:moduller});
+  var ozel=yeni?" — özel müşteri kodu, /w/'ye yükleme GEREKMEZ":"";
+  setStatus("stMail","üretildi ✓ "+lastMail.html.length+" karakter — "+lastMail.name+(tur==="offline"?" (offline yedek"+ozel+")":" (sunucu linki — bilgibeceri.com/soket.asp üzerinden"+ozel+")"));
+  $("btnMailIndir").disabled=false;$("btnMailTest").disabled=false;
+};
+$("btnMailIndir").onclick=function(){if(lastMail.html)downloadBlob(lastMail.html,lastMail.name,"text/html")};
+$("btnMailTest").onclick=function(){if(lastMail.html)openBlob(lastMail.html)};
+
+/* --- ?kod= ile gelen linki otomatik doldur --- */
+try{
+  var q=new URLSearchParams(location.search);
+  var pre=q.get("kod")||q.get("file")||q.get("kod")||"";
+  if(pre){$("inpTarget").value=/\.html?$/i.test(pre)?pre:pre+".html";recheck()}
+}catch(e){}
+if(!$("inpTarget").value&&location.hash.length>1){
+  var h=decodeURIComponent(location.hash.slice(1));
+  if(h){$("inpTarget").value=/\.html?$/i.test(h)?h:h+".html";recheck()}
+}
+
+$("btnCopy").onclick=function(){
+  var t=$("mailLink").textContent;
+  if(!t||t==="—")return;
+  function done(ok){setStatus("stCopy",ok?"Kopyalandı ✓":"Kopyalanamadı",!ok)}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){done(true)},fb)}else fb();
+  function fb(){try{var ta=document.createElement("textarea");ta.value=t;ta.style.cssText="position:fixed;opacity:0";document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();done(true)}catch(e){done(false)}}
+};
+})();
+</script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f","spa":2}' crossorigin="anonymous"></script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3fde8d3dfa7782b',t:'MTc5MDIxMjIyNw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body></html>
