@@ -1,0 +1,2781 @@
+<html lang="tr"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SLIDER × CODER PRO — OKAN KAPLAN</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<!-- CodeMirror 5 -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldgutter.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
+<style>
+/* ======================================================
+   ROOT & RESET
+====================================================== */
+:root {
+  --yellow: #FFCE73;
+  --pink:   #FF9EC0;
+  --cyan:   #8BDCEF;
+  --green:  #93E7BA;
+  --black:  #2E2E36;
+  --white:  #FFFFFF;
+  --gray:   #F6F6F9;
+  --line:   #E7E7ED;
+  --ink:    #3A3A44;
+  --radius: 18px;
+  --radius-sm: 12px;
+  --shadow-sm: 0 2px 8px rgba(40,40,60,0.08);
+  --shadow: 0 8px 24px rgba(40,40,60,0.12);
+  --shadow-lg: 0 16px 40px rgba(40,40,60,0.16);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body, html { width:100%; height:100%; font-family:'Space Grotesk',sans-serif; background:#EEEFF4; overflow:hidden; color:var(--ink); }
+
+/* ======================================================
+   CAROUSEL
+====================================================== */
+.carousel-container {
+  position:relative; width:100%; max-width:1420px; margin:0 auto;
+  background:#fff; border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow-lg); overflow:hidden;
+}
+.slider { display:flex; transition:transform 0.45s cubic-bezier(0.4,0,0.2,1); }
+.slide { flex:0 0 100%; box-sizing:border-box; padding:20px; position:relative; overflow:hidden; }
+.canvas-stack {
+  position:relative; width:100%; height:700px; aspect-ratio:1380/700;
+  border:1px solid var(--line); border-radius:var(--radius-sm); box-shadow:var(--shadow);
+  overflow:hidden; background:#fff;
+}
+/* Modern tarayıcılarda aspect-ratio devreye girince sabit 700px yükseklik yerine oranı korur —
+   böylece pencere/fullscreen boyutu değiştiğinde tuval SADECE tek eksende değil, orantılı
+   büyüyüp küçülür (bozulma/gerilme olmaz). Eski tarayıcılarda sabit 700px'e geri düşer. */
+@supports (aspect-ratio: 1/1) {
+  .canvas-stack { height:auto; }
+}
+.canvas-stack .canvas-container { position:absolute !important; top:0 !important; left:0 !important; }
+.canvas-stack .canvas-container, .canvas-stack canvas { width:100% !important; height:100% !important; }
+
+/* ======================================================
+   SLIDER BUTTONS
+====================================================== */
+.slider-btn {
+  position:absolute; top:50%; transform:translateY(-50%);
+  z-index:10; width:44px; height:44px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; border:1px solid var(--line); background:#fff; color:var(--ink);
+  box-shadow:var(--shadow-sm); font-weight:700; font-size:20px; transition:all 0.18s ease;z-index:9999999
+}
+.slider-btn:hover { background:var(--yellow); transform:translateY(-50%) scale(1.06); box-shadow:var(--shadow) }
+.slider-btn:active { transform:translateY(-50%) scale(0.96); box-shadow:var(--shadow-sm); }
+.prev-btn { left:15px; } .next-btn { right:15px; }
+
+/* ======================================================
+   RIGHT CONTROLS
+====================================================== */
+/* CAM ↔ KODER karşılıklı öncelik sistemi: ikisi de aynı anda açık kalabilir, ama hangisi
+   son seçilen/aktif olan ise o en üstte ve etkileşimli olur; diğeri görünür kalır ama tıklanamaz/yazılamaz. */
+body.coder-on-top .coder-panel.open { z-index:1900; }
+body.glass-on-top .coder-panel { pointer-events:none; }
+
+body.coder-on-top #overlayWrapper,
+body.coder-on-top #overlayToolbar { pointer-events:none !important; }
+body.glass-on-top #overlayWrapper.active { z-index:2000; }
+body.glass-on-top #overlayToolbar.active { z-index:2001; }
+
+.controls {
+  width:68px; display:flex; flex-direction:column; gap:8px;
+  position:fixed; top:50%; right:14px; transform:translateY(-50%);
+  background:#fff; padding:10px 11px; border:1px solid var(--line); border-radius:var(--radius);
+  box-shadow:var(--shadow-lg); z-index:999;
+  max-height:calc(100vh - 24px); overflow-y:auto; overflow-x:hidden;
+  scrollbar-width:thin;
+}
+.controls::-webkit-scrollbar { width:6px; }
+.controls::-webkit-scrollbar-thumb { background:var(--line); border-radius:4px; }
+
+/* ======================================================
+   FRAMES / LAYERS PANEL (sol taraf — her slaytın kareleri)
+====================================================== */
+.frames-panel {
+  width:56px; display:flex; flex-direction:column; align-items:center; gap:10px;
+  position:fixed; top:50%; left:14px; transform:translateY(-50%);
+  z-index:999; max-height:calc(100vh - 24px);
+}
+.frame-add-btn {
+  width:40px; height:40px; border-radius:50%; border:1px solid var(--line);
+  background:#fff; box-shadow:var(--shadow-sm); font-size:20px; font-weight:700;
+  cursor:pointer; color:var(--ink); display:flex; align-items:center; justify-content:center;
+  transition:all 0.15s ease; flex-shrink:0;
+}
+.frame-add-btn:hover { background:var(--yellow); transform:translateY(-1px); box-shadow:var(--shadow); }
+.frame-add-btn:active { transform:translateY(0); box-shadow:var(--shadow-sm); }
+.frame-list {
+  display:flex; flex-direction:column; gap:10px; overflow-y:auto; overflow-x:visible;
+  max-height:calc(100vh - 170px); padding:4px 6px; scrollbar-width:thin; width:100%;
+  align-items:center;
+}
+.frame-list::-webkit-scrollbar { width:5px; }
+.frame-list::-webkit-scrollbar-thumb { background:var(--line); border-radius:4px; }
+.frame-chip {
+  position:relative; width:40px; height:40px; border-radius:12px; flex-shrink:0;
+  background:var(--yellow); border:2px solid transparent; cursor:pointer;
+  box-shadow:var(--shadow-sm); transition:all 0.15s ease;
+  display:flex; align-items:center; justify-content:center;
+  font-size:12px; font-weight:700; color:rgba(46,46,54,0.55); font-family:'JetBrains Mono',monospace;
+}
+.frame-chip:hover { transform:translateY(-1px); box-shadow:var(--shadow); }
+.frame-chip.active { border-color:var(--ink); box-shadow:0 0 0 3px rgba(46,46,54,0.12),var(--shadow); }
+.frame-chip.hidden-frame { opacity:0.35; }
+.frame-chip .frame-del, .frame-chip .frame-eye {
+  position:absolute; width:18px; height:18px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; font-size:10px;
+  color:#fff; transition:all 0.15s ease; box-shadow:var(--shadow-sm); border:2px solid #fff;
+}
+.frame-chip .frame-del { top:-7px; right:-7px; background:var(--pink); opacity:0; }
+.frame-chip:hover .frame-del { opacity:1; }
+/* Görünürlük (göz) düğmesi HER ZAMAN görünür ve tıklanabilir bırakılır — sunum/dokunmatik cihazlarda
+   hover olayı olmadığından (touch = hover yok), kareyi açıp/kapatmak hover'a bağlı OLAMAZ. */
+.frame-chip .frame-eye {
+  bottom:-8px; left:-8px; width:22px; height:22px; font-size:12px;
+  background:#3fb27f; opacity:1; z-index:2; cursor:pointer;
+}
+.frame-chip .frame-eye.eye-hidden { background:#9a9aa3; }
+.frame-chip .frame-eye:hover { transform:scale(1.12); }
+.frame-chip .frame-eye:active { transform:scale(0.94); }
+.frame-opacity-wrap {
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  background:#fff; border:1px solid var(--line); border-radius:var(--radius-sm);
+  box-shadow:var(--shadow-sm); padding:8px 0 10px; flex-shrink:0; width:40px;
+}
+.frame-opacity-val { font-size:10px; font-weight:700; font-family:'JetBrains Mono',monospace; color:var(--ink); }
+.frame-opacity-wrap input[type="range"] {
+  writing-mode:vertical-lr; direction:rtl; width:6px; height:70px;
+  -webkit-appearance:none; appearance:none; background:var(--line); border-radius:4px;
+  outline:none; cursor:pointer;
+}
+.frame-opacity-wrap input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance:none; width:16px; height:16px; border-radius:50%;
+  background:var(--pink); border:2px solid #fff; box-shadow:var(--shadow-sm); cursor:pointer;
+}
+.controls .ctrl-btn {
+  width:34px; height:32px; display:flex; align-items:center; justify-content:center;
+  cursor:pointer; border:1px solid var(--line); border-radius:var(--radius-sm); background:var(--gray);
+  box-shadow:var(--shadow-sm); transition:all 0.15s ease; font-size:18px; font-weight:600;
+}
+.controls .ctrl-btn:hover { background:var(--cyan); transform:translateY(-1px); box-shadow:var(--shadow); }
+.controls .ctrl-btn:active { transform:translateY(0); box-shadow:var(--shadow-sm); }
+.controls .ctrl-btn.active { background:var(--yellow); box-shadow:inset 0 0 0 2px rgba(0,0,0,0.06); transform:none; }
+.mini-range {
+  width:44px; height:8px; -webkit-appearance:none; appearance:none;
+  background:var(--line); border-radius:4px; outline:none; cursor:pointer;
+}
+.mini-range::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:var(--cyan); border:2px solid #fff; box-shadow:var(--shadow-sm); cursor:pointer; }
+.controls input[type="number"] {
+  width:44px; height:34px; border:1px solid var(--line); border-radius:var(--radius-sm); text-align:center;
+  font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700;
+  background:var(--gray); outline:none;
+}
+.color-container { width:44px; height:40px; border:1px solid var(--line); border-radius:var(--radius-sm); overflow:hidden; box-shadow:var(--shadow-sm); }
+.color-container input[type="color"] { width:100%; height:100%; border:none; padding:0; cursor:pointer; }
+
+/* ======================================================
+   EMBED WRAPPERS
+====================================================== */
+.embed-wrapper { position:absolute; overflow:hidden; display:none; pointer-events:none; transition:opacity 0.2s ease; border-radius:6px; }
+.embed-wrapper.active { display:block; pointer-events:auto; }
+.embed-wrapper iframe, .embed-wrapper video { position:absolute; inset:0; width:100%; height:100%; border:none; }
+.embed-open-link {
+  position:absolute; top:6px; right:6px; z-index:5; width:26px; height:26px; border-radius:50%;
+  background:rgba(20,20,26,0.62); display:flex; align-items:center; justify-content:center;
+  color:#fff; text-decoration:none; font-size:13px; font-weight:700; opacity:0;
+  transition:opacity .15s ease, transform .15s ease; pointer-events:auto; backdrop-filter:blur(2px);
+}
+.embed-wrapper:hover .embed-open-link, .embed-wrapper[data-selected="1"] .embed-open-link { opacity:1; }
+.embed-open-link:hover { transform:scale(1.12); background:rgba(20,20,26,0.85); }
+
+/* Sağ-alt köşedeki "yeniden seç" tutamacı — iframe/video içeriği fare olaylarını yuttuğu için
+   (özellikle çapraz-kaynaklı iframe'lerde), kullanıcı gömülü medyayı canvas üzerinde tekrar seçip
+   taşıyamaz/boyutlandıramaz hale gelir. Bu küçük "soft" köşe alanı her zaman tıklanabilir kalır ve
+   tıklandığında ilgili fabric.js nesnesini doğrudan seçili hale getirir. */
+.embed-corner-select {
+  position:absolute; right:-3px; bottom:-3px; z-index:7; width:24px; height:24px;
+  border-radius:50% 4px 4px 4px; background:rgba(59,130,246,0.55); backdrop-filter:blur(2px);
+  display:flex; align-items:center; justify-content:center; color:#fff; font-size:12px; font-weight:700;
+  cursor:pointer; opacity:0; transition:opacity .15s ease, transform .15s ease, background .15s ease;
+  pointer-events:auto; box-shadow:0 0 0 2px rgba(255,255,255,0.85), var(--shadow-sm);
+}
+.embed-wrapper:hover .embed-corner-select,
+.embed-wrapper[data-selected="1"] .embed-corner-select { opacity:1; }
+.embed-corner-select:hover { transform:scale(1.15); background:rgba(59,130,246,0.9); }
+.embed-corner-select:active { transform:scale(0.94); }
+
+/* ======================================================
+   CODER PANEL
+====================================================== */
+.coder-panel {
+  /* left/right: sol kare paneli (~56px+14px boşluk) ve sağ kontrol paneli (~68px+14px boşluk) ile
+     ekran genişliğinden bağımsız olarak asla çakışmayacak şekilde sabit boşluk bırakılır */
+  position:absolute; bottom:-100%; left:96px; right:106px; height:min(95vh, calc(100% - 40px));
+  background:#fff; border:1px solid var(--line); border-radius:var(--radius) var(--radius) 0 0; box-shadow:var(--shadow-lg);
+  z-index:1400; display:flex; flex-direction:column;
+  transition:bottom 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+.coder-panel.open { bottom:20px; }
+
+/* Topbar */
+.coder-topbar {
+  display:flex; align-items:center; background:var(--yellow);
+  border-bottom:1px solid var(--line); border-radius:var(--radius) var(--radius) 0 0; height:44px; flex-shrink:0;
+  overflow-x:auto; overflow-y:hidden; gap:0;
+}
+.coder-topbar::-webkit-scrollbar { height:0; }
+.coder-topbar .c-tabs { display:flex; height:100%; flex-shrink:0; }
+.coder-topbar .c-tab {
+  padding:0 14px; font-weight:700; font-size:12px; text-transform:uppercase;
+  cursor:pointer; border:none; border-right:1px solid rgba(0,0,0,0.08); background:transparent;
+  height:100%; display:flex; align-items:center; transition:background 0.15s;
+  font-family:'Space Grotesk',sans-serif; letter-spacing:0.3px; white-space:nowrap;
+}
+.coder-topbar .c-tab:hover { background:rgba(0,0,0,0.06); }
+.coder-topbar .c-tab.active { background:rgba(0,0,0,0.85); color:#fff; border-radius:var(--radius-sm) var(--radius-sm) 0 0; }
+
+/* Font size slider */
+.c-fontsize-wrap {
+  display:flex; align-items:center; gap:6px;
+  padding:0 10px; border-right:1px solid rgba(0,0,0,0.08); height:100%;
+  white-space:nowrap; flex-shrink:0;
+}
+.c-fontsize-wrap label { font-size:10px; font-weight:700; text-transform:uppercase; color:var(--ink); }
+.c-fontsize-slider {
+  width:70px; height:6px; -webkit-appearance:none; appearance:none;
+  background:rgba(0,0,0,0.18); border-radius:4px; outline:none; cursor:pointer;
+}
+.c-fontsize-slider::-webkit-slider-thumb {
+  -webkit-appearance:none; width:14px; height:14px; border-radius:50%;
+  background:var(--pink); border:2px solid #fff; box-shadow:var(--shadow-sm); cursor:pointer;
+}
+.c-fontsize-val { font-size:11px; font-weight:700; font-family:'JetBrains Mono',monospace; min-width:26px; color:var(--ink); }
+
+.coder-topbar .c-actions { display:flex; gap:0; margin-left:auto; flex-shrink:0; }
+.coder-topbar .c-action {
+  width:44px; height:44px; border:none; border-left:1px solid rgba(0,0,0,0.08);
+  background:transparent; cursor:pointer; display:flex; align-items:center;
+  justify-content:center; font-size:16px; font-weight:700; transition:background 0.15s;
+  font-family:'Space Grotesk',sans-serif; flex-shrink:0;
+}
+.coder-topbar .c-action:hover { background:rgba(0,0,0,0.08); }
+.coder-topbar .c-action.green { background:var(--green); }
+.coder-topbar .c-action.green:hover { background:#79dba3; }
+.coder-topbar .c-action.blue { background:var(--cyan); }
+.coder-topbar .c-action.close-btn { background:var(--pink); }
+.coder-topbar .c-filename {
+  border:none; border-left:1px solid rgba(0,0,0,0.08); border-right:1px solid rgba(0,0,0,0.08);
+  padding:0 10px; height:44px; font-family:'JetBrains Mono',monospace;
+  font-size:12px; font-weight:700; background:var(--white); outline:none; width:130px; flex-shrink:0;
+}
+
+/* Coder body */
+.coder-body { display:grid; grid-template-columns:1fr 1fr; flex:1; overflow:hidden; }
+.coder-body.layout-editor { grid-template-columns:1fr 0; }
+.coder-body.layout-preview { grid-template-columns:0 1fr; }
+.coder-editor-wrap { display:flex; flex-direction:column; border-right:1px solid var(--line); overflow:hidden; position:relative; }
+.coder-preview { flex:1; overflow:hidden; background:#fff; }
+.coder-preview iframe { width:100%; height:100%; border:none; background:#fff; }
+
+/* Slide label */
+.slide-coder-tag {
+  position:absolute; top:25px; left:66px; z-index:1051;
+  background:var(--yellow); border:1px solid var(--line); border-radius:var(--radius-sm); box-shadow:var(--shadow-sm);
+  padding:5px 12px; font-size:11px; font-weight:700; text-transform:uppercase;
+  letter-spacing:0.5px; pointer-events:none; opacity:0; transition:opacity 0.3s;
+}
+.slide-coder-tag.visible { opacity:1; }
+
+/* ======================================================
+   CODEMIRROR CUSTOM THEME
+====================================================== */
+.cm-s-slider-dark.CodeMirror {
+  background: #14141a !important;
+  color: #e8e8e8 !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  height: 100% !important;
+  border: none !important;
+}
+.cm-s-slider-dark .CodeMirror-gutters {
+  background: #17171d !important;
+  border-right: 1px solid #2a2a33 !important;
+}
+.cm-s-slider-dark .CodeMirror-linenumber { color: #444 !important; }
+.cm-s-slider-dark .CodeMirror-cursor { border-left: 2px solid #FFE600 !important; }
+.cm-s-slider-dark .CodeMirror-selected { background: #FFE60022 !important; }
+.cm-s-slider-dark .CodeMirror-activeline-background { background: #1a1a1a !important; }
+/* Tokens */
+.cm-s-slider-dark span.cm-keyword   { color: #FFE600 !important; font-weight:bold; }
+.cm-s-slider-dark span.cm-def       { color: #00D9FF !important; }
+.cm-s-slider-dark span.cm-variable  { color: #e8e8e8 !important; }
+.cm-s-slider-dark span.cm-variable-2{ color: #00FF88 !important; }
+.cm-s-slider-dark span.cm-property  { color: #00D9FF !important; }
+.cm-s-slider-dark span.cm-operator  { color: #FF6B9D !important; }
+.cm-s-slider-dark span.cm-string    { color: #00FF88 !important; }
+.cm-s-slider-dark span.cm-string-2  { color: #00cc6a !important; }
+.cm-s-slider-dark span.cm-number    { color: #00D9FF !important; }
+.cm-s-slider-dark span.cm-atom      { color: #FF6B9D !important; }
+.cm-s-slider-dark span.cm-comment   { color: #555 !important; font-style:italic; }
+.cm-s-slider-dark span.cm-tag       { color: #FF6B9D !important; font-weight:bold; }
+.cm-s-slider-dark span.cm-attribute { color: #00D9FF !important; }
+.cm-s-slider-dark span.cm-qualifier { color: #FFE600 !important; }
+.cm-s-slider-dark span.cm-builtin   { color: #00FF88 !important; }
+.cm-s-slider-dark span.cm-bracket   { color: #FF6B9D !important; }
+.cm-s-slider-dark span.cm-error     { color: #ff4444 !important; text-decoration:underline; }
+.cm-s-slider-dark .CodeMirror-matchingbracket { background:#FFE60033 !important; color:#FFE600 !important; outline:1px solid #FFE600; }
+/* Scrollbar */
+.cm-s-slider-dark .CodeMirror-scroll::-webkit-scrollbar { width:8px; height:8px; }
+.cm-s-slider-dark .CodeMirror-scroll::-webkit-scrollbar-track { background:#1a1a1a; }
+.cm-s-slider-dark .CodeMirror-scroll::-webkit-scrollbar-thumb { background:#FFE600; }
+/* Fold gutter */
+.cm-s-slider-dark .CodeMirror-foldgutter-open, .cm-s-slider-dark .CodeMirror-foldgutter-folded { color:#FFE600 !important; cursor:pointer; }
+/* Hint */
+.CodeMirror-hints { background:#1a1a1a !important; border:2px solid #FFE600 !important; font-family:'JetBrains Mono',monospace !important; }
+.CodeMirror-hint { color:#e8e8e8 !important; }
+.CodeMirror-hint-active { background:#FFE60033 !important; color:#FFE600 !important; }
+/* Make CM fill container */
+.coder-editor-wrap .CodeMirror { flex:1; min-height:0; }
+
+/* ======================================================
+   OVERLAY CANVAS
+====================================================== */
+#overlayWrapper { position:fixed; inset:0; z-index:1500; pointer-events:none; display:none; }
+#overlayWrapper.active { display:block; pointer-events:auto; }
+#overlayCanvas { position:absolute; inset:0; cursor:crosshair; touch-action:none; }
+#overlayToolbar {
+  position:fixed; bottom:-80px; left:50%; transform:translateX(-50%);
+  z-index:1600; display:flex; align-items:center; gap:8px;
+  background:#fff; border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow-lg);
+  padding:8px 14px; transition:bottom 0.35s ease; pointer-events:none;
+}
+#overlayToolbar.active { bottom:12px; pointer-events:auto; }
+.ov-label { font-weight:700; font-size:11px; text-transform:uppercase; color:var(--ink); padding:0 4px; }
+.ov-btn {
+  width:38px; height:38px; border:1px solid var(--line); border-radius:var(--radius-sm); background:var(--gray);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; box-shadow:var(--shadow-sm); transition:all 0.15s;
+}
+.ov-btn:hover { background:var(--cyan); transform:translateY(-1px); box-shadow:var(--shadow); }
+.ov-btn.active { background:var(--yellow); box-shadow:inset 0 0 0 2px rgba(0,0,0,0.08); transform:none; }
+#overlayToolbar select {
+  height:38px; border:1px solid var(--line); border-radius:var(--radius-sm); background:var(--gray);
+  font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:12px;
+  padding:0 6px; cursor:pointer; box-shadow:var(--shadow-sm); outline:none;
+}
+.ov-range {
+  width:80px; height:8px; -webkit-appearance:none; appearance:none;
+  background:var(--line); border-radius:4px; outline:none; cursor:pointer;
+}
+.ov-range::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:var(--pink); border:2px solid #fff; box-shadow:var(--shadow-sm); cursor:pointer; }
+#ovColor { width:38px; height:38px; border:1px solid var(--line); border-radius:var(--radius-sm); padding:0; cursor:pointer; box-shadow:var(--shadow-sm); }
+.ov-sep { width:1px; height:34px; background:var(--line); }
+
+/* ======================================================
+   TOP OVERLAY
+====================================================== */
+#topOverlay {
+  position:fixed; top:-110px; left:50%; transform:translateX(-50%); width:min(1420px,94%); height:70px;
+  background:var(--yellow); z-index:9999; border-radius:0 0 var(--radius) var(--radius);
+  display:flex; justify-content:center; align-items:center;
+  box-shadow:var(--shadow-lg); transition:top 0.45s ease;
+}
+#topOverlay.show { top:0; }
+#lessonName { color:var(--ink); font-size:2rem; font-weight:700; padding:10px 30px; cursor:pointer; }
+#slidePageNo {
+  position:absolute; right:30px; font-size:1.2rem; font-weight:700;
+  background:rgba(0,0,0,0.82); color:var(--yellow); padding:6px 16px;
+  border-radius:var(--radius-sm); letter-spacing:1px;
+}
+
+/* ======================================================
+   OFFCANVAS (cut)
+====================================================== */
+#offcanvas {
+  position:fixed; top:0; left:-100%; width:100%; height:100%;
+  background:#fff; z-index:2000; transition:left 0.35s ease;
+  overflow:auto;
+}
+#offcanvas.show { left:0; }
+#offcanvasControls { padding:12px; display:flex; gap:8px; flex-wrap:wrap; background:var(--yellow); border-bottom:1px solid var(--line); }
+#cutCanvas { border:1px solid var(--line); border-radius:var(--radius-sm); touch-action:none; width:100%; box-shadow:var(--shadow); }
+
+/* ======================================================
+   SPEECH OFFCANVAS
+====================================================== */
+#speechOffcanvas {
+  position:fixed; top:0; right:-420px; width:420px; height:100%;
+  background:#fff; z-index:2000; transition:right 0.35s ease;
+  padding:20px; overflow:auto; box-shadow:var(--shadow-lg);
+}
+#speechOffcanvas.show { right:0; }
+#speechOffcanvas h5 { font-weight:700; border-bottom:1px solid var(--line); padding-bottom:8px; margin-bottom:12px; }
+#mediaTransformControls input[type="range"] {
+  -webkit-appearance:none; appearance:none; height:6px; background:var(--line); border-radius:4px; outline:none; cursor:pointer;
+}
+#mediaTransformControls input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance:none; width:16px; height:16px; border-radius:50%;
+  background:var(--cyan); border:2px solid #fff; box-shadow:var(--shadow-sm); cursor:pointer;
+}
+#speechText { width:100%; height:180px; font-size:14px; border:1px solid var(--line); border-radius:var(--radius-sm); padding:8px; font-family:'JetBrains Mono',monospace; resize:none; }
+#mediaURL { width:100%; margin-bottom:5px; border:1px solid var(--line); border-radius:var(--radius-sm); padding:6px 8px; font-family:'JetBrains Mono',monospace; font-size:12px; outline:none; }
+.audio-track-row {
+  display:flex; align-items:center; gap:6px; padding:6px 8px; border:1px solid var(--line);
+  border-radius:var(--radius-sm); background:var(--gray); font-size:11px; font-family:'JetBrains Mono',monospace;
+}
+.audio-track-row .atr-num { font-weight:700; color:var(--ink); opacity:.6; width:16px; flex-shrink:0; }
+.audio-track-row .atr-name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.audio-track-row .atr-btn {
+  width:22px; height:22px; border-radius:50%; border:none; background:#fff; box-shadow:var(--shadow-sm);
+  cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:11px; flex-shrink:0;
+  transition:all .15s ease;
+}
+.audio-track-row .atr-btn:hover { background:var(--cyan); transform:translateY(-1px); }
+.audio-track-row .atr-btn:disabled { opacity:.3; cursor:not-allowed; transform:none; }
+.audio-track-row .atr-btn.atr-del:hover { background:var(--pink); }
+
+/* Scrollbars */
+::-webkit-scrollbar { width:10px; height:10px; }
+::-webkit-scrollbar-track { background:var(--gray); }
+::-webkit-scrollbar-thumb { background:var(--yellow); border-radius:6px; }
+::-webkit-scrollbar-thumb:hover { background:var(--pink); }
+
+/* ======================================================
+   PROJECT EXPLORER OFFCANVAS (varsayılan kapalı; slayt/katman ağaç görünümü)
+====================================================== */
+#explorerOffcanvas {
+  position:fixed; top:0; left:-380px; width:360px; height:100%;
+  background:#fff; z-index:2000; transition:left 0.35s ease;
+  padding:18px; overflow:auto; box-shadow:var(--shadow-lg); border-right:1px solid var(--line);
+}
+#explorerOffcanvas.show { left:0; }
+#explorerHeader { display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--line); padding-bottom:10px; margin-bottom:14px; }
+#explorerHeader h5 { font-weight:700; font-size:16px; margin:0; }
+.exp-close {
+  width:30px; height:30px; border:1px solid var(--line); border-radius:50%; background:var(--gray);
+  cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center; transition:all .15s;
+}
+.exp-close:hover { background:var(--pink); }
+#explorerFolderRow { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+.exp-action-btn {
+  display:flex; align-items:center; gap:8px; padding:9px 12px; border:1px solid var(--line);
+  border-radius:var(--radius-sm); background:var(--gray); font-weight:600; font-size:12px;
+  cursor:pointer; box-shadow:var(--shadow-sm); transition:all .15s; font-family:'Space Grotesk',sans-serif;
+  flex:1; justify-content:center;
+}
+.exp-action-btn:hover { background:var(--cyan); transform:translateY(-1px); box-shadow:var(--shadow); }
+.exp-action-btn:active { transform:translateY(0); }
+.folder-status-dot { width:10px; height:10px; border-radius:50%; background:#d9534f; flex-shrink:0; box-shadow:0 0 0 3px rgba(217,83,79,.15); transition:all .2s; }
+.folder-status-dot.connected { background:#3fb27f; box-shadow:0 0 0 3px rgba(63,178,127,.18); }
+#explorerActionsRow { display:flex; gap:8px; margin-bottom:8px; }
+#folderHint { font-size:11px; color:var(--ink); opacity:.65; line-height:1.5; margin-bottom:16px; }
+
+#explorerTree { border-top:1px solid var(--line); padding-top:10px; }
+.exp-slide-node { margin-bottom:4px; }
+.exp-slide-row {
+  display:flex; align-items:center; gap:6px; padding:7px 8px; border-radius:var(--radius-sm);
+  cursor:pointer; font-size:13px; font-weight:600; transition:background .15s;
+}
+.exp-slide-row:hover { background:var(--gray); }
+.exp-slide-row.current { background:var(--yellow); }
+.exp-caret { width:14px; height:14px; flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:transform .15s; font-size:10px; color:var(--ink); opacity:.6; }
+.exp-caret.open { transform:rotate(90deg); }
+.exp-slide-label { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.exp-frame-list { margin-left:20px; display:none; flex-direction:column; gap:2px; padding:4px 0 6px; }
+.exp-frame-list.open { display:flex; }
+.exp-frame-row {
+  display:flex; align-items:center; gap:7px; padding:5px 8px; border-radius:var(--radius-sm);
+  cursor:pointer; font-size:12px; transition:background .15s; color:var(--ink);
+}
+.exp-frame-row:hover { background:var(--gray); }
+.exp-frame-row.current { background:var(--cyan); font-weight:700; }
+.exp-frame-dot { width:7px; height:7px; border-radius:50%; background:var(--pink); flex-shrink:0; }
+.exp-frame-row.hidden-frame { opacity:.45; }
+.exp-del-btn {
+  width:22px; height:22px; border-radius:50%; border:none; background:transparent;
+  color:var(--ink); opacity:0; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+  cursor:pointer; font-size:12px; transition:all .15s; margin-left:6px;
+}
+.exp-slide-row:hover .exp-del-btn,
+.exp-frame-row:hover .exp-del-btn { opacity:.55; }
+.exp-del-btn:hover { opacity:1 !important; background:var(--pink); color:#fff; }
+.exp-slide-row .exp-slide-label { flex-shrink:1; }
+
+/* ======================================================
+   PRESENTATION MODE (Fullscreen) — sadece slayt içeriği kalır,
+   tüm düzenleme araçları (kontroller, kare paneli, koder, offcanvas'lar,
+   cam araç çubuğu) gizlenir. Sadece ileri/geri gezinme kalır.
+====================================================== */
+body.presentation-mode .controls,
+body.presentation-mode .frames-panel,
+body.presentation-mode .coder-panel,
+body.presentation-mode .slide-coder-tag,
+body.presentation-mode #overlayToolbar,
+body.presentation-mode #explorerOffcanvas,
+body.presentation-mode #offcanvas,
+body.presentation-mode #speechOffcanvas,
+body.presentation-mode .embed-open-link {
+  display:none !important;
+}
+body.presentation-mode { background:#111; }
+body.presentation-mode .carousel-container {
+  max-width:100vw; width:100vw; height:100vh; border:none; border-radius:0; box-shadow:none; margin:0; background:#111;
+}
+body.presentation-mode .slider { height:100%; }
+body.presentation-mode .slide { padding:0; height:100%; display:flex; align-items:center; justify-content:center; }
+body.presentation-mode .canvas-stack {
+  border:none; border-radius:0; box-shadow:none; flex-shrink:0;
+  /* Genişlik/yükseklik fitPresentationCanvas() tarafından JS ile piksel cinsinden, 1380:700
+     oranına sadık kalınarak hesaplanır — bu yüzden burada sabit bir değer VERİLMEZ. */
+}
+body.presentation-mode .slider-btn { opacity:0.18; transition:opacity .2s ease; z-index:10001; }
+body.presentation-mode .slider-btn:hover, body.presentation-mode .slider-btn:focus { opacity:0.9; }
+body.presentation-mode #topOverlay { z-index:10002; }
+</style>
+
+</head>
+<body>
+
+<!-- CAROUSEL -->
+<div class="carousel-container">
+  <button class="slider-btn prev-btn" id="prev">❮</button>
+  <div class="slider" id="slider">
+    <div class="slide" id="slide0">
+      <div class="canvas-stack" id="canvasStack0"></div>
+      <div class="coder-panel" id="coder0"></div>
+      <div class="slide-coder-tag" id="tag0" style="display:none">CODER</div>
+    </div>
+  </div>
+  <button class="slider-btn next-btn" id="next">❯</button>
+</div>
+
+<!-- FRAMES / LAYERS PANEL -->
+<div class="frames-panel" id="framesPanel">
+  <button class="frame-add-btn" id="addFrameBtn" title="Yeni Kare Ekle">+</button>
+  <div class="frame-list" id="frameList"></div>
+  <div class="frame-opacity-wrap" id="frameOpacityWrap" title="Aktif Karenin Opaklığı">
+    <span class="frame-opacity-val" id="frameOpacityVal">100%</span>
+    <input type="range" id="frameOpacityRange" min="0" max="100" value="100">
+  </div>
+</div>
+
+<!-- OVERLAY -->
+<div id="overlayWrapper"><canvas id="overlayCanvas"></canvas></div>
+<div id="overlayToolbar">
+  <button class="ov-btn active" id="ovDrawBtn"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.5.5 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11z"></path></svg></button>
+  <button class="ov-btn" id="ovEraseBtn"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M8.086 2.207a2 2 0 0 1 2.828 0l3.879 3.879a2 2 0 0 1 0 2.828l-5.5 5.5A2 2 0 0 1 7.879 15H5.12a2 2 0 0 1-1.414-.586l-2.5-2.5a2 2 0 0 1 0-2.828zm2.121.707a1 1 0 0 0-1.414 0L4.16 7.547l5.293 5.293 4.633-4.633a1 1 0 0 0 0-1.414zM8.746 13.547 3.453 8.254 1.914 9.793a1 1 0 0 0 0 1.414l2.5 2.5a1 1 0 0 0 .707.293H7.88a1 1 0 0 0 .707-.293z"></path></svg></button>
+  <div class="ov-sep"></div>
+  <span class="ov-label">ÇİZGİ</span>
+  <select id="ovStrokeType"><option value="normal">Normal</option><option value="rough">Rough</option><option value="dashed">Dashed</option><option value="dotted">Dotted</option></select>
+  <div class="ov-sep"></div>
+  <span class="ov-label">KALINLIK</span>
+  <input type="range" id="ovThickness" class="ov-range" min="1" max="40" value="5">
+  <div class="ov-sep"></div>
+  <input type="color" id="ovColor" value="#FF0000">
+  <div class="ov-sep"></div>
+  <span class="ov-label">OPAK</span>
+  <input type="range" id="ovOpacity" class="ov-range" min="0" max="100" value="100">
+  <div class="ov-sep"></div>
+  <button class="ov-btn" id="ovUndoBtn"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2z"></path><path d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466"></path></svg></button>
+  <button class="ov-btn" id="ovRedoBtn"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"></path><path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"></path></svg></button>
+  <button class="ov-btn" id="ovClearBtn"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"></path><path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"></path></svg></button>
+  <button class="ov-btn" id="ovCloseBtn" style="background:var(--pink);">✕</button>
+</div>
+
+<!-- RIGHT CONTROLS -->
+<div class="controls">
+  <button class="ctrl-btn" id="coderToggleBtn" title="Kod Editörü">
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path d="M5.854 4.854a.5.5 0 1 0-.708-.708l-3.5 3.5a.5.5 0 0 0 0 .708l3.5 3.5a.5.5 0 0 0 .708-.708L2.707 8zm4.292 0a.5.5 0 0 1 .708-.708l3.5 3.5a.5.5 0 0 1 0 .708l-3.5 3.5a.5.5 0 0 1-.708-.708L13.293 8z"></path></svg>
+  </button>
+  <button class="ctrl-btn active" id="normalMode" title="Normal">
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8m15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.854 10.803a.5.5 0 1 1-.708-.707L9.243 6H6.475a.5.5 0 1 1 0-1h3.975a.5.5 0 0 1 .5.5v3.975a.5.5 0 1 1-1 0V6.707z"></path></svg>
+  </button>
+  <button class="ctrl-btn" id="drawToggle" title="Çizim">
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M10.646.646a.5.5 0 0 1 .708 0l4 4a.5.5 0 0 1 0 .708l-1.902 1.902-.829 3.313a1.5 1.5 0 0 1-1.024 1.073L1.254 14.746 4.358 4.4A1.5 1.5 0 0 1 5.43 3.377l3.313-.828zm-1.8 2.908-3.173.793a.5.5 0 0 0-.358.342l-2.57 8.565 8.567-2.57a.5.5 0 0 0 .34-.357l.794-3.174-3.6-3.6z"></path><path fill-rule="evenodd" d="M2.832 13.228 8 9a1 1 0 1 0-1-1l-4.228 5.168-.026.086z"></path></svg>
+  </button>
+  <input type="range" id="opacityRange" min="0" max="100" value="100" class="mini-range" title="Opaklık">
+  <button class="ctrl-btn" id="erase" title="Nesne Sil">
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"></path><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"></path></svg>
+  </button>
+  <button class="ctrl-btn" id="deleteBtn" title="Seçili Sil">
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"></path><path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"></path></svg>
+  </button>
+  <button class="ctrl-btn" id="hideStack" title="Başlık">
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7 7 0 0 0-2.79.588l.77.771A6 6 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755q-.247.248-.517.486z"></path><path d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829"></path><path d="M3.35 5.47q-.27.24-.518.487A13 13 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7 7 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12z"></path></svg>
+  </button>
+  <button class="ctrl-btn" id="cutBtn" title="Kesim Aracı">
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path d="M3.5 3.5c-.614-.884-.074-1.962.858-2.5L8 7.226 11.642 1c.932.538 1.472 1.616.858 2.5L8.81 8.61l1.556 2.661a2.5 2.5 0 1 1-.794.637L8 9.73l-1.572 2.177a2.5 2.5 0 1 1-.794-.637L7.19 8.61zm2.5 10a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0m7 0a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0"></path></svg>
+  </button>
+  <button class="ctrl-btn" id="cloneBtn" title="Nesne Kopyala">
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z"></path></svg>
+  </button>
+  <button class="ctrl-btn" id="cloneSlideBtn" title="Slaydı Klonla">
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path d="M13 0H6a2 2 0 0 0-2 2 2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2 2 2 0 0 0 2-2V2a2 2 0 0 0-2-2m0 13V4a2 2 0 0 0-2-2H5a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1M3 4a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"></path></svg>
+  </button>
+  <button class="ctrl-btn" id="overlayToggleBtn" title="Cam Üzeri Çiz">
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path d="M0 3.5A1.5 1.5 0 0 1 1.5 2h13A1.5 1.5 0 0 1 16 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 12.5zM1.5 3a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5z"></path><path d="M8 5.5a.5.5 0 0 1 .5.5v2h2a.5.5 0 0 1 0 1h-2v2a.5.5 0 0 1-1 0v-2h-2a.5.5 0 0 1 0-1h2V6a.5.5 0 0 1 .5-.5"></path></svg>
+  </button>
+  <button class="ctrl-btn" id="downloadPngBtn" title="PNG İndir">
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"></path><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"></path></svg>
+  </button>
+  <button class="ctrl-btn" id="lockBtn" title="Birleştir">
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 0a4 4 0 0 1 4 4v2.05a2.5 2.5 0 0 1 2 2.45v5a2.5 2.5 0 0 1-2.5 2.5h-7A2.5 2.5 0 0 1 2 13.5v-5a2.5 2.5 0 0 1 2-2.45V4a4 4 0 0 1 4-4M4.5 7A1.5 1.5 0 0 0 3 8.5v5A1.5 1.5 0 0 0 4.5 15h7a1.5 1.5 0 0 0 1.5-1.5v-5A1.5 1.5 0 0 0 11.5 7zM8 1a3 3 0 0 0-3 3v2h6V4a3 3 0 0 0-3-3"></path></svg>
+  </button>
+  <button class="ctrl-btn" id="clearEmbedBtn" title="Canvas Temizle">
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path d="M0 3.5A1.5 1.5 0 0 1 1.5 2h13A1.5 1.5 0 0 1 16 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 12.5zm1.5-.5a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5z"></path><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"></path></svg>
+  </button>
+  <button class="ctrl-btn" id="fullscreenBtn" title="Tam Ekran">
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16" id="fsIconExpand"><path fill-rule="evenodd" d="M5.828 10.172a.5.5 0 0 0-.707 0l-4.096 4.096V11.5a.5.5 0 0 0-1 0v3.975a.5.5 0 0 0 .5.5H4.5a.5.5 0 0 0 0-1H1.732l4.096-4.096a.5.5 0 0 0 0-.707m4.344 0a.5.5 0 0 1 .707 0l4.096 4.096V11.5a.5.5 0 1 1 1 0v3.975a.5.5 0 0 1-.5.5H11.5a.5.5 0 0 1 0-1h2.768l-4.096-4.096a.5.5 0 0 1 0-.707m0-4.344a.5.5 0 0 0 .707 0l4.096-4.096V4.5a.5.5 0 1 0 1 0V.525a.5.5 0 0 0-.5-.5H11.5a.5.5 0 0 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 0 .707m-4.344 0a.5.5 0 0 1-.707 0L1.025 1.732V4.5a.5.5 0 0 1-1 0V.525a.5.5 0 0 1 .5-.5H4.5a.5.5 0 0 1 0 1H1.732l4.096 4.096a.5.5 0 0 1 0 .707"></path></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16" id="fsIconCollapse" style="display:none"><path fill-rule="evenodd" d="M5.5 0a.5.5 0 0 1 .5.5v4A1.5 1.5 0 0 1 4.5 6h-4a.5.5 0 0 1 0-1h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 1 .5-.5m5 0a.5.5 0 0 1 .5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 1 0 1h-4A1.5 1.5 0 0 1 10 4.5v-4a.5.5 0 0 1 .5-.5M0 10.5a.5.5 0 0 1 .5-.5h4A1.5 1.5 0 0 1 6 11.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 1-.5-.5m10 1a1.5 1.5 0 0 1 1.5-1.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 0-.5.5v4a.5.5 0 0 1-1 0z"></path></svg>
+  </button>
+  <button class="ctrl-btn" id="speechBtn" title="Konuşma/Medya">
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path d="M3 1a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1h-2l-2 2-2-2H4a1 1 0 0 1-1-1zm1 0v8h2.5l1.5 1.5 1.5-1.5H12V1z"></path></svg>
+  </button>
+  <button class="ctrl-btn" id="explorerBtn" title="Proje Gezgini">
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path d="M9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31L.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3M2.5 2a1 1 0 0 0-1 .981l.006.139q.323-.119.684-.12h5.396l-.707-.707A1 1 0 0 0 6.172 2z"></path></svg>
+  </button>
+  <div class="color-container">
+    <input type="color" id="brushColor" value="#FF0000">
+  </div>
+  <input type="number" id="brushWidth" value="5" min="1" max="50">
+  <input type="file" id="bgImageInput" accept="image/*" style="display:none;">
+</div>
+
+<!-- PROJECT EXPLORER OFFCANVAS (varsayılan kapalı) -->
+<div id="explorerOffcanvas">
+  <div id="explorerHeader">
+    <h5>Proje Gezgini</h5>
+    <button class="exp-close" id="explorerCloseBtn" title="Kapat">✕</button>
+  </div>
+
+  <div id="explorerFolderRow">
+    <button class="exp-action-btn" id="folderConnectBtn" title="Fiziki klasöre bağlan (File System Access API)">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31L.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3M2.5 2a1 1 0 0 0-1 .981l.006.139q.323-.119.684-.12h5.396l-.707-.707A1 1 0 0 0 6.172 2z"></path></svg>
+      <span id="folderConnectLabel">Klasöre Bağlan</span>
+    </button>
+    <span id="folderStatusDot" class="folder-status-dot" title="Bağlantı durumu"></span>
+  </div>
+
+  <div id="explorerActionsRow">
+    <button class="exp-action-btn" id="exportJsonBtn" title="Projeyi JSON olarak dışa aktar">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"></path><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"></path></svg>
+      JSON Dışa Aktar
+    </button>
+    <button class="exp-action-btn" id="importJsonBtn" title="JSON'dan projeyi içe aktar">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"></path><path d="M7.646 4.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 5.707V13.5a.5.5 0 0 1-1 0V5.707L5.354 7.854a.5.5 0 1 1-.708-.708z"></path></svg>
+      JSON İçe Aktar
+    </button>
+    <input type="file" id="importJsonInput" accept="application/json" style="display:none;">
+  </div>
+  <p id="folderHint">Fiziki klasöre bağlanınca, dışa aktarımlar otomatik olarak o klasöre de yazılabilir (tarayıcı desteğine bağlı).</p>
+
+  <div id="explorerTree"></div>
+</div>
+
+<!-- CUT OFFCANVAS -->
+<div id="offcanvas">
+  <div id="offcanvasControls">
+    <input type="file" id="fileInput" accept="image/*">
+    <button id="addCutButton">Kesi Ekle</button>
+    <button id="clearCutButton">Temizle</button>
+    <button id="closeOffcanvas">Kapat</button>
+  </div>
+  <canvas id="cutCanvas" width="1710" height="542"></canvas>
+</div>
+
+<!-- SPEECH OFFCANVAS -->
+<div id="speechOffcanvas">
+  <h5>Slayt Konuşması &amp; Medya</h5>
+  <textarea id="speechText" placeholder="Slayt metni..."></textarea>
+  <div style="margin-top:10px">
+    <label style="font-weight:700;font-size:13px;">SLAYT MP3 (Sırayla Çalar)</label>
+    <input type="file" id="speechAudioInput" accept="audio/*" multiple="" style="margin-top:4px;width:100%;">
+    <p style="font-size:10px;color:var(--ink);opacity:.6;margin:4px 0 0;line-height:1.4;">Birden fazla mp3 seçebilirsiniz; slayta geçildiğinde listedeki sırayla, biri bitince diğeri otomatik başlayarak çalınır. Sırayı ok tuşlarıyla değiştirebilirsiniz.</p>
+    <div id="slideAudioList" style="display:flex;flex-direction:column;gap:6px;margin-top:8px;"></div>
+    <audio id="slideAudioPlayer" controls="" style="width:100%;margin-top:6px;border:1px solid var(--line);border-radius:var(--radius-sm);"></audio>
+  </div>
+  <hr style="border:none;border-top:1px solid var(--line);margin:12px 0;">
+  <label style="font-weight:700;font-size:13px;">MP4 / VİDEO / WEB SAYFASI URL</label>
+  <input type="text" id="mediaURL" placeholder="https://... (video dosyası veya herhangi bir web sitesi)">
+  <p style="font-size:10px;color:var(--ink);opacity:.6;margin:2px 0 0;line-height:1.4;">Video linki (mp4, YouTube, Vimeo), herhangi bir web sayfası ya da bilgisayarınızdaki bir HTML dosyasının yolu (file:///...) eklenebilir. Bazı web siteleri güvenlik politikaları gereği (X-Frame-Options) iframe içine gömülmeyi engelleyebilir; yerel (file:///) dosyalarda ise tarayıcınızın ayarlarına göre kısıtlama olabilir — bu durumlarda kutunun üstünde çıkan "yeni sekmede aç" ikonunu kullanabilirsiniz.</p>
+  <button id="addMediaBtn" style="width:100%;padding:10px;background:var(--cyan);border:none;border-radius:var(--radius-sm);box-shadow:var(--shadow-sm);font-weight:700;cursor:pointer;margin-top:6px;font-family:'Space Grotesk',sans-serif;">SLAYTA URL/MEDYA EKLE</button>
+  <div id="mediaTransformControls" style="display:none;margin-top:14px;padding:12px;background:var(--gray);border:1px solid var(--line);border-radius:var(--radius-sm);">
+    <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink);margin-bottom:8px;">Seçili Medya Ayarları</p>
+    <label style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;">İçerik Yakınlaştırma (Zoom) <span id="mediaScaleVal">100%</span></label>
+    <input type="range" id="mediaScaleRange" min="50" max="400" value="100" style="width:100%;margin:4px 0 10px;">
+    <label style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;">X Kaydır (Yatay) <span id="mediaOffsetXVal">0px</span></label>
+    <input type="range" id="mediaOffsetXRange" min="-400" max="400" value="0" style="width:100%;margin:4px 0 10px;">
+    <label style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;">Y Kaydır (Dikey) <span id="mediaOffsetYVal">0px</span></label>
+    <input type="range" id="mediaOffsetYRange" min="-400" max="400" value="0" style="width:100%;margin:4px 0 10px;">
+    <label style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;">Kenar Boşluğu (Margin) <span id="mediaMarginVal">0px</span></label>
+    <input type="range" id="mediaMarginRange" min="0" max="80" value="0" style="width:100%;margin:4px 0 10px;">
+    <label style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;">İç Boşluk (Padding) <span id="mediaPaddingVal">0px</span></label>
+    <input type="range" id="mediaPaddingRange" min="0" max="60" value="0" style="width:100%;margin:4px 0 6px;">
+    <button id="mediaResetBtn" style="width:100%;padding:6px;background:#fff;border:1px solid var(--line);border-radius:var(--radius-sm);font-weight:600;font-size:11px;cursor:pointer;margin-top:4px;">Sıfırla</button>
+  </div>
+  <hr style="border:none;border-top:1px solid var(--line);margin:12px 0;">
+  <div style="display:flex;gap:8px;">
+    <button id="closeSpeech" style="flex:1;padding:10px;background:var(--pink);border:none;border-radius:var(--radius-sm);box-shadow:var(--shadow-sm);font-weight:700;cursor:pointer;font-family:'Space Grotesk',sans-serif;">KAPAT</button>
+    <button id="playSpeech" style="flex:1;padding:10px;background:var(--green);border:none;border-radius:var(--radius-sm);box-shadow:var(--shadow-sm);font-weight:700;cursor:pointer;font-family:'Space Grotesk',sans-serif;">KONUŞ</button>
+  </div>
+  <p style="margin-top:10px;font-size:12px;color:var(--ink);opacity:0.7;">Referans: https://excalidraw.com/</p>
+</div>
+
+<!-- TOP OVERLAY -->
+<div id="topOverlay">
+  <div id="lessonName">Ders Adı Buraya</div>
+  <div id="slidePageNo">1</div>
+</div>
+
+<!-- CodeMirror 5 scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closetag.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldgutter.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/brace-fold.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/xml-fold.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/html-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/css-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/javascript-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/comment/comment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+
+<script>
+'use strict';
+/* ================================================================
+   GLOBALS
+================================================================ */
+const sliderEl     = document.getElementById('slider');
+let currentSlide   = 0;
+let frameCanvasEls = {};   // frameCanvasEls[slideIdx][frameId] = fabric.Canvas
+let undoStacks     = {};   // undoStacks[slideIdx][frameId] = [...]
+let redoStacks     = {};   // redoStacks[slideIdx][frameId] = [...]
+let slideSpeeches  = [''];
+let slideTitles    = ['Ders Adı Buraya'];
+let slideAudios    = [[]];   // slideAudios[slideIdx] = [{id,name,url}, ...] — sırayla çalınacak mp3 listesi
+let slideMediaObjs = {};
+let bgImageURL     = null;
+let currentMode    = 'normal';
+let shapeMode      = null;
+window.currentAudio = null;
+window.voices = [];
+window.preferredVoice = null;
+
+/* ================================================================
+   KATMAN (OPACITY FRAME) SİSTEMİ — her slaytın kendi kare/katman dizisi
+================================================================ */
+let slideFrames   = {};   // slideFrames[slideIdx] = [{id,name,opacity,visible}, ...]
+let activeFrameId = {};   // activeFrameId[slideIdx] = aktif düzenlenen karenin id'si
+let frameCounter  = {};   // frameCounter[slideIdx] = bir sonraki kare id'si
+
+/* ================================================================
+   CODEMIRROR INSTANCES  { slideIdx -> { full, html, css, js } }
+================================================================ */
+const cmInstances = {};
+
+/* ================================================================
+   PER-SLIDE CODER STATE
+================================================================ */
+let coderStates = [];
+let frameCoderStates = {}; // frameCoderStates[slideIdx][frameId] = { fullCode, htmlCode, cssCode, jsCode, activeTab, layout, fontSize }
+function snapshotCoderState(st){
+  return { fullCode:st.fullCode, htmlCode:st.htmlCode, cssCode:st.cssCode, jsCode:st.jsCode, activeTab:st.activeTab, layout:st.layout, fontSize:st.fontSize };
+}
+function defaultCoderState() {
+  return { fullCode:'', htmlCode:'', cssCode:'', jsCode:'', activeTab:'full', layout:'split', fontSize:13 };
+}
+
+/* ================================================================
+   CM COMMON OPTIONS
+================================================================ */
+function cmOptions(mode, fontSize) {
+  return {
+    mode: mode,
+    theme: 'slider-dark',
+    lineNumbers: true,
+    lineWrapping: true,
+    matchBrackets: true,
+    autoCloseBrackets: true,
+    autoCloseTags: true,
+    foldGutter: true,
+    gutters: ['CodeMirror-linenumbers','CodeMirror-foldgutter'],
+    styleActiveLine: true,
+    tabSize: 2,
+    indentWithTabs: false,
+    indentUnit: 2,
+    extraKeys: {
+      'Ctrl-Space': 'autocomplete',
+      'Ctrl-/': 'toggleComment',
+      Tab: function(cm) {
+        if (cm.somethingSelected()) cm.indentSelection('add');
+        else cm.replaceSelection('  ', 'end');
+      }
+    }
+  };
+}
+
+/* ================================================================
+   BUILD CODER PANEL
+================================================================ */
+function buildCoderPanel(slideIdx) {
+  const panel = document.getElementById(`coder${slideIdx}`);
+  if (!panel) return;
+  const st = coderStates[slideIdx];
+  // Kod editörü ilk kurulduğunda, o an aktif olan kareyi bu kodun "sahibi" olarak işaretle
+  if (!frameCoderStates[slideIdx]) frameCoderStates[slideIdx] = {};
+  if (st.__frameId == null) {
+    const initFid = (typeof activeFrameId!=='undefined' && activeFrameId[slideIdx]!=null) ? activeFrameId[slideIdx] : 1;
+    st.__frameId = initFid;
+    frameCoderStates[slideIdx][initFid] = snapshotCoderState(st);
+  }
+
+  panel.innerHTML = `
+    <div class="coder-topbar">
+      <div class="c-tabs">
+        <button class="c-tab active" data-tab="full">FULL</button>
+        <button class="c-tab" data-tab="html">HTML</button>
+        <button class="c-tab" data-tab="css">CSS</button>
+        <button class="c-tab" data-tab="js">JS</button>
+      </div>
+      <div class="c-fontsize-wrap">
+        <label>FONT</label>
+        <input type="range" class="c-fontsize-slider" min="8" max="28" value="${st.fontSize}">
+        <span class="c-fontsize-val">${st.fontSize}px</span>
+      </div>
+      <div class="c-actions">
+        <button class="c-action blue" data-layout="split" title="Split">⇔</button>
+        <button class="c-action" data-layout="editor" title="Editör">&#60;/&#62;</button>
+        <button class="c-action" data-layout="preview" title="Önizleme">⊙</button>
+        <label class="c-action" title="HTML Dosya İçe Aktar" style="cursor:pointer;background:var(--yellow);">
+          📂<input type="file" accept=".html,.htm,.txt,.css,.js" style="display:none;" class="c-import-file">
+        </label>
+        <input class="c-filename" type="text" value="slide${slideIdx+1}.html">
+        <button class="c-action green" data-action="run" title="Çalıştır (Ctrl+Enter)">▶</button>
+        <button class="c-action green" data-action="save" title="Kaydet">💾</button>
+        <button class="c-action close-btn" data-action="close" title="Kapat">✕</button>
+      </div>
+    </div>
+    <div class="coder-body">
+      <div class="coder-editor-wrap" id="editor-wrap-${slideIdx}">
+        <textarea class="cm-host" id="cm-full-${slideIdx}"></textarea>
+        <textarea class="cm-host" id="cm-html-${slideIdx}" hidden></textarea>
+        <textarea class="cm-host" id="cm-css-${slideIdx}" hidden></textarea>
+        <textarea class="cm-host" id="cm-js-${slideIdx}" hidden></textarea>
+      </div>
+      <div class="coder-preview">
+        <iframe id="preview-${slideIdx}" sandbox="allow-scripts allow-same-origin allow-forms allow-modals"></iframe>
+      </div>
+    </div>`;
+
+  applyCoderLayout(panel, st.layout);
+  attachCoderEvents(panel, slideIdx);
+
+  // Init CodeMirror after DOM is ready
+  requestAnimationFrame(() => initCMForSlide(slideIdx));
+}
+
+function initCMForSlide(slideIdx) {
+  const st = coderStates[slideIdx];
+  const makeEditor = (id, mode, value) => {
+    const ta = document.getElementById(id);
+    if (!ta) return null;
+    const cm = CodeMirror.fromTextArea(ta, cmOptions(mode, st.fontSize));
+    cm.setValue(value || '');
+    cm.getWrapperElement().style.height = '100%';
+    cm.getWrapperElement().style.fontSize = st.fontSize + 'px';
+    cm.getWrapperElement().style.flex = '1';
+    cm.getWrapperElement().style.minHeight = '0';
+    cm.refresh();
+    return cm;
+  };
+
+  const eds = {
+    full: makeEditor(`cm-full-${slideIdx}`, 'htmlmixed', st.fullCode),
+    html: makeEditor(`cm-html-${slideIdx}`, 'htmlmixed', st.htmlCode),
+    css:  makeEditor(`cm-css-${slideIdx}`,  'css',       st.cssCode),
+    js:   makeEditor(`cm-js-${slideIdx}`,   'javascript',st.jsCode),
+  };
+  cmInstances[slideIdx] = eds;
+
+  // Show/hide based on active tab
+  setCMVisible(slideIdx, st.activeTab);
+
+  // Wire changes
+  const wireChange = (ed, area) => {
+    if (!ed) return;
+    ed.on('change', () => {
+      const val = ed.getValue();
+      if (area === 'full') {
+        st.fullCode = val;
+        syncPartsToCoder(slideIdx);
+      } else {
+        st[area + 'Code'] = val;
+      }
+      updateCoderPreview(slideIdx);
+    });
+    // Ctrl+Enter = run
+    ed.setOption('extraKeys', Object.assign({}, ed.getOption('extraKeys'), {
+      'Ctrl-Enter': () => updateCoderPreview(slideIdx),
+      'Ctrl-Space': 'autocomplete',
+      'Ctrl-/': 'toggleComment',
+      Tab: function(cm) {
+        if (cm.somethingSelected()) cm.indentSelection('add');
+        else cm.replaceSelection('  ', 'end');
+      }
+    }));
+  };
+  wireChange(eds.full, 'full');
+  wireChange(eds.html, 'html');
+  wireChange(eds.css,  'css');
+  wireChange(eds.js,   'js');
+
+  updateCoderPreview(slideIdx);
+}
+
+function setCMVisible(slideIdx, activeTab) {
+  const eds = cmInstances[slideIdx];
+  if (!eds) return;
+  ['full','html','css','js'].forEach(area => {
+    const wrapper = eds[area]?.getWrapperElement();
+    if (!wrapper) return;
+    wrapper.style.display = (area === activeTab) ? 'flex' : 'none';
+    wrapper.style.flexDirection = 'column';
+    wrapper.style.height = '100%';
+    if (area === activeTab) setTimeout(() => eds[area].refresh(), 50);
+  });
+}
+
+function applyCoderLayout(panel, layout) {
+  const body = panel.querySelector('.coder-body');
+  if (!body) return;
+  body.className = 'coder-body';
+  if (layout === 'editor')  body.classList.add('layout-editor');
+  if (layout === 'preview') body.classList.add('layout-preview');
+  panel.querySelectorAll('[data-layout]').forEach(b => {
+    b.style.background = (b.dataset.layout === layout) ? 'rgba(0,0,0,0.85)' : '';
+    b.style.color = (b.dataset.layout === layout) ? '#FFCE73' : '';
+  });
+  // Refresh CM
+  const slideIdx = parseInt(panel.id.replace('coder',''));
+  const eds = cmInstances[slideIdx];
+  if (eds) setTimeout(() => Object.values(eds).forEach(ed => ed && ed.refresh()), 100);
+}
+
+function updateCoderPreview(slideIdx) {
+  const panel = document.getElementById(`coder${slideIdx}`);
+  if (!panel) return;
+  const st = coderStates[slideIdx];
+  const iframe = document.getElementById(`preview-${slideIdx}`);
+  if (!iframe) return;
+  let src = '';
+  if (st.activeTab === 'full') {
+    src = st.fullCode;
+  } else {
+    src = `<!DOCTYPE html><html><head><style>${st.cssCode}</style></head><body>${st.htmlCode}<script>${st.jsCode}<\/script></body></html>`;
+    st.fullCode = src;
+    const eds = cmInstances[slideIdx];
+    if (eds?.full) {
+      const cur = eds.full.getValue();
+      if (cur !== src) { eds.full.setValue(src); }
+    }
+  }
+  iframe.srcdoc = src;
+}
+
+function syncPartsToCoder(slideIdx) {
+  const st = coderStates[slideIdx];
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(st.fullCode, 'text/html');
+  st.htmlCode = doc.body.innerHTML.replace(/<script[\s\S]*?<\/script>/gi,'').trim();
+  st.cssCode  = Array.from(doc.querySelectorAll('style')).map(s=>s.innerHTML).join('\n');
+  st.jsCode   = Array.from(doc.querySelectorAll('script:not([src])')).map(s=>s.innerHTML).join('\n');
+  const eds = cmInstances[slideIdx];
+  if (eds) {
+    const setVal = (ed, val) => { if (ed && ed.getValue() !== val) ed.setValue(val); };
+    setVal(eds.html, st.htmlCode);
+    setVal(eds.css,  st.cssCode);
+    setVal(eds.js,   st.jsCode);
+  }
+}
+
+function attachCoderEvents(panel, slideIdx) {
+  const st = coderStates[slideIdx];
+
+  // TABS
+  panel.querySelectorAll('.c-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      panel.querySelectorAll('.c-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      st.activeTab = btn.dataset.tab;
+      setCMVisible(slideIdx, st.activeTab);
+    });
+  });
+
+  // LAYOUT
+  panel.querySelectorAll('[data-layout]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      st.layout = btn.dataset.layout;
+      applyCoderLayout(panel, st.layout);
+    });
+  });
+
+  // FONT SIZE
+  const fsSlider = panel.querySelector('.c-fontsize-slider');
+  const fsVal    = panel.querySelector('.c-fontsize-val');
+  if (fsSlider) {
+    fsSlider.addEventListener('input', () => {
+      const sz = parseInt(fsSlider.value);
+      st.fontSize = sz;
+      fsVal.textContent = sz + 'px';
+      const eds = cmInstances[slideIdx];
+      if (eds) Object.values(eds).forEach(ed => {
+        if (ed) { ed.getWrapperElement().style.fontSize = sz + 'px'; ed.refresh(); }
+      });
+    });
+  }
+
+  // FILE IMPORT
+  const importInput = panel.querySelector('.c-import-file');
+  if (importInput) {
+    importInput.addEventListener('change', e => {
+      const file = e.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const content = ev.target.result;
+        st.fullCode = content;
+        st.activeTab = 'full';
+        panel.querySelectorAll('.c-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === 'full'));
+        setCMVisible(slideIdx, 'full');
+        const eds = cmInstances[slideIdx];
+        if (eds?.full) eds.full.setValue(content);
+        syncPartsToCoder(slideIdx);
+        updateCoderPreview(slideIdx);
+        // Set filename
+        const fnInput = panel.querySelector('.c-filename');
+        if (fnInput) fnInput.value = file.name;
+      };
+      reader.readAsText(file);
+      importInput.value = '';
+    });
+  }
+
+  // ACTIONS
+  panel.querySelectorAll('[data-action]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const action = btn.dataset.action;
+      if (action === 'run') {
+        updateCoderPreview(slideIdx);
+      } else if (action === 'save') {
+        const fname = panel.querySelector('.c-filename').value || `slide${slideIdx+1}.html`;
+        const blob = new Blob([st.fullCode || ''], { type:'text/html' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob); a.download = fname;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      } else if (action === 'close') {
+        toggleCoder(slideIdx, false);
+      }
+    });
+  });
+}
+
+/* ================================================================
+   CODER TOGGLE
+================================================================ */
+let coderOpenState = [];
+
+/* Kod editörü açıkken aktif kare değişirse, editördeki kodu doğru kareye kaydedip yeni karenin kodunu yükler */
+function syncCoderStateForFrame(slideIdx) {
+  if (!coderOpenState[slideIdx]) return;
+  const st = coderStates[slideIdx];
+  if (!st) return;
+  const fid = activeFrameId[slideIdx];
+  if (st.__frameId === fid) return; // zaten bu karenin kodu editörde
+  if (!frameCoderStates[slideIdx]) frameCoderStates[slideIdx] = {};
+  if (st.__frameId != null) frameCoderStates[slideIdx][st.__frameId] = snapshotCoderState(st);
+  const target = frameCoderStates[slideIdx][fid] || defaultCoderState();
+  Object.assign(st, target);
+  st.__frameId = fid;
+  const eds = cmInstances[slideIdx];
+  if (eds) {
+    eds.full && eds.full.setValue(st.fullCode||'');
+    eds.html && eds.html.setValue(st.htmlCode||'');
+    eds.css  && eds.css.setValue(st.cssCode||'');
+    eds.js   && eds.js.setValue(st.jsCode||'');
+    setCMVisible(slideIdx, st.activeTab);
+  }
+  updateCoderPreview(slideIdx);
+}
+function toggleCoder(slideIdx, forceOpen) {
+  const panel = document.getElementById(`coder${slideIdx}`);
+  const tag   = document.getElementById(`tag${slideIdx}`);
+  if (!panel) return;
+  const shouldOpen = (forceOpen !== undefined) ? forceOpen : !panel.classList.contains('open');
+  coderOpenState[slideIdx] = shouldOpen;
+  if (shouldOpen) {
+    panel.classList.add('open');
+    if (tag) tag.classList.add('visible');
+    document.getElementById('coderToggleBtn').classList.add('active');
+    setTopLayer('coder'); // koder en üste çıkar, aktif/etkileşimli olur
+    syncCoderStateForFrame(slideIdx); // editör, o an aktif olan karenin koduna geçer
+    setTimeout(() => {
+      const eds = cmInstances[slideIdx];
+      if (eds) Object.values(eds).forEach(ed => ed && ed.refresh());
+    }, 450);
+  } else {
+    panel.classList.remove('open');
+    if (tag) tag.classList.remove('visible');
+    document.getElementById('coderToggleBtn').classList.remove('active');
+    if (document.body.classList.contains('coder-on-top')) document.body.classList.remove('coder-on-top');
+  }
+}
+
+/* ================================================================
+   CAM ↔ KODER KARŞILIKLI ÖNCELİK SİSTEMİ
+   İkisi de aynı anda "açık" kalabilir; ama hangisi son seçilen/aktif olan ise
+   o en üstte durur ve etkileşimlidir. Diğeri görünür kalır ama tıklanamaz/yazılamaz
+   (kod editörü salt-okunur olur, cam katmanı fare/dokunmatik olaylarını almaz).
+================================================================ */
+function setTopLayer(which) {
+  document.body.classList.toggle('coder-on-top', which === 'coder');
+  document.body.classList.toggle('glass-on-top', which === 'glass');
+  // Koder en üstte değilken CodeMirror'a yazılamaz (salt-okunur); en üstteyken tekrar yazılabilir
+  const eds = cmInstances[currentSlide];
+  if (eds) Object.values(eds).forEach(ed => { if (ed) ed.setOption('readOnly', which !== 'coder'); });
+  // Cam en üste çıkarken, altta kalan koder içinde odaklanmış bir alan varsa odağı bırak
+  if (which === 'glass' && document.activeElement && document.activeElement.closest && document.activeElement.closest('.coder-panel')) {
+    document.activeElement.blur();
+  }
+}
+
+document.getElementById('coderToggleBtn').addEventListener('click', () => {
+  const panel = document.getElementById(`coder${currentSlide}`);
+  const isOpen = panel && panel.classList.contains('open');
+  const isTop  = document.body.classList.contains('coder-on-top');
+  if (isOpen && isTop) {
+    toggleCoder(currentSlide, false); // zaten en üstte açıksa -> kapat
+  } else if (isOpen && !isTop) {
+    setTopLayer('coder'); // açık ama arkada kalmış (cam üstteydi) -> sadece öne getir, kapatma
+  } else {
+    toggleCoder(currentSlide, true); // hiç açık değil -> aç (zaten öne getirir)
+  }
+});
+
+/* ================================================================
+   CANVAS CREATION (her kare/katman kendi fabric.Canvas'ına sahiptir)
+================================================================ */
+function createFrameCanvas(slideIdx, frameId) {
+  const stack = document.getElementById(`canvasStack${slideIdx}`);
+  const elId = `fc_${slideIdx}_${frameId}`;
+  const canvasEl = document.createElement('canvas');
+  canvasEl.id = elId;
+  stack.appendChild(canvasEl);
+  const w = stack.clientWidth || 1380;
+  // Yükseklik her zaman 1380:700 tasarım oranına göre hesaplanır (CSS'teki aspect-ratio ile birebir
+  // aynı). Böylece tuvalin dahili çözünürlüğü, kapsayıcının gerçek oranıyla her zaman eşleşir ve
+  // pencere/fullscreen boyutu değişse bile CSS ölçeklemesi tek eksende GERMEZ, orantılı büyür/küçülür.
+  const h = Math.round(w * 700 / 1380);
+  const fc = new fabric.Canvas(elId, { selection:true, preserveObjectStacking:true, width:w, height:h });
+  attachCanvasEvents(fc);
+  if (!frameCanvasEls[slideIdx]) frameCanvasEls[slideIdx] = {};
+  frameCanvasEls[slideIdx][frameId] = fc;
+  if (!undoStacks[slideIdx]) undoStacks[slideIdx] = {};
+  if (!redoStacks[slideIdx]) redoStacks[slideIdx] = {};
+  undoStacks[slideIdx][frameId] = [];
+  redoStacks[slideIdx][frameId] = [];
+  return fc;
+}
+function getFrameCanvas(slideIdx, frameId) {
+  if (!frameCanvasEls[slideIdx] || !frameCanvasEls[slideIdx][frameId]) return createFrameCanvas(slideIdx, frameId);
+  return frameCanvasEls[slideIdx][frameId];
+}
+/* fabric.js Canvas.dispose() kendi oluşturduğu ".canvas-container" sarmalayıcıyı DOM'dan kaldırıp
+   yerine ORİJİNAL çıplak <canvas> etiketini bırakıyor (fabric'in dahili "temizle ve eski haline döndür"
+   davranışı). Sadece dispose öncesi alınan wrapperEl referansını kaldırmak bu çıplak <canvas>'ı DOM'da
+   hayalet olarak bırakıyordu. Bu fonksiyon her iki durumu da güvenle temizler. */
+/* fabric.js'in bazı filtreleri (örn. Convolute/keskinleştirme) JSON'a serileştirilirken matrix verisini
+   bozuk (dizi yerine obje) yazabiliyor; bu da toJSON/loadFromJSON döngüsünde görselin WebGL şeyder hatasıyla
+   TAMAMEN kaybolmasına yol açıyor. Bu yüzden filtreyi CANLI tutmak yerine piksellere "gömüp" (bake) filtre
+   nesnesini tamamen kaldırıyoruz — görsel sonuç birebir korunurken JSON dışa/içe aktarımı %100 güvenilir olur. */
+function bakeFilteredImage(img, extraProps, onDone) {
+  const bakedUrl = img.toDataURL({ format:'png' });
+  const props = Object.assign({
+    left:img.left, top:img.top, originX:img.originX, originY:img.originY,
+    angle:img.angle, scaleX:img.scaleX, scaleY:img.scaleY,
+    selectable:img.selectable, evented:img.evented
+  }, extraProps||{});
+  fabric.Image.fromURL(bakedUrl, bakedImg => { bakedImg.set(props); onDone(bakedImg); });
+}
+function disposeFrameCanvasDom(fc, canvasElId) {
+  if (!fc) return;
+  const wrap = fc.wrapperEl;
+  try { fc.dispose(); } catch(e) {}
+  if (wrap && wrap.parentNode) wrap.parentNode.removeChild(wrap);
+  if (canvasElId) {
+    const leftover = document.getElementById(canvasElId);
+    if (leftover && leftover.parentNode) leftover.parentNode.removeChild(leftover);
+  }
+}
+/* Bir slaytın canvas-stack konteynerindeki TÜM kare canvas'larını (dispose + DOM temizliği ile) kaldırır */
+function disposeAllFrameCanvases(slideIdx) {
+  Object.entries(frameCanvasEls[slideIdx]||{}).forEach(([fid, fc])=>{
+    disposeFrameCanvasDom(fc, `fc_${slideIdx}_${fid}`);
+  });
+  frameCanvasEls[slideIdx] = {};
+  const stackEl = document.getElementById(`canvasStack${slideIdx}`);
+  if (stackEl) stackEl.innerHTML = ''; // olası kalıntıları da garantiye alır
+}
+/* Bir slaytın gömülü medya (iframe/video) DOM elemanlarını temizler */
+function removeSlideMediaDom(slideIdx) {
+  (slideMediaObjs[slideIdx]||[]).forEach(m=>{ if (m.wrapper?.parentNode) m.wrapper.parentNode.removeChild(m.wrapper); });
+  slideMediaObjs[slideIdx] = [];
+}
+/* Bir slaytın kendisini (üst .slide div'i ve içindekiler) tamamen DOM'dan kaldırır */
+function removeSlideDom(slideIdx) {
+  disposeAllFrameCanvases(slideIdx);
+  removeSlideMediaDom(slideIdx);
+  const slideEl = document.getElementById(`slide${slideIdx}`);
+  if (slideEl?.parentNode) slideEl.parentNode.removeChild(slideEl);
+}
+/* Bir slaytın tüm canvas'larını z-index sırasına göre tek görsele birleştirir (PNG indirme / düzleştirme için) */
+function compositeSlideToDataURL(slideIdx, multiplier) {
+  ensureFrames(slideIdx);
+  const frames = slideFrames[slideIdx];
+  const mult = multiplier||1;
+  const first = frameCanvasEls[slideIdx][frames[0].id];
+  const w = (first?.getWidth()||1380) * mult, h = (first?.getHeight()||700) * mult;
+  const off = document.createElement('canvas'); off.width = w; off.height = h;
+  const ctx = off.getContext('2d');
+  frames.forEach(f=>{
+    if (!f.visible) return;
+    const fc = frameCanvasEls[slideIdx][f.id]; if (!fc) return;
+    ctx.globalAlpha = f.opacity;
+    ctx.drawImage(fc.lowerCanvasEl, 0, 0, w, h);
+  });
+  ctx.globalAlpha = 1;
+  return off.toDataURL('image/png');
+}
+
+let currentCanvas = null;
+
+function initFirstSlide() {
+  coderStates[0] = defaultCoderState();
+  coderOpenState[0] = false;
+  slideMediaObjs[0] = [];
+  ensureFrames(0); // ilgili kare canvas'larını da oluşturur
+  buildCoderPanel(0);
+  currentCanvas = getFrameCanvas(0, activeFrameId[0]);
+}
+initFirstSlide();
+renderFrameList();
+applyFrameStyles(0);
+
+/* ================================================================
+   CANVAS EVENTS
+================================================================ */
+function attachCanvasEvents(canvas) {
+  let _drawing=false, _startX, _startY, _tempObj;
+
+  canvas.on('mouse:down', opt => {
+    const e=opt.e, pointer=canvas.getPointer(e);
+    if (currentMode==='erase') {
+      const obj=canvas.findTarget(e,true);
+      if (obj) {
+        removeObjAndWrapper(obj); canvas.remove(obj);
+        canvas.discardActiveObject(); canvas.requestRenderAll(); saveState();
+        setMode('normal'); activateBtn(document.getElementById('normalMode'));
+      }
+      return;
+    }
+    if (shapeMode) {
+      _drawing=true; _startX=pointer.x; _startY=pointer.y;
+      const col=document.getElementById('brushColor').value;
+      if (shapeMode==='rect') _tempObj=new fabric.Rect({left:_startX,top:_startY,width:0,height:0,fill:col+'33',stroke:col,strokeWidth:2,rx:6,ry:6});
+      else if (shapeMode==='circle') _tempObj=new fabric.Ellipse({left:_startX,top:_startY,originX:'left',originY:'top',rx:0,ry:0,fill:col+'33',stroke:col,strokeWidth:2});
+      else if (shapeMode==='arrow') _tempObj=new fabric.Line([_startX,_startY,_startX,_startY],{stroke:col,strokeWidth:4,selectable:false});
+      if (_tempObj) { _tempObj.frameId = getActiveFrame(currentSlide).id; canvas.add(_tempObj); }
+      return;
+    }
+    if (currentMode==='draw') {
+      if (!canvas.freeDrawingBrush) canvas.freeDrawingBrush=new fabric.PencilBrush(canvas);
+      canvas.freeDrawingBrush.color=document.getElementById('brushColor').value;
+      canvas.freeDrawingBrush.width=parseInt(document.getElementById('brushWidth').value)||5;
+      return;
+    }
+    if (opt.target) { opt.target.bringToFront(); canvas.setActiveObject(opt.target); canvas.requestRenderAll(); }
+  });
+  canvas.on('mouse:move', opt => {
+    if (!_drawing||!_tempObj) return;
+    const p=canvas.getPointer(opt.e);
+    if (shapeMode==='rect') _tempObj.set({width:Math.abs(p.x-_startX),height:Math.abs(p.y-_startY),left:Math.min(p.x,_startX),top:Math.min(p.y,_startY)});
+    else if (shapeMode==='circle') _tempObj.set({rx:Math.abs(p.x-_startX)/2,ry:Math.abs(p.y-_startY)/2,left:Math.min(p.x,_startX),top:Math.min(p.y,_startY)});
+    else if (shapeMode==='arrow') _tempObj.set({x2:p.x,y2:p.y});
+    canvas.requestRenderAll();
+  });
+  canvas.on('mouse:up', () => {
+    if (_drawing) { _drawing=false; _tempObj=null; shapeMode=null; setMode('normal'); activateBtn(document.getElementById('normalMode')); saveState(); }
+  });
+  canvas.on('path:created', (e) => { if (e.path) e.path.frameId = getActiveFrame(currentSlide).id; saveState(); });
+  canvas.on('selection:created', opt=>{ updateOpacitySlider(); onMediaSelectionChange(canvas, opt.selected?.[0]||opt.target); });
+  canvas.on('selection:updated', opt=>{ updateOpacitySlider(); onMediaSelectionChange(canvas, opt.selected?.[0]||opt.target); });
+  canvas.on('selection:cleared', () => { document.getElementById('opacityRange').value=100; onMediaSelectionChange(canvas, null); });
+  // Sürükleme / ölçekleme / döndürme sırasında gömülü medya kutusunu canlı senkronize et
+  canvas.on('object:moving',   opt=>syncIfMedia(opt.target));
+  canvas.on('object:scaling',  opt=>syncIfMedia(opt.target));
+  canvas.on('object:rotating', opt=>syncIfMedia(opt.target));
+  canvas.on('object:modified', opt=>{ syncIfMedia(opt.target); saveState(); });
+  canvas.on('after:render', ()=>{
+    (slideMediaObjs[currentSlide]||[]).forEach(m=>{ if (m.rect && m.rect.canvas===canvas) syncMediaWithRect(m); });
+  });
+  canvas.on('object:removed', opt=>{ removeObjAndWrapper(opt.target); });
+}
+/* Verilen fabric nesnesi bir medya placeholder'ı ise DOM kutusunu anında senkronize eder */
+function syncIfMedia(target){
+  if (!target) return;
+  const m = (slideMediaObjs[currentSlide]||[]).find(m=>m.rect===target);
+  if (m) syncMediaWithRect(m);
+}
+let selectedMediaRec = null;
+/* Seçim değiştiğinde: seçili medyanın tutamaçları görünsün diye canvas'ı geçici olarak üste alır */
+function onMediaSelectionChange(canvas, target){
+  selectedMediaRec = null;
+  (slideMediaObjs[currentSlide]||[]).forEach(m=>{
+    if (m.rect && m.rect.canvas===canvas) {
+      const sel = (m.rect===target);
+      m.wrapper.dataset.selected = sel ? '1' : '0';
+      if (sel) selectedMediaRec = m;
+    }
+  });
+  applyMediaFrameStyles(currentSlide);
+  updateMediaTransformPanel();
+  if (selectedMediaRec) document.getElementById('speechOffcanvas').classList.add('show');
+}
+function updateMediaTransformPanel(){
+  const panel=document.getElementById('mediaTransformControls');
+  if (!selectedMediaRec) { panel.style.display='none'; return; }
+  panel.style.display='block';
+  const m=selectedMediaRec;
+  document.getElementById('mediaScaleRange').value=Math.round((m.scale||1)*100);
+  document.getElementById('mediaScaleVal').textContent=Math.round((m.scale||1)*100)+'%';
+  document.getElementById('mediaOffsetXRange').value=m.offsetX||0;
+  document.getElementById('mediaOffsetXVal').textContent=(m.offsetX||0)+'px';
+  document.getElementById('mediaOffsetYRange').value=m.offsetY||0;
+  document.getElementById('mediaOffsetYVal').textContent=(m.offsetY||0)+'px';
+  document.getElementById('mediaMarginRange').value=m.margin||0;
+  document.getElementById('mediaMarginVal').textContent=(m.margin||0)+'px';
+  document.getElementById('mediaPaddingRange').value=m.padding||0;
+  document.getElementById('mediaPaddingVal').textContent=(m.padding||0)+'px';
+}
+document.getElementById('mediaScaleRange').addEventListener('input',e=>{
+  if (!selectedMediaRec) return;
+  selectedMediaRec.scale=e.target.value/100;
+  document.getElementById('mediaScaleVal').textContent=e.target.value+'%';
+  applyMediaContentTransform(selectedMediaRec);
+});
+document.getElementById('mediaScaleRange').addEventListener('change',()=>saveState());
+document.getElementById('mediaOffsetXRange').addEventListener('input',e=>{
+  if (!selectedMediaRec) return;
+  selectedMediaRec.offsetX=parseInt(e.target.value)||0;
+  document.getElementById('mediaOffsetXVal').textContent=e.target.value+'px';
+  applyMediaContentTransform(selectedMediaRec);
+});
+document.getElementById('mediaOffsetXRange').addEventListener('change',()=>saveState());
+document.getElementById('mediaOffsetYRange').addEventListener('input',e=>{
+  if (!selectedMediaRec) return;
+  selectedMediaRec.offsetY=parseInt(e.target.value)||0;
+  document.getElementById('mediaOffsetYVal').textContent=e.target.value+'px';
+  applyMediaContentTransform(selectedMediaRec);
+});
+document.getElementById('mediaOffsetYRange').addEventListener('change',()=>saveState());
+document.getElementById('mediaMarginRange').addEventListener('input',e=>{
+  if (!selectedMediaRec) return;
+  selectedMediaRec.margin=parseInt(e.target.value)||0;
+  document.getElementById('mediaMarginVal').textContent=e.target.value+'px';
+  syncMediaWithRect(selectedMediaRec);
+});
+document.getElementById('mediaMarginRange').addEventListener('change',()=>saveState());
+document.getElementById('mediaPaddingRange').addEventListener('input',e=>{
+  if (!selectedMediaRec) return;
+  selectedMediaRec.padding=parseInt(e.target.value)||0;
+  document.getElementById('mediaPaddingVal').textContent=e.target.value+'px';
+  syncMediaWithRect(selectedMediaRec);
+});
+document.getElementById('mediaPaddingRange').addEventListener('change',()=>saveState());
+document.getElementById('mediaResetBtn').addEventListener('click',()=>{
+  if (!selectedMediaRec) return;
+  Object.assign(selectedMediaRec,{scale:1,offsetX:0,offsetY:0,margin:0,padding:0});
+  updateMediaTransformPanel();
+  syncMediaWithRect(selectedMediaRec);
+  saveState();
+});
+
+function removeObjAndWrapper(obj) {
+  const list = slideMediaObjs[currentSlide]||[];
+  for (let i=list.length-1;i>=0;i--) {
+    if (list[i] && list[i].rect===obj) {
+      if (list[i].wrapper?.parentNode) list[i].wrapper.parentNode.removeChild(list[i].wrapper);
+      list.splice(i,1);
+    }
+  }
+}
+
+/* ================================================================
+   MODE
+================================================================ */
+function setMode(mode) {
+  currentMode=mode;
+  currentCanvas.isDrawingMode=false;
+  currentCanvas.selection=(mode==='normal');
+  applyFrameStyles(currentSlide); // seçilebilirlik/etkileşim yalnızca aktif katmana göre ayarlanır
+  if (mode!=='normal') {
+    currentCanvas.discardActiveObject();
+    currentCanvas.forEachObject(o=>{o.selectable=false;});
+    currentCanvas.requestRenderAll();
+  }
+  if (mode==='draw') {
+    if (!currentCanvas.freeDrawingBrush) currentCanvas.freeDrawingBrush=new fabric.PencilBrush(currentCanvas);
+    currentCanvas.freeDrawingBrush.color=document.getElementById('brushColor').value;
+    currentCanvas.freeDrawingBrush.width=parseInt(document.getElementById('brushWidth').value)||5;
+    currentCanvas.isDrawingMode=true;
+  }
+}
+
+/* ================================================================
+   UNDO / REDO
+================================================================ */
+function saveState() {
+  const idx=currentSlide, fid=activeFrameId[idx];
+  if (!undoStacks[idx]) undoStacks[idx]={};
+  if (!undoStacks[idx][fid]) undoStacks[idx][fid]=[];
+  if (!redoStacks[idx]) redoStacks[idx]={};
+  undoStacks[idx][fid].push(currentCanvas.toJSON(['frameId','frameLocked','mediaUid','isMediaPlaceholder'])); redoStacks[idx][fid]=[];
+}
+function undo() {
+  const idx=currentSlide, fid=activeFrameId[idx];
+  if (!undoStacks[idx]?.[fid]?.length) return;
+  if (!redoStacks[idx]) redoStacks[idx]={};
+  if (!redoStacks[idx][fid]) redoStacks[idx][fid]=[];
+  redoStacks[idx][fid].push(currentCanvas.toJSON(['frameId','frameLocked','mediaUid','isMediaPlaceholder']));
+  currentCanvas.loadFromJSON(undoStacks[idx][fid].pop(),()=>{currentCanvas.discardActiveObject();currentCanvas.renderAll();relinkMediaObjects(idx,currentCanvas);});
+}
+function redo() {
+  const idx=currentSlide, fid=activeFrameId[idx];
+  if (!redoStacks[idx]?.[fid]?.length) return;
+  if (!undoStacks[idx]) undoStacks[idx]={};
+  if (!undoStacks[idx][fid]) undoStacks[idx][fid]=[];
+  undoStacks[idx][fid].push(currentCanvas.toJSON(['frameId','frameLocked','mediaUid','isMediaPlaceholder']));
+  currentCanvas.loadFromJSON(redoStacks[idx][fid].pop(),()=>{currentCanvas.discardActiveObject();currentCanvas.renderAll();relinkMediaObjects(idx,currentCanvas);});
+}
+/* loadFromJSON her seferinde yeni nesne örnekleri oluşturduğu için, medya kayıtlarını
+   uid üzerinden yeniden bulunan rect'lere bağlar (undo/redo sonrası senkron kopmasın diye) */
+function relinkMediaObjects(idx, fc) {
+  const list = slideMediaObjs[idx]||[];
+  const frames = slideFrames[idx]||[];
+  const frameEntry = frames.find(f=>frameCanvasEls[idx]?.[f.id]===fc);
+  const fid = frameEntry ? frameEntry.id : null;
+  const found = new Set();
+  fc.getObjects().forEach(o=>{
+    if (o.isMediaPlaceholder && o.mediaUid) {
+      const rec = list.find(m=>m.uid===o.mediaUid);
+      if (rec) { rec.rect=o; if(fid!=null) rec.frameId=fid; syncMediaWithRect(rec); found.add(rec.uid); }
+    }
+  });
+  if (fid==null) return;
+  // Bu kareye ait ama undo/redo sonrası artık nesnesi kalmayan medyaları temizle
+  for (let i=list.length-1;i>=0;i--) {
+    if (list[i].frameId===fid && !found.has(list[i].uid)) {
+      if (list[i].wrapper?.parentNode) list[i].wrapper.parentNode.removeChild(list[i].wrapper);
+      list.splice(i,1);
+    }
+  }
+}
+
+/* ================================================================
+   KATMAN (OPACITY FRAME) SİSTEMİ — her kare kendi fabric.Canvas'ına sahiptir.
+   Bu sayede z-index / görünürlük / etkileşim tamamen katman sınırında kalır.
+================================================================ */
+function ensureFrames(idx) {
+  if (!slideFrames[idx] || !slideFrames[idx].length) {
+    slideFrames[idx] = [{ id:1, name:'Kare 1', opacity:1, visible:true }];
+    activeFrameId[idx] = 1;
+    frameCounter[idx] = 1;
+  }
+  if (!activeFrameId[idx] || !slideFrames[idx].some(f=>f.id===activeFrameId[idx])) {
+    activeFrameId[idx] = slideFrames[idx][0].id;
+  }
+  slideFrames[idx].forEach(f=>getFrameCanvas(idx, f.id)); // her kare için canvas'ın var olduğundan emin ol
+}
+function resetFrames(idx) {
+  slideFrames[idx] = [{ id:1, name:'Kare 1', opacity:1, visible:true }];
+  activeFrameId[idx] = 1;
+  frameCounter[idx] = 1;
+}
+function getActiveFrame(idx) {
+  ensureFrames(idx);
+  return slideFrames[idx].find(f=>f.id===activeFrameId[idx]) || slideFrames[idx][0];
+}
+/* Her karenin kendi canvas'ının z-index / opaklık / etkileşim durumunu ayarlar */
+function applyFrameStyles(idx) {
+  ensureFrames(idx);
+  const frames = slideFrames[idx];
+  const activeId = activeFrameId[idx];
+  frames.forEach((f,i)=>{
+    const fc = frameCanvasEls[idx]?.[f.id]; if (!fc) return;
+    const isActive = (f.id===activeId) && f.visible;
+    if (!isActive) { fc.discardActiveObject(); }
+    const wrap = fc.wrapperEl;
+    if (wrap) {
+      wrap.style.zIndex = String(1 + i*2);
+      wrap.style.opacity = f.visible ? f.opacity : 0;
+      wrap.style.pointerEvents = isActive ? 'auto' : 'none';
+    }
+    fc.requestRenderAll();
+  });
+  applyMediaFrameStyles(idx);
+}
+/* Medya (iframe/video) gömme nesnelerini de aynı katman sistemine bağlar (z-index dahil) */
+function applyMediaFrameStyles(idx) {
+  ensureFrames(idx);
+  const frames = slideFrames[idx];
+  const activeId = activeFrameId[idx];
+  (slideMediaObjs[idx]||[]).forEach(m=>{
+    if (!m.wrapper) return;
+    if (m.frameId==null || !frames.some(f=>f.id===m.frameId)) m.frameId = frames[0].id;
+    const f = frames.find(fr=>fr.id===m.frameId) || frames[0];
+    const i = frames.findIndex(fr=>fr.id===f.id);
+    const isActive = (f.id===activeId) && f.visible;
+    const isSelected = m.wrapper.dataset.selected==='1';
+    const objOpacity = m.rect ? (m.rect.opacity??1) : 1;
+    // Seçiliyken tutamaçların görünmesi için canvas'ın (1+i*2) altına in, normalde üstünde dur
+    m.wrapper.style.zIndex = String(isSelected ? (i*2) : (2 + i*2));
+    m.wrapper.style.opacity = f.visible ? (f.opacity*objOpacity) : 0;
+    m.wrapper.style.pointerEvents = (isActive && m.wrapper.classList.contains('active') && !isSelected) ? 'auto' : 'none';
+    if (m.rect) syncMediaWithRect(m);
+  });
+}
+function renderFrameList() {
+  ensureFrames(currentSlide);
+  const slideIdx = currentSlide; // render anındaki slaytı SABİTLE — sonradan currentSlide değişse bile
+                                  // bu listedeki tıklamalar HER ZAMAN bu slaytı hedefler, asla başka slaytı etkilemez
+  const frames = slideFrames[slideIdx];
+  const listEl = document.getElementById('frameList');
+  listEl.innerHTML = '';
+  frames.forEach((f,i)=>{
+    const chip = document.createElement('div');
+    chip.className = 'frame-chip'
+      + (f.id===activeFrameId[slideIdx] ? ' active' : '')
+      + (!f.visible ? ' hidden-frame' : '');
+    chip.title = f.name+' — tıkla: aktif kare';
+    chip.textContent = i+1;
+
+    const del = document.createElement('div');
+    del.className = 'frame-del'; del.textContent = '✕'; del.title = 'Kareyi Sil';
+    del.addEventListener('click', ev=>{ ev.stopPropagation(); deleteFrame(f.id, slideIdx); });
+
+    const eye = document.createElement('div');
+    eye.className = 'frame-eye' + (f.visible ? '' : ' eye-hidden');
+    eye.textContent = f.visible ? '👁' : '🚫';
+    eye.title = f.visible ? 'Sunumda gizle' : 'Sunumda göster';
+    eye.addEventListener('click', ev=>{
+      ev.stopPropagation();
+      f.visible=!f.visible;
+      applyFrameStyles(slideIdx);
+      if (slideIdx===currentSlide) renderFrameList();
+      else renderExplorerTree();
+    });
+    // Dokunmatik cihazlarda tıklama olayı bazen "click" ile birlikte gecikmeli tetiklenebiliyor;
+    // pointerdown üzerinden de yakalayarak sunum sırasında anlık tepki sağlanır.
+    eye.addEventListener('pointerdown', ev=>{ ev.stopPropagation(); });
+
+    chip.appendChild(del); chip.appendChild(eye);
+    chip.addEventListener('click', ()=>{
+      activeFrameId[slideIdx]=f.id;
+      if (slideIdx===currentSlide) {
+        currentCanvas = getFrameCanvas(slideIdx, f.id);
+        applyFrameStyles(slideIdx);
+        syncCoderStateForFrame(slideIdx); // editör açıksa, kodu da bu karenin koduna geçir
+        renderFrameList();
+      } else {
+        applyFrameStyles(slideIdx); // görüntülenmiyor ama state tutarlı kalsın
+      }
+    });
+    listEl.appendChild(chip);
+  });
+  const af = getActiveFrame(slideIdx);
+  document.getElementById('frameOpacityRange').value = Math.round(af.opacity*100);
+  document.getElementById('frameOpacityVal').textContent = Math.round(af.opacity*100)+'%';
+}
+function deleteFrame(fid, slideIdx) {
+  if (slideIdx===undefined) slideIdx = currentSlide; // geriye dönük uyumluluk (varsayılan: mevcut slayt)
+  ensureFrames(slideIdx);
+  const frames = slideFrames[slideIdx];
+  if (frames.length<=1) return; // en az bir kare kalmalı
+  const fc = frameCanvasEls[slideIdx]?.[fid];
+  if (fc) {
+    disposeFrameCanvasDom(fc, `fc_${slideIdx}_${fid}`);
+    delete frameCanvasEls[slideIdx][fid];
+  }
+  const mediaList = slideMediaObjs[slideIdx]||[];
+  for (let i=mediaList.length-1;i>=0;i--) {
+    if (mediaList[i].frameId===fid) {
+      if (mediaList[i].wrapper?.parentNode) mediaList[i].wrapper.parentNode.removeChild(mediaList[i].wrapper);
+      mediaList.splice(i,1);
+    }
+  }
+  const idx = frames.findIndex(f=>f.id===fid);
+  frames.splice(idx,1);
+  if (frameCoderStates[slideIdx]) delete frameCoderStates[slideIdx][fid];
+  if (activeFrameId[slideIdx]===fid) {
+    activeFrameId[slideIdx] = frames[Math.max(0,idx-1)].id;
+    if (slideIdx===currentSlide) currentCanvas = getFrameCanvas(slideIdx, activeFrameId[slideIdx]);
+  }
+  const st = coderStates[slideIdx];
+  if (st && st.__frameId === fid) st.__frameId = null; // silinen kare editörde yüklüyse zorla yeniden senkronize et
+  if (slideIdx===currentSlide) {
+    syncCoderStateForFrame(slideIdx);
+    renderFrameList();
+  }
+  applyFrameStyles(slideIdx); updateMediaVisibility(); saveState();
+}
+document.getElementById('addFrameBtn').addEventListener('click',()=>{
+  ensureFrames(currentSlide);
+  frameCounter[currentSlide] = Math.max(frameCounter[currentSlide]||0, ...slideFrames[currentSlide].map(f=>f.id)) + 1;
+  const nf = { id:frameCounter[currentSlide], name:'Kare '+frameCounter[currentSlide], opacity:1, visible:true };
+  slideFrames[currentSlide].push(nf);
+  activeFrameId[currentSlide] = nf.id;
+  currentCanvas = getFrameCanvas(currentSlide, nf.id);
+  applyFrameStyles(currentSlide);
+  syncCoderStateForFrame(currentSlide);
+  renderFrameList(); saveState();
+});
+document.getElementById('frameOpacityRange').addEventListener('input', e=>{
+  const f = getActiveFrame(currentSlide);
+  f.opacity = e.target.value/100;
+  document.getElementById('frameOpacityVal').textContent = e.target.value+'%';
+  applyFrameStyles(currentSlide);
+});
+document.getElementById('frameOpacityRange').addEventListener('change', ()=>saveState());
+
+/* ================================================================
+   BUTTON HELPERS
+================================================================ */
+const allCtrlBtns=()=>[...document.querySelectorAll('.controls .ctrl-btn')];
+function activateBtn(btn){allCtrlBtns().forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');}
+function updateOpacitySlider(){const obj=currentCanvas.getActiveObject();document.getElementById('opacityRange').value=obj?obj.opacity*100:100;}
+
+/* ================================================================
+   BUTTON LISTENERS
+================================================================ */
+document.getElementById('normalMode').addEventListener('click',()=>{setMode('normal');activateBtn(document.getElementById('normalMode'));});
+document.getElementById('drawToggle').addEventListener('click',()=>{setMode('draw');activateBtn(document.getElementById('drawToggle'));});
+document.getElementById('erase').addEventListener('click',()=>{setMode('erase');activateBtn(document.getElementById('erase'));});
+
+document.getElementById('deleteBtn').addEventListener('click',deleteSelected);
+function deleteSelected(){
+  const objs=currentCanvas.getActiveObjects(); if(!objs?.length) return;
+  objs.forEach(obj=>{removeObjAndWrapper(obj);currentCanvas.remove(obj);});
+  currentCanvas.discardActiveObject();currentCanvas.requestRenderAll();saveState();
+}
+document.getElementById('cloneBtn').addEventListener('click',()=>{
+  const obj=currentCanvas.getActiveObject(); if(!obj) return;
+  obj.clone(cl=>{cl.set({left:cl.left+20,top:cl.top+20});cl.frameId=obj.frameId;currentCanvas.add(cl);currentCanvas.setActiveObject(cl);currentCanvas.requestRenderAll();saveState();});
+});
+document.getElementById('cloneSlideBtn').addEventListener('click',()=>{
+  const srcIdx=currentSlide;
+  ensureFrames(srcIdx);
+  const framesCopy=JSON.parse(JSON.stringify(slideFrames[srcIdx]));
+  const activeCopy=activeFrameId[srcIdx];
+  const counterCopy=frameCounter[srcIdx];
+  const jsons={};
+  framesCopy.forEach(f=>{ jsons[f.id]=frameCanvasEls[srcIdx][f.id].toJSON(['frameId','frameLocked','mediaUid','isMediaPlaceholder']); });
+  const mediaCopy=(slideMediaObjs[srcIdx]||[]).map(m=>({
+    uid:m.uid, url:m.url, frameId:m.frameId, scale:m.scale, offsetX:m.offsetX, offsetY:m.offsetY, margin:m.margin, padding:m.padding
+  })).filter(m=>m.uid&&m.url);
+  const title=slideTitles[srcIdx];
+  const speech=slideSpeeches[srcIdx];
+  const coderCopy=JSON.parse(JSON.stringify(coderStates[srcIdx]));
+  const frameCoderCopy=JSON.parse(JSON.stringify(frameCoderStates[srcIdx]||{}));
+
+  addSlide();
+  const ni=sliderEl.children.length-1;
+  // addSlide varsayılan tek kare/canvas oluşturdu — kaynak yapıyla birebir değiştiriyoruz
+  disposeAllFrameCanvases(ni);
+  slideFrames[ni]=framesCopy; activeFrameId[ni]=activeCopy; frameCounter[ni]=counterCopy;
+  slideMediaObjs[ni]=[];
+
+  let pending=framesCopy.length;
+  framesCopy.forEach(f=>{
+    const fc=getFrameCanvas(ni,f.id);
+    fc.loadFromJSON(jsons[f.id],()=>{
+      fc.requestRenderAll();
+      if (--pending===0) finishClone();
+    });
+  });
+
+  function finishClone(){
+    // Kaynaktaki her medyayı, aynı uid'e sahip yeni rect'i bulup gerçek iframe/video ile yeniden kurar
+    mediaCopy.forEach(mc=>{
+      let foundRect=null, foundFrameId=null;
+      framesCopy.forEach(f=>{
+        const fc=frameCanvasEls[ni][f.id];
+        const o=fc.getObjects().find(o=>o.isMediaPlaceholder&&o.mediaUid===mc.uid);
+        if(o){foundRect=o;foundFrameId=f.id;}
+      });
+      if(!foundRect) return;
+      const stackEl=document.getElementById(`canvasStack${ni}`);
+      const wrapper=document.createElement('div');
+      wrapper.className='embed-wrapper active';
+      Object.assign(wrapper.style,{position:'absolute',display:'block',pointerEvents:'auto',border:'none',overflow:'hidden',transformOrigin:'center center'});
+      let el;
+      if(mc.url.match(/\.(mp4|webm|ogg)($|\?)/i)){
+        el=document.createElement('video'); el.src=mc.url; el.autoplay=true; el.loop=true; el.playsInline=true; el.controls=true;
+        Object.assign(el.style,{position:'absolute',width:'100%',height:'100%',objectFit:'cover',border:'none',display:'block'});
+      } else {
+        el=document.createElement('iframe'); el.src=mc.url; el.allow='autoplay;fullscreen;camera;microphone'; el.allowFullscreen=true;
+        Object.assign(el.style,{position:'absolute',width:'100%',height:'100%',border:'none',display:'block'});
+      }
+      wrapper.appendChild(el); addOpenLinkButton(wrapper, mc.url); stackEl.appendChild(wrapper);
+      const rec={rect:foundRect,wrapper,fullscreen:false,frameId:foundFrameId,uid:mc.uid,url:mc.url,scale:mc.scale||1,offsetX:mc.offsetX||0,offsetY:mc.offsetY||0,margin:mc.margin||0,padding:mc.padding||0};
+      addCornerSelectHandle(wrapper, rec);
+      slideMediaObjs[ni].push(rec);
+      syncMediaWithRect(rec);
+    });
+    slideTitles[ni]=title+' (kopya)'; slideSpeeches[ni]=speech; coderStates[ni]=coderCopy;
+    frameCoderStates[ni]=frameCoderCopy;
+    buildCoderPanel(ni);
+    currentSlide=ni; currentCanvas=getFrameCanvas(ni,activeFrameId[ni]); updateSlider();
+  }
+});
+document.getElementById('downloadPngBtn').addEventListener('click',()=>{
+  const url=compositeSlideToDataURL(currentSlide,2);
+  const a=document.createElement('a');a.href=url;a.download=`slide-${currentSlide+1}.png`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+});
+document.getElementById('opacityRange').addEventListener('input',e=>{
+  const obj=currentCanvas.getActiveObject(); if(!obj) return;
+  obj.set('opacity',e.target.value/100); currentCanvas.requestRenderAll();
+});
+document.getElementById('brushColor').addEventListener('input',e=>{
+  if(currentMode==='draw'&&currentCanvas.freeDrawingBrush) currentCanvas.freeDrawingBrush.color=e.target.value;
+});
+document.getElementById('brushWidth').addEventListener('input',e=>{
+  if(currentMode==='draw'&&currentCanvas.freeDrawingBrush) currentCanvas.freeDrawingBrush.width=parseInt(e.target.value)||5;
+});
+document.getElementById('lockBtn').addEventListener('click',()=>{
+  const idx=currentSlide;
+  ensureFrames(idx);
+  const hasContent = slideFrames[idx].some(f=>frameCanvasEls[idx][f.id]?.getObjects().length);
+  if (!hasContent) return;
+  const dataUrl = compositeSlideToDataURL(idx,1);
+  disposeAllFrameCanvases(idx);
+  slideMediaObjs[idx]=[]; // düzleştirilen görsele gömülü medya artık ayrı bir katman olarak var olamaz
+  resetFrames(idx);
+  const fc=getFrameCanvas(idx,activeFrameId[idx]);
+  currentCanvas=fc;
+  fabric.Image.fromURL(dataUrl,img=>{
+    img.set({left:0,top:0,originX:'left',originY:'top',selectable:false,evented:false});
+    fc.add(img);fc.sendToBack(img);fc.renderAll();
+    applyFrameStyles(idx); renderFrameList(); saveState();
+  });
+});
+document.getElementById('clearEmbedBtn').addEventListener('click',()=>{
+  const idx=currentSlide, fid=activeFrameId[idx];
+  const mediaList = slideMediaObjs[idx]||[];
+  for (let i=mediaList.length-1;i>=0;i--) {
+    if (mediaList[i].frameId===fid) {
+      if (mediaList[i].wrapper?.parentNode) mediaList[i].wrapper.parentNode.removeChild(mediaList[i].wrapper);
+      mediaList.splice(i,1);
+    }
+  }
+  currentCanvas.clear();
+  currentCanvas.setBackgroundImage(null,currentCanvas.renderAll.bind(currentCanvas));
+  currentCanvas.requestRenderAll();
+  updateMediaVisibility(); saveState();
+});
+
+/* ================================================================
+   FULLSCREEN
+================================================================ */
+(function(){
+  const fsBtn = document.getElementById('fullscreenBtn');
+  const iconExpand = document.getElementById('fsIconExpand');
+  const iconCollapse = document.getElementById('fsIconCollapse');
+  const fsTarget = document.documentElement;
+
+  function isFullscreen(){
+    return !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
+  }
+  /* Sunum modunda (fullscreen) tuvali EKRANA GERMİYORUZ — 1380:700 orijinal tasarım oranını koruyarak
+     ekrana sığacak en büyük boyutu piksel cinsinden hesaplayıp uyguluyoruz (letterbox/pillarbox).
+     Bu sayede hangi ekran/monitör oranında olursa olsun çizimler ASLA bozulmaz/gerilmez. */
+  function fitPresentationCanvas(){
+    const stacks = document.querySelectorAll('.canvas-stack');
+    if (!document.body.classList.contains('presentation-mode')) {
+      stacks.forEach(el=>{ el.style.width=''; el.style.height=''; });
+      return;
+    }
+    const targetRatio = 1380/700;
+    const vw = window.innerWidth, vh = window.innerHeight;
+    let w, h;
+    if (vw/vh > targetRatio) { h = vh; w = h*targetRatio; }
+    else { w = vw; h = w/targetRatio; }
+    stacks.forEach(el=>{ el.style.width = w+'px'; el.style.height = h+'px'; });
+  }
+  window.fitPresentationCanvas = fitPresentationCanvas;
+  window.addEventListener('resize', fitPresentationCanvas);
+
+  function updateIcon(){
+    const on = isFullscreen();
+    iconExpand.style.display = on ? 'none' : '';
+    iconCollapse.style.display = on ? '' : 'none';
+    fsBtn.classList.toggle('active', on);
+    fsBtn.title = on ? 'Tam Ekrandan Çık (Esc)' : 'Tam Ekran';
+    // Fullscreen = sunum modu: tüm düzenleme araçları gizlenir, sadece slayt + gezinme kalır
+    document.body.classList.toggle('presentation-mode', on);
+    fitPresentationCanvas();
+  }
+  function enterFullscreen(){
+    const req = fsTarget.requestFullscreen || fsTarget.webkitRequestFullscreen || fsTarget.msRequestFullscreen;
+    if(req) req.call(fsTarget).catch(()=>{});
+  }
+  function exitFullscreen(){
+    const ex = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+    if(ex) ex.call(document).catch?.(()=>{});
+  }
+  fsBtn.addEventListener('click', ()=>{ isFullscreen() ? exitFullscreen() : enterFullscreen(); });
+  ['fullscreenchange','webkitfullscreenchange','MSFullscreenChange'].forEach(ev=>{
+    document.addEventListener(ev, ()=>{
+      updateIcon();
+      // Fullscreen geçişinden sonra CodeMirror ve genel yerleşimi yeniden hesaplat
+      setTimeout(()=>{
+        window.dispatchEvent(new Event('resize'));
+        const eds = cmInstances[currentSlide];
+        if (eds) Object.values(eds).forEach(ed => ed && ed.refresh());
+      }, 120);
+    });
+  });
+  document.addEventListener('keydown', e=>{
+    if(e.key==='f' && !e.ctrlKey && !e.metaKey && !e.altKey && document.activeElement.tagName!=='INPUT' && document.activeElement.tagName!=='TEXTAREA'){
+      isFullscreen() ? exitFullscreen() : enterFullscreen();
+    }
+  });
+  updateIcon();
+})();
+
+/* ================================================================
+   KEYBOARD
+================================================================ */
+document.addEventListener('keydown',e=>{
+  const tag=document.activeElement.tagName;
+  if(tag==='INPUT'||tag==='TEXTAREA') return;
+  if(document.activeElement.closest('.CodeMirror')) return;
+  if(e.key==='Delete'||e.key==='Backspace'){deleteSelected();e.preventDefault();}
+  if(e.ctrlKey&&e.key==='z'){e.preventDefault();undo();}
+  if(e.ctrlKey&&e.key==='y'){e.preventDefault();redo();}
+});
+
+/* ================================================================
+   BACKGROUND IMAGE
+================================================================ */
+document.getElementById('bgImageInput').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{bgImageURL=ev.target.result; allBaseCanvases().forEach(c=>applyBg(c,bgImageURL));};
+  r.readAsDataURL(f);
+});
+function applyBg(canvas,url){
+  fabric.Image.fromURL(url,img=>{
+    const cw=canvas.getWidth(),ch=canvas.getHeight();
+    const sc=Math.max(cw/img.width,ch/img.height);
+    img.set({left:cw/2,top:ch/2,originX:'center',originY:'center',scaleX:sc,scaleY:sc,selectable:false,evented:false});
+    canvas.setBackgroundImage(img,()=>canvas.requestRenderAll());
+  });
+}
+/* Her slaytın en alttaki (0. index) karesinin canvas'ını döndürür — arka plan buraya uygulanır */
+function allBaseCanvases(){
+  return Object.keys(frameCanvasEls).map(idx=>{
+    const frames=slideFrames[idx]; if(!frames||!frames.length) return null;
+    return frameCanvasEls[idx][frames[0].id];
+  }).filter(Boolean);
+}
+window.addEventListener('resize',()=>{if(bgImageURL) allBaseCanvases().forEach(c=>applyBg(c,bgImageURL));});
+
+/* ================================================================
+   ADD SLIDE
+================================================================ */
+function addSlide() {
+  const idx=sliderEl.children.length;
+  const div=document.createElement('div');
+  div.className='slide'; div.id=`slide${idx}`;
+  div.innerHTML=`
+    <div class="canvas-stack" id="canvasStack${idx}"></div>
+    <div class="coder-panel" id="coder${idx}"></div>
+    <div class="slide-coder-tag" id="tag${idx}" style="display:none">CODER</div>`;
+  sliderEl.appendChild(div);
+  coderStates[idx]=defaultCoderState();
+  coderOpenState[idx]=false;
+  slideSpeeches[idx]=''; slideAudios[idx]=[];
+  slideTitles[idx]='Ders Adı Buraya'; slideMediaObjs[idx]=[];
+  ensureFrames(idx); // kare + canvas'ını oluşturur
+  buildCoderPanel(idx);
+  const nc=getFrameCanvas(idx, activeFrameId[idx]);
+  if(bgImageURL) applyBg(frameCanvasEls[idx][slideFrames[idx][0].id], bgImageURL);
+  applyFrameStyles(idx);
+  return nc;
+}
+
+/* ================================================================
+   SLIDE NAVIGATION
+================================================================ */
+function updateSlider(){
+  const w=sliderEl.children[0].getBoundingClientRect().width;
+  sliderEl.style.transform=`translateX(-${currentSlide*w}px)`;
+  document.getElementById('lessonName').textContent=slideTitles[currentSlide]||'Ders Adı Buraya';
+  document.getElementById('slidePageNo').textContent=`${currentSlide+1}`;
+  document.getElementById('coderToggleBtn').classList.toggle('active',!!coderOpenState[currentSlide]);
+  // Refresh CM for current slide
+  const eds=cmInstances[currentSlide];
+  if(eds) setTimeout(()=>Object.values(eds).forEach(ed=>ed&&ed.refresh()),100);
+  ensureFrames(currentSlide);
+  currentCanvas = getFrameCanvas(currentSlide, activeFrameId[currentSlide]);
+  syncCoderStateForFrame(currentSlide);
+  updateMediaVisibility();
+  applyFrameStyles(currentSlide); renderFrameList();
+}
+
+function updateMediaVisibility(){
+  document.querySelectorAll('.embed-wrapper').forEach(el=>{
+    el.classList.remove('active'); el.style.display='none'; el.style.pointerEvents='none';
+  });
+  (slideMediaObjs[currentSlide]||[]).forEach(o=>{
+    if(o.wrapper){o.wrapper.style.display='block';o.wrapper.classList.add('active');}
+  });
+  applyMediaFrameStyles(currentSlide);
+}
+
+document.getElementById('next').addEventListener('click',()=>{
+  if(currentSlide>=sliderEl.children.length-1) addSlide();
+  currentSlide++;
+  updateSlider();speakSlide(currentSlide);playSlideAudio(currentSlide);
+});
+document.getElementById('prev').addEventListener('click',()=>{
+  if(currentSlide>0) currentSlide--;
+  updateSlider();speakSlide(currentSlide);playSlideAudio(currentSlide);
+});
+
+/* ================================================================
+   MEDIA URL NORMALIZATION — protokolsüz/eksik adresleri düzeltir ve
+   YouTube/Vimeo gibi "izleme" linklerini gömülebilir (embed) adrese çevirir,
+   böylece kullanıcı normal bir video linki yapıştırdığında hatasız eklenir.
+================================================================ */
+/* Her gömülü medya kutusuna küçük bir "yeni sekmede aç" düğmesi ekler. Bazı siteler X-Frame-Options /
+   CSP frame-ancestors politikaları yüzünden iframe içinde JS'in tespit EDEMEYECEĞİ şekilde sessizce
+   render'ı reddedebilir; bu düğme, o durumda kullanıcıya her zaman çalışan bir alternatif sağlar. */
+function addOpenLinkButton(wrapper, url){
+  const a=document.createElement('a');
+  a.className='embed-open-link';
+  a.href=url; a.target='_blank'; a.rel='noopener noreferrer';
+  a.title='Yeni sekmede aç';
+  a.textContent='↗';
+  a.addEventListener('mousedown', e=>e.stopPropagation());
+  a.addEventListener('click', e=>e.stopPropagation());
+  wrapper.appendChild(a);
+}
+
+/* Sağ-alt köşeye, iframe/video'nun ÜZERİNDE duran küçük bir "yeniden seç" tutamacı ekler.
+   Gömülü medya (özellikle çapraz-kaynaklı iframe'ler) fare/dokunmatik olaylarını kendi içinde
+   yuttuğu için, altındaki fabric.js nesnesi normal koşullarda tıklanarak yeniden seçilemez.
+   Bu köşe her zaman üstte ve tıklanabilir kalır; tıklanınca ilgili fabric nesnesini seçili yapar. */
+function addCornerSelectHandle(wrapper, rec){
+  const handle=document.createElement('div');
+  handle.className='embed-corner-select';
+  handle.title='Seç / Taşı / Boyutlandır';
+  handle.textContent='⤡';
+  handle.addEventListener('mousedown', e=>{ e.stopPropagation(); e.preventDefault(); });
+  handle.addEventListener('touchstart', e=>{ e.stopPropagation(); }, {passive:true});
+  handle.addEventListener('click', e=>{ e.stopPropagation(); e.preventDefault(); selectMediaRect(rec); });
+  wrapper.appendChild(handle);
+}
+
+/* Verilen medya kaydının fabric.js nesnesini, ait olduğu kareyi aktive ederek seçili hale getirir. */
+function selectMediaRect(rec){
+  if (!rec || !rec.rect) return;
+  const idx=currentSlide;
+  if (rec.frameId!=null && rec.frameId!==activeFrameId[idx] && slideFrames[idx]?.some(f=>f.id===rec.frameId)) {
+    activeFrameId[idx]=rec.frameId;
+    currentCanvas=getFrameCanvas(idx, rec.frameId);
+    applyFrameStyles(idx);
+    syncCoderStateForFrame(idx);
+    renderFrameList();
+  }
+  const fc = rec.rect.canvas || currentCanvas;
+  if (!fc) return;
+  setMode('normal'); activateBtn(document.getElementById('normalMode'));
+  rec.rect.bringToFront();
+  fc.setActiveObject(rec.rect);
+  fc.requestRenderAll();
+}
+
+function normalizeMediaUrl(raw){
+  let u = (raw||'').trim();
+  if(!u) return null;
+  if(u.startsWith('//')) u = 'https:'+u;
+  else if(!/^https?:\/\//i.test(u) && !/^(data|blob|file):/i.test(u)){
+    // "example.com/..." gibi protokolsüz düz adresler için https:// ekle
+    if(/^[\w.-]+\.[a-z]{2,}([/?#].*)?$/i.test(u)) u = 'https://'+u;
+    else return null; // tanınmayan biçim
+  }
+  // YouTube: watch?v=, youtu.be/, /shorts/ -> /embed/
+  let m = u.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([\w-]{6,})/i);
+  if(m){
+    const id = m[1];
+    const tMatch = u.match(/[?&]t=(\d+)/);
+    u = `https://www.youtube.com/embed/${id}${tMatch ? '?start='+tMatch[1] : ''}`;
+  } else {
+    // Vimeo: vimeo.com/ID -> player.vimeo.com/video/ID
+    m = u.match(/vimeo\.com\/(\d+)/i);
+    if(m) u = `https://player.vimeo.com/video/${m[1]}`;
+  }
+  try { new URL(u); } catch(e){ return null; }
+  return u;
+}
+
+/* ================================================================
+   MEDIA EMBED — tam ekran, border yok
+================================================================ */
+function addMediaToSlide(rawUrl){
+  const url = normalizeMediaUrl(rawUrl);
+  if(!url){ alert('Geçerli bir adres girin, örn: https://ornek.com/video.mp4 veya bir YouTube linki.'); return false; }
+  const idx=currentSlide;
+  if(!slideMediaObjs[idx]) slideMediaObjs[idx]=[];
+  const stackEl=document.getElementById(`canvasStack${idx}`);
+  const wrapper=document.createElement('div');
+  wrapper.className='embed-wrapper active';
+  Object.assign(wrapper.style,{
+    position:'absolute', display:'block', pointerEvents:'auto', border:'none', overflow:'hidden', transformOrigin:'center center'
+  });
+  let el;
+  if(url.match(/\.(mp4|webm|ogg)($|\?)/i)){
+    el=document.createElement('video');
+    el.src=url;el.autoplay=true;el.loop=true;el.playsInline=true;el.controls=true;
+    Object.assign(el.style,{position:'absolute',width:'100%',height:'100%',objectFit:'cover',border:'none',display:'block'});
+  } else {
+    el=document.createElement('iframe');
+    el.src=url;el.allow='autoplay;fullscreen;camera;microphone';el.allowFullscreen=true;
+    Object.assign(el.style,{position:'absolute',width:'100%',height:'100%',border:'none',display:'block'});
+  }
+  wrapper.appendChild(el);
+  addOpenLinkButton(wrapper, url);
+  stackEl.appendChild(wrapper);
+
+  // Taşıma / ölçekleme / döndürme için görünmez bir fabric tutamacı (placeholder)
+  const fc = getFrameCanvas(idx, activeFrameId[idx]);
+  const cw = fc.getWidth(), ch = fc.getHeight();
+  const rw = cw*0.5, rh = ch*0.5;
+  const rect = new fabric.Rect({
+    left:(cw-rw)/2, top:(ch-rh)/2, width:rw, height:rh,
+    fill:'rgba(59,130,246,0.10)', stroke:'#3b82f6', strokeDashArray:[8,6], strokeWidth:1.5,
+    rx:8, ry:8, strokeUniform:true, transparentCorners:false, cornerColor:'#3b82f6', cornerStrokeColor:'#fff',
+    cornerStyle:'circle', borderColor:'#3b82f6'
+  });
+  const uid = 'm'+Date.now()+'_'+Math.floor(Math.random()*1e6);
+  rect.mediaUid = uid; rect.isMediaPlaceholder = true; rect.frameId = getActiveFrame(idx).id;
+  const rec = {rect, wrapper, fullscreen:false, frameId:getActiveFrame(idx).id, uid, url, scale:1, offsetX:0, offsetY:0, margin:0, padding:0};
+  addCornerSelectHandle(wrapper, rec);
+  slideMediaObjs[idx].push(rec);
+  fc.add(rect); fc.setActiveObject(rect); fc.requestRenderAll();
+  syncMediaWithRect(rec);
+  updateMediaVisibility();
+  saveState();
+  return true;
+}
+
+/* Fabric placeholder'ının konum/boyut/açı/opaklığını gerçek DOM medya kutusuna yansıtır */
+function syncMediaWithRect(m){
+  if (!m.rect || !m.wrapper) return;
+  const obj=m.rect, fc=obj.canvas; if(!fc) return;
+  const stackEl=fc.wrapperEl?.parentElement; if(!stackEl) return;
+  const scaleX=(stackEl.clientWidth||fc.getWidth())/fc.getWidth();
+  const scaleY=(stackEl.clientHeight||fc.getHeight())/fc.getHeight();
+  const margin=m.margin||0;
+  let w=obj.getScaledWidth()*scaleX - margin*2;
+  let h=obj.getScaledHeight()*scaleY - margin*2;
+  w=Math.max(w,4); h=Math.max(h,4);
+  const c=obj.getCenterPoint();
+  m.wrapper.style.left=(c.x*scaleX - w/2)+'px';
+  m.wrapper.style.top=(c.y*scaleY - h/2)+'px';
+  m.wrapper.style.width=w+'px';
+  m.wrapper.style.height=h+'px';
+  m.wrapper.style.padding=(m.padding||0)+'px';
+  m.wrapper.style.boxSizing='border-box';
+  m.wrapper.style.transform=`rotate(${obj.angle||0}deg)`; // kutunun kendisi sadece döner
+  applyMediaContentTransform(m); // içerik zoom/pan ayrı katmanda uygulanır (kırpma ile birlikte)
+}
+/* İçeriği (iframe/video) kendi kutusu içinde yakınlaştırıp X/Y ekseninde kaydırır — kutu kırpar (overflow:hidden),
+   böylece istenen alan "crop" edilerek gösterilebilir */
+function applyMediaContentTransform(m){
+  if (!m.wrapper) return;
+  const el = m.wrapper.querySelector('iframe,video');
+  if (!el) return;
+  el.style.left=(m.offsetX||0)+'px';
+  el.style.top=(m.offsetY||0)+'px';
+  el.style.transformOrigin='center center';
+  el.style.transform=`scale(${m.scale||1})`;
+}
+
+document.getElementById('addMediaBtn').addEventListener('click',()=>{
+  const url=document.getElementById('mediaURL').value.trim();
+  if(!url) return;
+  const ok = addMediaToSlide(url);
+  if (ok) {
+    document.getElementById('mediaURL').value='';
+    document.getElementById('speechOffcanvas').classList.remove('show');
+  }
+});
+document.getElementById('mediaURL').addEventListener('keydown', e=>{
+  if(e.key==='Enter'){ e.preventDefault(); document.getElementById('addMediaBtn').click(); }
+});
+
+/* ================================================================
+   CUT TOOL
+================================================================ */
+const offcanvas=document.getElementById('offcanvas');
+const cutCanvas=document.getElementById('cutCanvas');
+const cutCtx=cutCanvas.getContext('2d');
+let imgCut=null,cutPts=[],cutDraw=false,cutDrag=false;
+let cutZoom=1,cutPanX=0,cutPanY=0,cutLX,cutLY;
+
+function resizeCut(){cutCanvas.width=window.innerWidth;cutCanvas.height=window.innerHeight-60;drawCut();}
+window.addEventListener('resize',resizeCut);
+
+function drawCut(){
+  cutCtx.clearRect(0,0,cutCanvas.width,cutCanvas.height);
+  if(!imgCut) return;
+  const w=imgCut.width*cutZoom,h=imgCut.height*cutZoom;
+  cutCtx.drawImage(imgCut,0,0,imgCut.width,imgCut.height,(cutCanvas.width-w)/2+cutPanX,(cutCanvas.height-h)/2+cutPanY,w,h);
+  if(cutPts.length>0){
+    cutCtx.strokeStyle='red';cutCtx.lineWidth=2;cutCtx.fillStyle='rgba(255,0,0,0.3)';
+    cutCtx.beginPath();cutCtx.moveTo(cutPts[0].x,cutPts[0].y);
+    cutPts.forEach(p=>cutCtx.lineTo(p.x,p.y));
+    cutCtx.closePath();cutCtx.fill();cutCtx.stroke();
+  }
+}
+function cutPtr(e){const r=cutCanvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
+cutCanvas.addEventListener('mousedown',e=>{if(e.shiftKey){cutDrag=true;cutLX=e.clientX;cutLY=e.clientY;}else{cutDraw=true;cutPts.push(cutPtr(e));drawCut();}});
+cutCanvas.addEventListener('mousemove',e=>{if(cutDrag){cutPanX+=e.clientX-cutLX;cutPanY+=e.clientY-cutLY;cutLX=e.clientX;cutLY=e.clientY;drawCut();}else if(cutDraw){cutPts.push(cutPtr(e));drawCut();}});
+cutCanvas.addEventListener('mouseup',()=>{cutDraw=false;cutDrag=false;});
+cutCanvas.addEventListener('mouseleave',()=>{cutDraw=false;cutDrag=false;});
+cutCanvas.addEventListener('wheel',e=>{
+  if(!imgCut)return;
+  const r=cutCanvas.getBoundingClientRect();
+  const mx=e.clientX-r.left,my=e.clientY-r.top,prev=cutZoom;
+  cutZoom=Math.min(Math.max(0.2,cutZoom*(e.deltaY<0?1.1:0.9)),5);
+  cutPanX-=(mx-cutCanvas.width/2-cutPanX)*(cutZoom/prev-1);
+  cutPanY-=(my-cutCanvas.height/2-cutPanY)*(cutZoom/prev-1);
+  drawCut();e.preventDefault();
+},{passive:false});
+document.getElementById('cutBtn').addEventListener('click',()=>{offcanvas.classList.add('show');resizeCut();});
+document.getElementById('clearCutButton').addEventListener('click',()=>{cutPts=[];drawCut();});
+document.getElementById('closeOffcanvas').addEventListener('click',()=>offcanvas.classList.remove('show'));
+document.getElementById('fileInput').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();r.onload=ev=>{imgCut=new Image();imgCut.onload=()=>{cutPts=[];cutZoom=1;cutPanX=0;cutPanY=0;drawCut();};imgCut.src=ev.target.result;};r.readAsDataURL(f);
+});
+document.getElementById('addCutButton').addEventListener('click',()=>{
+  if(!imgCut||cutPts.length<3)return alert('En az 3 nokta');
+  const xs=cutPts.map(p=>p.x),ys=cutPts.map(p=>p.y);
+  const minX=Math.min(...xs),minY=Math.min(...ys),maxX=Math.max(...xs),maxY=Math.max(...ys);
+  const W=maxX-minX,H=maxY-minY;
+  /* Gerçek kağıt kolaj kesimi hissi: gölge her zaman sağ-alta düşer, bu yüzden tuval boşluğu
+     üst/solda dar, sağ/altta bol bırakılır — geniş/güçlü gölge kırpılmadan sığar. */
+  const padL=14, padT=14, padR=72, padB=86;
+  const tmp=document.createElement('canvas');tmp.width=W+padL+padR;tmp.height=H+padT+padB;
+  const tc=tmp.getContext('2d');
+  const pathAt=(offX,offY)=>{
+    tc.beginPath();
+    cutPts.forEach((p,i)=>{const x=p.x-minX+padL+offX,y=p.y-minY+padT+offY;i===0?tc.moveTo(x,y):tc.lineTo(x,y);});
+    tc.closePath();
+  };
+
+  // 1) Geniş, yumuşak, sağ-alta güçlü kaymış dış gölge (kağıdın alttaki katmandan kalkışı)
+  tc.save();pathAt(0,0);
+  tc.shadowColor='rgba(0,0,0,0.55)';tc.shadowBlur=22;tc.shadowOffsetX=18;tc.shadowOffsetY=22;
+  tc.fillStyle='rgba(0,0,0,0.01)';tc.fill();tc.restore();
+
+  // 2) Kağıt KALINLIĞI hissi veren, gölgesiz/keskin kenarlı iki katı silüet — gerçek elle kesilmiş
+  //    kağıdın alt kenarını andırır, sağ-alta doğru kademeli olarak kayar
+  tc.save();pathAt(5,6);tc.fillStyle='rgba(15,15,20,0.32)';tc.fill();tc.restore();
+  tc.save();pathAt(2.5,3);tc.fillStyle='rgba(15,15,20,0.24)';tc.fill();tc.restore();
+
+  // 3) Asıl kesilen görsel — yukarıdaki gerçek şekle klipslenerek çizilir
+  tc.save();pathAt(0,0);tc.clip();tc.shadowColor='transparent';
+  tc.drawImage(imgCut,(minX-(cutCanvas.width-imgCut.width*cutZoom)/2-cutPanX)/cutZoom,(minY-(cutCanvas.height-imgCut.height*cutZoom)/2-cutPanY)/cutZoom,W/cutZoom,H/cutZoom,padL,padT,W,H);
+
+  /* 3D "sticker" kenar efekti: kesim hattı boyunca içe doğru koyulaşan bir gölge (rim shading) ve
+     üst-sol tarafta ince bir aydınlık kenar (bevel highlight) — kompozit modu 'source-atop' olduğu için
+     bu iki katman SADECE zaten çizilmiş olan opak piksellerin üzerine düşer, şeklin dışına taşmaz. */
+  tc.save();
+  tc.globalCompositeOperation='source-atop';
+  pathAt(0,0);
+  tc.lineJoin='round';
+  // koyu iç gölge halkası (kalın, yumuşak)
+  tc.lineWidth=Math.max(6,Math.min(W,H)*0.035);
+  tc.strokeStyle='rgba(0,0,0,0.35)';
+  tc.filter='blur(3px)';
+  tc.stroke();
+  // daha ince, daha koyu bir keskin kenar çizgisi (derinlik hissi verir)
+  tc.filter='none';
+  tc.lineWidth=1.5;
+  tc.strokeStyle='rgba(0,0,0,0.28)';
+  tc.stroke();
+  tc.restore();
+  // üst-sol tarafa doğru ince aydınlık kenar (bevel highlight) — noktaları hafif yukarı/sola kaydırarak taklit edilir
+  tc.save();
+  tc.globalCompositeOperation='source-atop';
+  pathAt(-1.5,-1.5);
+  tc.lineJoin='round';tc.lineWidth=1.5;tc.strokeStyle='rgba(255,255,255,0.35)';
+  tc.stroke();
+  tc.restore();
+  tc.restore();
+  fabric.Image.fromURL(tmp.toDataURL('image/png',1),img=>{
+    img.set({left:currentCanvas.width/2,top:currentCanvas.height/2,originX:'center',originY:'center',selectable:true,angle:(Math.random()-0.5)*4});
+    const sh=new fabric.Image.filters.Convolute({matrix:new Float32Array([0,-1,0,-1,5,-1,0,-1,0])});
+    img.filters.push(sh);img.applyFilters();
+    const fid=getActiveFrame(currentSlide).id;
+    bakeFilteredImage(img,{},bakedImg=>{
+      bakedImg.frameId=fid;
+      currentCanvas.add(bakedImg);currentCanvas.setActiveObject(bakedImg);bakedImg.bringToFront();currentCanvas.requestRenderAll();saveState();
+    });
+  });
+  cutPts=[];drawCut();offcanvas.classList.remove('show');
+});
+
+/* ================================================================
+   PASTE FROM CLIPBOARD
+================================================================ */
+document.addEventListener('paste',e=>{
+  if(document.activeElement.closest('.CodeMirror'))return;
+  const items=e.clipboardData?.items; if(!items) return;
+  for(let i=0;i<items.length;i++){
+    if(items[i].type.indexOf('image')!==-1){
+      const blob=items[i].getAsFile();
+      // Kesim aracı (offcanvas) açıkken yapıştırma, kesim tuvaline resim olarak yüklenir
+      if(offcanvas.classList.contains('show')){
+        const cutReader=new FileReader();
+        cutReader.onload=ev=>{
+          imgCut=new Image();
+          imgCut.onload=()=>{cutPts=[];cutZoom=1;cutPanX=0;cutPanY=0;drawCut();};
+          imgCut.src=ev.target.result;
+        };
+        cutReader.readAsDataURL(blob);
+        e.preventDefault();
+        break;
+      }
+      createImageBitmap(blob,{resizeQuality:'high'}).then(bm=>{
+        const tmp=document.createElement('canvas');tmp.width=bm.width;tmp.height=bm.height;
+        const tc=tmp.getContext('2d',{alpha:true});tc.imageSmoothingEnabled=true;tc.imageSmoothingQuality='high';tc.drawImage(bm,0,0);
+        fabric.Image.fromURL(tmp.toDataURL('image/png',1),img=>{
+          const cw=currentCanvas.getWidth(),ch=currentCanvas.getHeight();
+          const sc=Math.min(cw/img.width,ch/img.height,1);
+          img.set({left:cw/2,top:ch/2,originX:'center',originY:'center',scaleX:sc,scaleY:sc,selectable:true,evented:true});
+          const sh=new fabric.Image.filters.Convolute({matrix:new Float32Array([0,-0.5,0,-0.5,3,-0.5,0,-0.5,0])});
+          img.filters.push(sh);img.applyFilters();
+          const fid=getActiveFrame(currentSlide).id;
+          bakeFilteredImage(img,{},bakedImg=>{
+            bakedImg.frameId=fid;
+            currentCanvas.add(bakedImg);currentCanvas.setActiveObject(bakedImg);currentCanvas.requestRenderAll();saveState();
+          });
+        });
+      });
+      e.preventDefault();break;
+    }
+  }
+});
+
+/* ================================================================
+   TOP OVERLAY
+================================================================ */
+const topOverlay=document.getElementById('topOverlay');
+const lessonNameEl=document.getElementById('lessonName');
+document.getElementById('hideStack').addEventListener('click',()=>topOverlay.classList.toggle('show'));
+topOverlay.addEventListener('click',e=>{if(e.target.id!=='lessonName'&&e.target.id!=='lessonInput')topOverlay.classList.remove('show');});
+lessonNameEl.addEventListener('dblclick',e=>{
+  e.stopPropagation();
+  const inp=document.createElement('input');inp.type='text';inp.id='lessonInput';
+  inp.value=slideTitles[currentSlide]||lessonNameEl.textContent;
+  Object.assign(inp.style,{fontSize:'2rem',fontWeight:'800',padding:'10px 30px',border:'none',outline:'none',fontFamily:"'Space Grotesk',sans-serif"});
+  lessonNameEl.replaceWith(inp);inp.focus();
+  function save(){const v=inp.value.trim()||'Ders Adı Buraya';slideTitles[currentSlide]=v;lessonNameEl.textContent=v;inp.replaceWith(lessonNameEl);}
+  inp.addEventListener('blur',save);inp.addEventListener('keydown',ev=>{if(ev.key==='Enter')inp.blur();});
+});
+
+/* ================================================================
+   SPEECH / AUDIO
+================================================================ */
+const speechOffcanvas=document.getElementById('speechOffcanvas');
+const speechTextEl=document.getElementById('speechText');
+const audioPlayer=document.getElementById('slideAudioPlayer');
+
+window.speechSynthesis.onvoiceschanged=()=>{
+  window.voices=window.speechSynthesis.getVoices();
+  window.preferredVoice=window.voices.find(v=>v.name.includes('Google UK English Male'))||window.voices.find(v=>v.lang==='tr-TR')||window.voices[0];
+};
+
+function speakSlide(idx){const txt=slideSpeeches[idx];if(!txt)return;window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(txt);if(window.preferredVoice)u.voice=window.preferredVoice;u.lang='tr-TR';u.rate=0.95;u.pitch=1.0;window.speechSynthesis.speak(u);}
+/* Slaytın mp3 listesini SIRAYLA çalar: biri biterken 'ended' olayı bir sonrakini başlatır.
+   Slayt değişince (next/prev çağrısında playSlideAudio yeniden çağrılır) önceki parça durdurulur. */
+function playSlideAudio(idx){
+  if(window.currentAudio){ window.currentAudio.pause(); window.currentAudio.currentTime=0; window.currentAudio=null; }
+  clearTimeout(window._at);
+  const tracks = slideAudios[idx];
+  if(!tracks || !tracks.length) return;
+  window._at=setTimeout(()=>{
+    let trackIdx=0;
+    const playToken = (window._audioToken = (window._audioToken||0)+1); // slayt hızlı değişirse eski zincirler devam etmesin
+    function playNext(){
+      if (playToken!==window._audioToken) return; // bu arada başka bir slayta geçilmiş
+      if (trackIdx>=tracks.length) { window.currentAudio=null; return; }
+      const a=new Audio(tracks[trackIdx].url);
+      window.currentAudio=a;
+      a.addEventListener('ended', ()=>{ trackIdx++; playNext(); });
+      a.play().catch(()=>{});
+    }
+    playNext();
+  },650);
+}
+
+/* Slayt Konuşması & Medya panelindeki mp3 listesini (sıra no, önizleme, yukarı/aşağı, kaldır) çizer */
+function renderSlideAudioList(){
+  const listEl=document.getElementById('slideAudioList');
+  if(!listEl) return;
+  if(!slideAudios[currentSlide]) slideAudios[currentSlide]=[];
+  const tracks=slideAudios[currentSlide];
+  listEl.innerHTML='';
+  if(!tracks.length){
+    listEl.innerHTML='<p style="font-size:11px;color:var(--ink);opacity:.5;margin:0;">Henüz mp3 eklenmedi.</p>';
+    return;
+  }
+  tracks.forEach((t,i)=>{
+    const row=document.createElement('div'); row.className='audio-track-row';
+    const num=document.createElement('span'); num.className='atr-num'; num.textContent=(i+1)+'.';
+    const name=document.createElement('span'); name.className='atr-name'; name.title=t.name; name.textContent=t.name;
+    row.appendChild(num); row.appendChild(name);
+
+    const play=document.createElement('button'); play.className='atr-btn'; play.textContent='▶'; play.title='Önizle';
+    play.addEventListener('click',()=>{ audioPlayer.src=t.url; audioPlayer.currentTime=0; audioPlayer.play().catch(()=>{}); });
+
+    const up=document.createElement('button'); up.className='atr-btn'; up.textContent='↑'; up.title='Yukarı taşı';
+    up.disabled=(i===0);
+    up.addEventListener('click',()=>{ if(i>0){ [tracks[i-1],tracks[i]]=[tracks[i],tracks[i-1]]; renderSlideAudioList(); } });
+
+    const down=document.createElement('button'); down.className='atr-btn'; down.textContent='↓'; down.title='Aşağı taşı';
+    down.disabled=(i===tracks.length-1);
+    down.addEventListener('click',()=>{ if(i<tracks.length-1){ [tracks[i+1],tracks[i]]=[tracks[i],tracks[i+1]]; renderSlideAudioList(); } });
+
+    const del=document.createElement('button'); del.className='atr-btn atr-del'; del.textContent='✕'; del.title='Kaldır';
+    del.addEventListener('click',()=>{ tracks.splice(i,1); renderSlideAudioList(); });
+
+    row.appendChild(play); row.appendChild(up); row.appendChild(down); row.appendChild(del);
+    listEl.appendChild(row);
+  });
+}
+
+document.getElementById('speechAudioInput').addEventListener('change',e=>{
+  const files=Array.from(e.target.files||[]);
+  if(!files.length) return;
+  if(!slideAudios[currentSlide]) slideAudios[currentSlide]=[];
+  files.forEach(f=>{
+    slideAudios[currentSlide].push({ id:'a'+Date.now()+'_'+Math.floor(Math.random()*1e6), name:f.name, url:URL.createObjectURL(f) });
+  });
+  renderSlideAudioList();
+  e.target.value=''; // aynı dosya(lar) tekrar seçilmek istenirse input'un sıfırlanması gerekir
+});
+document.getElementById('speechBtn').addEventListener('click',()=>{
+  speechOffcanvas.classList.add('show');
+  speechTextEl.value=slideSpeeches[currentSlide]||'';
+  renderSlideAudioList();
+});
+document.getElementById('closeSpeech').addEventListener('click',()=>{slideSpeeches[currentSlide]=speechTextEl.value;speechOffcanvas.classList.remove('show');window.speechSynthesis.cancel();});
+document.getElementById('playSpeech').addEventListener('click',()=>{slideSpeeches[currentSlide]=speechTextEl.value;speakSlide(currentSlide);});
+
+/* ================================================================
+   OVERLAY CANVAS (GLASS LAYER)
+================================================================ */
+(function(){
+  const wrap=document.getElementById('overlayWrapper');
+  const oc=document.getElementById('overlayCanvas');
+  const tb=document.getElementById('overlayToolbar');
+  const tog=document.getElementById('overlayToggleBtn');
+  let ctx,active=false,mode='draw',painting=false,lx=0,ly=0,hist=[],rhist=[];
+
+  function resize(){
+    const old=hist.length>0?hist[hist.length-1]:null;
+    oc.width=window.innerWidth;oc.height=window.innerHeight;
+    oc.style.width=window.innerWidth+'px';oc.style.height=window.innerHeight+'px';
+    ctx=oc.getContext('2d');
+    if(old){const img=new Image();img.onload=()=>ctx.drawImage(img,0,0,window.innerWidth,window.innerHeight);img.src=old;}
+  }
+  function open(){active=true;wrap.classList.add('active');tb.classList.add('active');tog.classList.add('active');setTopLayer('glass');resize();save();}
+  function close(){
+    if(ctx)ctx.clearRect(0,0,oc.width,oc.height);hist=[];rhist=[];active=false;
+    wrap.classList.remove('active');tb.classList.remove('active');tog.classList.remove('active');
+    if(document.body.classList.contains('glass-on-top')){
+      document.body.classList.remove('glass-on-top');
+      // Cam kapanınca, açık bir kod editörü varsa doğal olarak tekrar öne/etkileşimli hale gelir
+      const openCoder = document.querySelector('.coder-panel.open');
+      if (openCoder) setTopLayer('coder');
+    }
+  }
+  function save(){hist.push(oc.toDataURL());rhist=[];}
+  function restore(url){return new Promise(res=>{ctx.clearRect(0,0,oc.width,oc.height);const img=new Image();img.onload=()=>{ctx.drawImage(img,0,0,window.innerWidth,window.innerHeight);res();};img.src=url;});}
+
+  tog.addEventListener('click',()=>{
+    const isTop = document.body.classList.contains('glass-on-top');
+    if (active && isTop) { close(); }             // zaten en üstte açıksa -> kapat
+    else if (active && !isTop) { setTopLayer('glass'); } // açık ama arkada kalmış (koder üstteydi) -> sadece öne getir
+    else { open(); }                                // hiç açık değil -> aç (zaten öne getirir)
+  });
+  document.getElementById('ovCloseBtn').addEventListener('click',close);
+  window.addEventListener('resize',()=>{if(active)resize();});
+
+  function setOvMode(m){mode=m;document.getElementById('ovDrawBtn').classList.toggle('active',m==='draw');document.getElementById('ovEraseBtn').classList.toggle('active',m==='erase');oc.style.cursor=m==='erase'?'cell':'crosshair';}
+  document.getElementById('ovDrawBtn').addEventListener('click',()=>setOvMode('draw'));
+  document.getElementById('ovEraseBtn').addEventListener('click',()=>setOvMode('erase'));
+  document.getElementById('ovUndoBtn').addEventListener('click',async()=>{if(hist.length<=1)return;rhist.push(hist.pop());await restore(hist[hist.length-1]);});
+  document.getElementById('ovRedoBtn').addEventListener('click',async()=>{if(!rhist.length)return;const n=rhist.pop();hist.push(n);await restore(n);});
+  document.getElementById('ovClearBtn').addEventListener('click',()=>{ctx.clearRect(0,0,oc.width,oc.height);save();});
+
+  function pos(e){
+    const r=oc.getBoundingClientRect();
+    if(e.touches&&e.touches.length>0)return{x:(e.touches[0].clientX-r.left)*(oc.width/r.width),y:(e.touches[0].clientY-r.top)*(oc.height/r.height)};
+    return{x:(e.clientX-r.left)*(oc.width/r.width),y:(e.clientY-r.top)*(oc.height/r.height)};
+  }
+  function ro(){return(Math.random()-0.5)*3;}
+  function startDraw(e){if(!active)return;painting=true;const p=pos(e);lx=p.x;ly=p.y;ctx.globalCompositeOperation=mode==='erase'?'destination-out':'source-over';}
+  function draw(e){
+    if(!painting||!active)return;
+    const p=pos(e),nx=p.x,ny=p.y;
+    const type=document.getElementById('ovStrokeType').value;
+    const col=document.getElementById('ovColor').value;
+    const op=parseInt(document.getElementById('ovOpacity').value)/100;
+    const thick=parseInt(document.getElementById('ovThickness').value);
+    const h2r=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+    const[r,g,b]=h2r(col);
+    ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
+    if(mode==='erase'){ctx.globalCompositeOperation='destination-out';ctx.globalAlpha=1;ctx.lineWidth=thick*3;ctx.strokeStyle='rgba(0,0,0,1)';ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(nx,ny);ctx.stroke();}
+    else if(type==='rough'){ctx.globalCompositeOperation='source-over';for(let i=0;i<3;i++){ctx.beginPath();ctx.moveTo(lx+ro(),ly+ro());ctx.lineTo(nx+ro(),ny+ro());ctx.strokeStyle=`rgba(${r},${g},${b},${op})`;ctx.globalAlpha=op*(0.5+Math.random()*0.5);ctx.lineWidth=thick*(0.7+Math.random()*0.6);ctx.stroke();}}
+    else if(type==='dashed'){ctx.globalCompositeOperation='source-over';ctx.globalAlpha=op;ctx.strokeStyle=`rgb(${r},${g},${b})`;ctx.lineWidth=thick;ctx.setLineDash([thick*3,thick*2]);ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(nx,ny);ctx.stroke();ctx.setLineDash([]);}
+    else if(type==='dotted'){ctx.globalCompositeOperation='source-over';ctx.globalAlpha=op;ctx.strokeStyle=`rgb(${r},${g},${b})`;ctx.lineWidth=thick;ctx.lineCap='round';ctx.setLineDash([2,thick*2]);ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(nx,ny);ctx.stroke();ctx.setLineDash([]);}
+    else{ctx.globalCompositeOperation='source-over';ctx.globalAlpha=op;ctx.strokeStyle=`rgb(${r},${g},${b})`;ctx.lineWidth=thick;ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(nx,ny);ctx.stroke();}
+    ctx.restore();lx=nx;ly=ny;
+  }
+  function endDraw(){if(painting){painting=false;ctx.globalCompositeOperation='source-over';save();}}
+
+  oc.addEventListener('mousedown',startDraw);oc.addEventListener('mousemove',draw);oc.addEventListener('mouseup',endDraw);oc.addEventListener('mouseleave',endDraw);
+  oc.addEventListener('touchstart',e=>{e.preventDefault();startDraw(e);},{passive:false});
+  oc.addEventListener('touchmove',e=>{e.preventDefault();draw(e);},{passive:false});
+  oc.addEventListener('touchend',endDraw);
+  document.addEventListener('keydown',e=>{
+    if(!active)return;
+    if(document.body.classList.contains('coder-on-top'))return; // koder en üstteyken CodeMirror'ın kendi kısayollarıyla çakışmasın
+    if(e.ctrlKey&&e.key==='z'){e.preventDefault();document.getElementById('ovUndoBtn').click();}
+    if(e.ctrlKey&&e.key==='y'){e.preventDefault();document.getElementById('ovRedoBtn').click();}
+    if(e.key==='Escape')close();
+  });
+})();
+
+/* ================================================================
+   PROJECT EXPLORER — ağaç görünümü (Slayt > Katman), varsayılan kapalı
+================================================================ */
+const explorerOffcanvas = document.getElementById('explorerOffcanvas');
+let explorerOpenSlides = new Set([0]); // hangi slaytların ağaçta açık (expanded) olduğu
+
+function openExplorer(){ explorerOffcanvas.classList.add('show'); renderExplorerTree(); }
+function closeExplorer(){ explorerOffcanvas.classList.remove('show'); }
+document.getElementById('explorerBtn').addEventListener('click', openExplorer);
+document.getElementById('explorerCloseBtn').addEventListener('click', closeExplorer);
+
+function renderExplorerTree(){
+  const root = document.getElementById('explorerTree');
+  root.innerHTML = '';
+  const slideCount = sliderEl.children.length;
+  for (let i=0; i<slideCount; i++){
+    ensureFrames(i);
+    const node = document.createElement('div');
+    node.className = 'exp-slide-node';
+
+    const row = document.createElement('div');
+    row.className = 'exp-slide-row' + (i===currentSlide ? ' current' : '');
+    const isOpen = explorerOpenSlides.has(i);
+    row.innerHTML = `<span class="exp-caret${isOpen?' open':''}">▸</span><span class="exp-slide-label">${i+1}. ${escapeHtml(slideTitles[i]||'Ders Adı Buraya')}</span><span style="font-size:10px;opacity:.5;">${slideFrames[i].length} kare</span>`;
+    const slideDel = document.createElement('button');
+    slideDel.className = 'exp-del-btn'; slideDel.title = 'Slaytı Sil'; slideDel.textContent = '✕';
+    slideDel.addEventListener('click', (ev)=>{ ev.stopPropagation(); deleteSlideFromTree(i); });
+    row.appendChild(slideDel);
+    row.addEventListener('click', (ev)=>{
+      if (ev.target.closest('.exp-caret')) {
+        if (explorerOpenSlides.has(i)) explorerOpenSlides.delete(i); else explorerOpenSlides.add(i);
+        renderExplorerTree();
+        return;
+      }
+      currentSlide = i; updateSlider();
+      if (!explorerOpenSlides.has(i)) { explorerOpenSlides.add(i); }
+      renderExplorerTree();
+    });
+    node.appendChild(row);
+
+    const frameList = document.createElement('div');
+    frameList.className = 'exp-frame-list' + (isOpen ? ' open' : '');
+    slideFrames[i].forEach((f, fi)=>{
+      const frow = document.createElement('div');
+      frow.className = 'exp-frame-row'
+        + ((i===currentSlide && f.id===activeFrameId[i]) ? ' current' : '')
+        + (!f.visible ? ' hidden-frame' : '');
+      frow.innerHTML = `<span class="exp-frame-dot"></span><span>${fi+1}. ${escapeHtml(f.name||('Kare '+f.id))}</span><span style="margin-left:auto;font-size:10px;opacity:.55;">${Math.round(f.opacity*100)}%</span>`;
+      const frameDel = document.createElement('button');
+      frameDel.className = 'exp-del-btn'; frameDel.title = 'Kareyi Sil'; frameDel.textContent = '✕';
+      frameDel.style.marginLeft = '4px';
+      frameDel.addEventListener('click', (ev)=>{ ev.stopPropagation(); deleteFrameFromTree(i, f.id); });
+      frow.appendChild(frameDel);
+      frow.addEventListener('click', ()=>{
+        currentSlide = i; updateSlider();
+        activeFrameId[i] = f.id;
+        currentCanvas = getFrameCanvas(i, f.id);
+        applyFrameStyles(i);
+        syncCoderStateForFrame(i);
+        renderFrameList();
+        renderExplorerTree();
+      });
+      frameList.appendChild(frow);
+    });
+    node.appendChild(frameList);
+    root.appendChild(node);
+  }
+}
+function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s??''; return d.innerHTML; }
+
+/* Ağaç görünümünden bir kareyi siler (o kare hangi slaytta olursa olsun) — önce o slayta geçip
+   test edilmiş deleteFrame() akışını kullanır, böylece tüm ilişkili state tutarlı kalır */
+function deleteFrameFromTree(slideIdx, frameId){
+  ensureFrames(slideIdx);
+  if (slideFrames[slideIdx].length<=1) { alert('Bir slaytta en az bir kare bulunmalı.'); return; }
+  if (!confirm('Bu kare silinsin mi? Bu işlem geri alınamaz.')) return;
+  const wasCurrent = (slideIdx===currentSlide);
+  if (!wasCurrent) { currentSlide = slideIdx; updateSlider(); }
+  deleteFrame(frameId, slideIdx);
+  renderExplorerTree();
+}
+
+/* Ağaç görünümünden bir slaytı tamamen siler. Index-tabanlı DOM id'leri (slide0, canvasStack0, coder0, ...)
+   nedeniyle manuel yeniden indeksleme yerine, projeyi serileştirip o slaytı çıkararak zaten test edilmiş
+   loadProjectFromData() ile güvenli şekilde yeniden kurar. */
+function deleteSlideFromTree(slideIdx){
+  const slideCount = sliderEl.children.length;
+  if (slideCount<=1) { alert('En az bir slayt bulunmalı, son slayt silinemez.'); return; }
+  if (!confirm(`${slideIdx+1}. slayt (${slideTitles[slideIdx]||'Ders Adı Buraya'}) tamamen silinsin mi? Bu işlem geri alınamaz.`)) return;
+  const data = serializeProject();
+  data.slides.splice(slideIdx, 1);
+  data.currentSlide = Math.min(currentSlide, data.slides.length-1);
+  explorerOpenSlides = new Set([data.currentSlide]);
+  loadProjectFromData(data);
+}
+
+
+/* ================================================================
+   PROJECT SERIALIZATION — tüm proje (slaytlar/kareler/medya/kod) tek JSON'a
+================================================================ */
+function serializeProject(){
+  const slideCount = sliderEl.children.length;
+  const slides = [];
+  for (let i=0; i<slideCount; i++){
+    ensureFrames(i);
+    const frames = slideFrames[i].map(f=>({
+      id:f.id, name:f.name, opacity:f.opacity, visible:f.visible,
+      canvasJSON: frameCanvasEls[i]?.[f.id] ? frameCanvasEls[i][f.id].toJSON(['frameId','frameLocked','mediaUid','isMediaPlaceholder']) : null
+    }));
+    const media = (slideMediaObjs[i]||[]).filter(m=>m.uid&&m.url).map(m=>({
+      uid:m.uid, url:m.url, frameId:m.frameId, scale:m.scale, offsetX:m.offsetX, offsetY:m.offsetY, margin:m.margin, padding:m.padding
+    }));
+    slides.push({
+      title: slideTitles[i]||'Ders Adı Buraya',
+      speech: slideSpeeches[i]||'',
+      activeFrameId: activeFrameId[i],
+      frameCounter: frameCounter[i],
+      frames, media,
+      coder: coderStates[i] ? { fullCode:coderStates[i].fullCode, htmlCode:coderStates[i].htmlCode, cssCode:coderStates[i].cssCode, jsCode:coderStates[i].jsCode, activeTab:coderStates[i].activeTab, layout:coderStates[i].layout, fontSize:coderStates[i].fontSize } : defaultCoderState(),
+      frameCoder: frameCoderStates[i] || {}
+    });
+  }
+  return { version:1, exportedAt:new Date().toISOString(), currentSlide, slides };
+}
+
+function loadProjectFromData(data){
+  if (!data || !Array.isArray(data.slides) || !data.slides.length) { alert('Geçersiz proje dosyası.'); return; }
+  // Mevcut tüm slaytları temizle
+  Object.keys(frameCanvasEls).forEach(idx=>{
+    Object.values(frameCanvasEls[idx]||{}).forEach(fc=>{ try{ fc.dispose(); }catch(e){} });
+  });
+  document.querySelectorAll('.embed-wrapper').forEach(el=>el.remove());
+  sliderEl.innerHTML = '';
+  frameCanvasEls = {}; slideFrames = {}; activeFrameId = {}; frameCounter = {};
+  slideMediaObjs = {}; slideSpeeches = []; slideTitles = []; slideAudios = [];
+  coderStates = []; frameCoderStates = {}; cmInstances_reset();
+
+  data.slides.forEach((sd, i)=>{
+    const div=document.createElement('div');
+    div.className='slide'; div.id=`slide${i}`;
+    div.innerHTML=`
+      <div class="canvas-stack" id="canvasStack${i}"></div>
+      <div class="coder-panel" id="coder${i}"></div>
+      <div class="slide-coder-tag" id="tag${i}" style="display:none">CODER</div>`;
+    sliderEl.appendChild(div);
+
+    slideTitles[i] = sd.title||'Ders Adı Buraya';
+    slideSpeeches[i] = sd.speech||'';
+    slideAudios[i] = []; // mp3 dosyaları (blob URL) JSON'a dahil edilmez — proje yüklendiğinde boş başlar
+    slideMediaObjs[i] = [];
+    coderStates[i] = Object.assign(defaultCoderState(), sd.coder||{});
+    frameCoderStates[i] = sd.frameCoder || {};
+
+    slideFrames[i] = (sd.frames||[{id:1,name:'Kare 1',opacity:1,visible:true}]).map(f=>({id:f.id,name:f.name,opacity:f.opacity,visible:f.visible}));
+    activeFrameId[i] = sd.activeFrameId || slideFrames[i][0].id;
+    frameCounter[i] = sd.frameCounter || Math.max(...slideFrames[i].map(f=>f.id));
+
+    (sd.frames||[]).forEach(f=>{
+      const fc = getFrameCanvas(i, f.id);
+      if (f.canvasJSON) fc.loadFromJSON(f.canvasJSON, ()=>{ fc.requestRenderAll(); relinkMediaObjects(i, fc); });
+    });
+
+    buildCoderPanel(i);
+
+    (sd.media||[]).forEach(mc=>{
+      // Yeniden bağlamak için ilgili frameId canvas'ında mediaUid eşleşen rect'i bul
+      setTimeout(()=>{
+        const fc = frameCanvasEls[i]?.[mc.frameId];
+        if (!fc) return;
+        const foundRect = fc.getObjects().find(o=>o.isMediaPlaceholder && o.mediaUid===mc.uid);
+        if (!foundRect) return;
+        const stackEl = document.getElementById(`canvasStack${i}`);
+        const wrapper=document.createElement('div');
+        wrapper.className='embed-wrapper active';
+        Object.assign(wrapper.style,{position:'absolute',display:'block',pointerEvents:'auto',border:'none',overflow:'hidden',transformOrigin:'center center'});
+        let el;
+        if (mc.url.match(/\.(mp4|webm|ogg)($|\?)/i)){
+          el=document.createElement('video'); el.src=mc.url; el.autoplay=true; el.loop=true; el.playsInline=true; el.controls=true;
+          Object.assign(el.style,{position:'absolute',width:'100%',height:'100%',objectFit:'cover',border:'none',display:'block'});
+        } else {
+          el=document.createElement('iframe'); el.src=mc.url; el.allow='autoplay;fullscreen;camera;microphone'; el.allowFullscreen=true;
+          Object.assign(el.style,{position:'absolute',width:'100%',height:'100%',border:'none',display:'block'});
+        }
+        wrapper.appendChild(el); addOpenLinkButton(wrapper, mc.url); stackEl.appendChild(wrapper);
+        const rec={rect:foundRect,wrapper,fullscreen:false,frameId:mc.frameId,uid:mc.uid,url:mc.url,scale:mc.scale||1,offsetX:mc.offsetX||0,offsetY:mc.offsetY||0,margin:mc.margin||0,padding:mc.padding||0};
+        addCornerSelectHandle(wrapper, rec);
+        slideMediaObjs[i].push(rec);
+        syncMediaWithRect(rec);
+        updateMediaVisibility();
+      }, 60);
+    });
+  });
+
+  currentSlide = Math.min(data.currentSlide||0, data.slides.length-1);
+  currentCanvas = getFrameCanvas(currentSlide, activeFrameId[currentSlide]);
+  updateSlider();
+  renderFrameList();
+  renderExplorerTree();
+}
+/* cmInstances bir const olduğu için nesnenin içini boşaltıyoruz (yeniden atama yapamayız) */
+function cmInstances_reset(){ Object.keys(cmInstances).forEach(k=>delete cmInstances[k]); }
+
+/* ================================================================
+   JSON DIŞA / İÇE AKTARMA
+================================================================ */
+document.getElementById('exportJsonBtn').addEventListener('click', async ()=>{
+  const data = serializeProject();
+  const json = JSON.stringify(data, null, 2);
+  const fname = `slider-project-${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.json`;
+  if (connectedDirHandle) {
+    try {
+      // Bağlı klasörde daha önce dışa aktarılmış proje JSON dosyaları varsa önce onları sil —
+      // klasörde her zaman sadece EN SON dışa aktarılan JSON kalsın (eskiler birikmesin).
+      for await (const [name, handle] of connectedDirHandle.entries()) {
+        if (handle.kind === 'file' && /^slider-project-.*\.json$/i.test(name)) {
+          try { await connectedDirHandle.removeEntry(name); }
+          catch(delErr){ console.warn('Eski proje JSON dosyası silinemedi:', name, delErr); }
+        }
+      }
+      const fh = await connectedDirHandle.getFileHandle(fname, { create:true });
+      const w = await fh.createWritable();
+      await w.write(json); await w.close();
+      alert('Proje bağlı klasöre kaydedildi (önceki JSON dosyaları temizlendi): '+fname);
+      return;
+    } catch(e){ console.warn('Klasöre yazılamadı, dosya indirmeye geçiliyor.', e); }
+  }
+  const blob = new Blob([json], { type:'application/json' });
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=fname;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+});
+document.getElementById('importJsonBtn').addEventListener('click', ()=>{
+  document.getElementById('importJsonInput').click();
+});
+document.getElementById('importJsonInput').addEventListener('change', (e)=>{
+  const f = e.target.files[0]; if (!f) return;
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (confirm('Mevcut proje değiştirilecek ve bu işlem geri alınamaz. Devam edilsin mi?')) {
+        loadProjectFromData(data);
+      }
+    } catch(err){ alert('JSON dosyası okunamadı: '+err.message); }
+    e.target.value='';
+  };
+  reader.readAsText(f);
+});
+
+/* ================================================================
+   FİZİKİ KLASÖR BAĞLANTISI — File System Access API (destekleyen tarayıcılarda)
+================================================================ */
+let connectedDirHandle = null;
+const folderBtn = document.getElementById('folderConnectBtn');
+const folderLabel = document.getElementById('folderConnectLabel');
+const folderDot = document.getElementById('folderStatusDot');
+
+if (!('showDirectoryPicker' in window)) {
+  folderBtn.disabled = true;
+  folderBtn.style.opacity = '0.5';
+  folderBtn.style.cursor = 'not-allowed';
+  folderLabel.textContent = 'Klasör API Desteklenmiyor';
+  document.getElementById('folderHint').textContent = 'Bu tarayıcı fiziki klasör bağlantısını (File System Access API) desteklemiyor. Chrome/Edge masaüstü sürümlerini deneyin.';
+} else {
+  folderBtn.addEventListener('click', async ()=>{
+    if (connectedDirHandle) {
+      connectedDirHandle = null;
+      folderDot.classList.remove('connected');
+      folderLabel.textContent = 'Klasöre Bağlan';
+      return;
+    }
+    try {
+      const handle = await window.showDirectoryPicker({ mode:'readwrite' });
+      connectedDirHandle = handle;
+      folderDot.classList.add('connected');
+      folderLabel.textContent = 'Bağlı: '+handle.name;
+    } catch(e) {
+      // kullanıcı iptal etti — sessizce geç
+    }
+  });
+}
+</script>
+
+
+</body></html>
