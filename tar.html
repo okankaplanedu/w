@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarot Card Reading</title>
+    <link href="https://fonts.googleapis.com/css2?family=Luxurious+Roman&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #eeeeee;
+			background-image:url(tarot/zemin31.jpg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: "Luxurious Roman", serif;
+        }
+        #tarot-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .card {
+            width: 270px;
+            height: 490px;
+            background-color: #fff;
+            border: 2px solid #333;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            position: relative;
+            perspective: 1000px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            transition: transform 1s ease;
+			margin-top:-50px;
+			 transform-style: preserve-3d;
+    transform-origin: center center;
+    transition: transform 1s ease; /* Animasyonun hızı burada ayarlanır */
+        }
+        .card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: rotateZ(0deg);
+            transition: transform 1s ease;
+        }
+        .card.reversed img {
+            transform: rotateZ(180deg);
+        }
+        #controls {
+            margin-top: 20px;
+        }
+        textarea {
+            margin-top: 20px;
+            width: 500px;
+            height: 80px;
+            border: 1px solid #333;
+            padding: 10px;
+            background-color: #fff;
+            font-family: "Luxurious Roman", serif;
+            font-size: 16px;
+            display: block;
+        }
+        select, input[type="range"] {
+            margin: 5px;
+        }
+        #speech-controls {
+            display: none;
+        }
+        .hidden {
+            display: none;
+        }
+		
+		
+.card.flip-180 {
+    transform: rotateY(180deg);
+}
+
+.card.flip-360 {
+    transform: rotateY(360deg);
+}
+    </style>
+</head>
+<body>
+    <div id="tarot-container">
+        <div class="card" id="card1">
+            <img src="tarot/bos.jpg" alt="Card Image">
+        </div>
+        <div class="card" id="card2">
+            <img src="tarot/bos.jpg" alt="Card Image">
+        </div>
+        <div class="card" id="card3">
+            <img src="tarot/bos.jpg" alt="Card Image">
+        </div>
+    </div>
+<a href="https://canvasor.net/tarot" target="_blank"><div id="kimlik" style="background-color:#FFFF00; padding:5px"></div></a>
+    <div id="controls">
+        <button onclick="randomizeCards()">Randomize Cards</button>
+        <button onclick="showReady()">Ready</button>
+        <button onclick="startReading()">Start Reading</button>
+        <button onclick="stopReading()">Stop</button>
+    </div>
+
+    <textarea id="details"> 
+    
+    canvasor digital content creation
+    
+    </textarea>
+
+    <div id="speech-controls">
+        <label for="language">Voice:</label>
+        <select id="language"></select>
+        <label for="rate">Rate:</label>
+        <input type="range" id="rate" min="0.1" max="2" step="0.1" value="1">
+        <label for="pitch">Pitch:</label>
+        <input type="range" id="pitch" min="0" max="2" step="0.1" value="1">
+    </div>
+    <script>
+    const cards = [
+    { 
+        name: 'The Fool', 
+        upright: 'New beginnings, optimism, trust in life', 
+        reversed: 'Recklessness, taken advantage of, inconsideration',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/RWS_Tarot_00_Fool.jpg/500px-RWS_Tarot_00_Fool.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'The Magician', 
+        upright: 'Action, the power to manifest', 
+        reversed: 'Manipulation, poor planning, latent talents',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/RWS_Tarot_01_Magician.jpg/500px-RWS_Tarot_01_Magician.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'The High Priestess', 
+        upright: 'Inaction, going within, the subconscious', 
+        reversed: 'Lack of center, lost inner voice, repressed feelings',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/RWS_Tarot_02_High_Priestess.jpg/500px-RWS_Tarot_02_High_Priestess.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'The Empress', 
+        upright: 'Abundance, fertility, nurturing', 
+        reversed: 'Dependence, neglect, lack of growth',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/RWS_Tarot_03_Empress.jpg/500px-RWS_Tarot_03_Empress.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'The Emperor', 
+        upright: 'Authority, structure, control', 
+        reversed: 'Tyranny, rigidity, lack of discipline',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/RWS_Tarot_04_Emperor.jpg/500px-RWS_Tarot_04_Emperor.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'The Hierophant', 
+        upright: 'Tradition, conformity, spiritual guidance', 
+        reversed: 'Rebellion, unconventionality, new approaches',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/RWS_Tarot_05_Hierophant.jpg/500px-RWS_Tarot_05_Hierophant.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'The Lovers', 
+        upright: 'Love, harmony, partnership', 
+        reversed: 'Disharmony, imbalance, miscommunication',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/RWS_Tarot_06_Lovers.jpg/500px-RWS_Tarot_06_Lovers.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'The Chariot', 
+        upright: 'Determination, willpower, triumph', 
+        reversed: 'Lack of direction, aggression, defeat',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/RWS_Tarot_07_Chariot.jpg/500px-RWS_Tarot_07_Chariot.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Strength', 
+        upright: 'Courage, patience, inner strength', 
+        reversed: 'Weakness, insecurity, self-doubt',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/RWS_Tarot_08_Strength.jpg/500px-RWS_Tarot_08_Strength.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'The Hermit', 
+        upright: 'Introspection, solitude, inner guidance', 
+        reversed: 'Isolation, loneliness, avoidance',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/RWS_Tarot_09_Hermit.jpg/500px-RWS_Tarot_09_Hermit.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Wheel of Fortune', 
+        upright: 'Luck, change, cycles', 
+        reversed: 'Bad luck, resistance to change, disruption',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/RWS_Tarot_10_Wheel_of_Fortune.jpg/500px-RWS_Tarot_10_Wheel_of_Fortune.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Justice', 
+        upright: 'Fairness, truth, law', 
+        reversed: 'Injustice, dishonesty, imbalance',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/RWS_Tarot_11_Justice.jpg/500px-RWS_Tarot_11_Justice.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'The Hanged Man', 
+        upright: 'Suspension, letting go, new perspectives', 
+        reversed: 'Resistance, delay, indecision',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/RWS_Tarot_12_Hanged_Man.jpg/102px-RWS_Tarot_12_Hanged_Man.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Death', 
+        upright: 'Endings, transformation, transition', 
+        reversed: 'Fear of change, stagnation, resistance',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/RWS_Tarot_13_Death.jpg/500px-RWS_Tarot_13_Death.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Temperance', 
+        upright: 'Balance, moderation, harmony', 
+        reversed: 'Imbalance, excess, lack of harmony',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/RWS_Tarot_14_Temperance.jpg/500px-RWS_Tarot_14_Temperance.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'The Devil', 
+        upright: 'Addiction, materialism, bondage', 
+        reversed: 'Liberation, release, overcoming fear',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/RWS_Tarot_15_Devil.jpg/102px-RWS_Tarot_15_Devil.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'The Tower', 
+        upright: 'Sudden change, upheaval, revelation', 
+        reversed: 'Avoidance of disaster, fear of change',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/RWS_Tarot_16_Tower.jpg/500px-RWS_Tarot_16_Tower.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'The Star', 
+        upright: 'Hope, inspiration, renewal', 
+        reversed: 'Despair, lack of faith, insecurity',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/RWS_Tarot_17_Star.jpg/500px-RWS_Tarot_17_Star.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'The Moon', 
+        upright: 'Illusion, intuition, mystery', 
+        reversed: 'Confusion, deception, clarity',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/RWS_Tarot_18_Moon.jpg/500px-RWS_Tarot_18_Moon.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'The Sun', 
+        upright: 'Joy, success, positivity', 
+        reversed: 'Failure, negativity, lack of success',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/RWS_Tarot_19_Sun.jpg/500px-RWS_Tarot_19_Sun.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Judgment', 
+        upright: 'Judgment, rebirth, inner calling', 
+        reversed: 'Self-doubt, refusal to change, ignorance',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/RWS_Tarot_20_Judgement.jpg/500px-RWS_Tarot_20_Judgement.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'The World', 
+        upright: 'Completion, achievement, wholeness', 
+        reversed: 'Incompletion, lack of closure, unfulfilled goals',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/RWS_Tarot_21_World.jpg/500px-RWS_Tarot_21_World.jpg' // Replace with the actual path or URL
+    },
+    // Minor Arcana
+    { 
+        name: 'Ace of Wands', 
+        upright: 'Inspiration, new beginnings, growth', 
+        reversed: 'False starts, lack of direction, delays',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Wands01.jpg/500px-Wands01.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Two of Wands', 
+        upright: 'Planning, progress, future possibilities', 
+        reversed: 'Lack of planning, fear of the unknown, delays',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Wands02.jpg/500px-Wands02.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Three of Wands', 
+        upright: 'Expansion, foresight, trade', 
+        reversed: 'Lack of foresight, delays, setbacks',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Wands03.jpg/500px-Wands03.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Four of Wands', 
+        upright: 'Celebration, harmony, homecoming', 
+        reversed: 'Disruption, instability, lack of harmony',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Wands04.jpg/500px-Wands04.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Five of Wands', 
+        upright: 'Conflict, competition, disagreement', 
+        reversed: 'Avoidance of conflict, compromise, resolution',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Wands05.jpg/500px-Wands05.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Six of Wands', 
+        upright: 'Victory, recognition, success', 
+        reversed: 'Failure, lack of recognition, defeat',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Wands06.jpg/500px-Wands06.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Seven of Wands', 
+        upright: 'Perseverance, defense, overcoming obstacles', 
+        reversed: 'Giving up, feeling overwhelmed, retreat',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Wands07.jpg/500px-Wands07.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Eight of Wands', 
+        upright: 'Speed, action, movement', 
+        reversed: 'Delays, stagnation, lack of progress',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Wands08.jpg/500px-Wands08.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Nine of Wands', 
+        upright: 'Resilience, persistence, endurance', 
+        reversed: 'Exhaustion, defensiveness, feeling overwhelmed',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Tarot_Nine_of_Wands.jpg/500px-Tarot_Nine_of_Wands.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Ten of Wands', 
+        upright: 'Burden, responsibility, hard work', 
+        reversed: 'Overwhelm, taking on too much, release',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Wands10.jpg/500px-Wands10.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Page of Wands', 
+        upright: 'Exploration, creativity, enthusiasm', 
+        reversed: 'Lack of direction, immaturity, hesitation',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Wands11.jpg/500px-Wands11.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Knight of Wands', 
+        upright: 'Action, adventure, passion', 
+        reversed: 'Impulsiveness, recklessness, lack of direction',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Wands12.jpg/500px-Wands12.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Queen of Wands', 
+        upright: 'Confidence, warmth, determination', 
+        reversed: 'Jealousy, insecurity, low energy',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Wands13.jpg/500px-Wands13.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'King of Wands', 
+        upright: 'Leadership, vision, inspiration', 
+        reversed: 'Tyranny, impulsiveness, lack of vision',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Wands14.jpg/500px-Wands14.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Ace of Cups', 
+        upright: 'Emotional fulfillment, new beginnings, love', 
+        reversed: 'Emotional blockages, lack of compassion, unfulfilled desires',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Cups01.jpg/500px-Cups01.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Two of Cups', 
+        upright: 'Partnership, mutual attraction, balance', 
+        reversed: 'Imbalance, disconnection, misunderstandings',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Cups02.jpg/500px-Cups02.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Three of Cups', 
+        upright: 'Celebration, friendship, community', 
+        reversed: 'Isolation, overindulgence, lack of support',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Cups03.jpg/500px-Cups03.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Four of Cups', 
+        upright: 'Contemplation, reevaluation, dissatisfaction', 
+        reversed: 'Acceptance, new opportunities, renewed interest',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Cups04.jpg/500px-Cups04.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Five of Cups', 
+        upright: 'Grief, loss, regret', 
+        reversed: 'Acceptance, moving on, forgiveness',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Cups05.jpg/500px-Cups05.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Six of Cups', 
+        upright: 'Nostalgia, childhood, reunions', 
+        reversed: 'Stuck in the past, unrealistic expectations, growing up',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Cups06.jpg/500px-Cups06.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Seven of Cups', 
+        upright: 'Choices, imagination, illusions', 
+        reversed: 'Confusion, lack of focus, poor decisions',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Cups07.jpg/500px-Cups07.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Eight of Cups', 
+        upright: 'Abandonment, leaving behind, personal growth', 
+        reversed: 'Stagnation, avoidance, fear of change',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Cups08.jpg/500px-Cups08.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Nine of Cups', 
+        upright: 'Contentment, satisfaction, emotional fulfillment', 
+        reversed: 'Dissatisfaction, lack of fulfillment, greed',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Cups09.jpg/500px-Cups09.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Ten of Cups', 
+        upright: 'Happiness, emotional fulfillment, family', 
+        reversed: 'Discontent, broken relationships, lack of harmony',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Cups10.jpg/500px-Cups10.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Page of Cups', 
+        upright: 'Creativity, intuition, emotional messages', 
+        reversed: 'Emotional immaturity, unrealistic expectations, lack of creativity',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Cups11.jpg/500px-Cups11.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Knight of Cups', 
+        upright: 'Romance, idealism, charm', 
+        reversed: 'Moodiness, unrealistic expectations, lack of direction',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Cups12.jpg/500px-Cups12.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Queen of Cups', 
+        upright: 'Compassion, intuition, emotional stability', 
+        reversed: 'Overemotional, insecurity, lack of boundaries',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Cups13.jpg/500px-Cups13.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'King of Cups', 
+        upright: 'Emotional maturity, wisdom, compassion', 
+        reversed: 'Emotional manipulation, moodiness, lack of control',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Cups14.jpg/500px-Cups14.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Ace of Pentacles', 
+        upright: 'New opportunities, abundance, prosperity', 
+        reversed: 'Missed opportunities, financial loss, lack of resources',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Pents01.jpg/500px-Pents01.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Two of Pentacles', 
+        upright: 'Balance, multitasking, adaptability', 
+        reversed: 'Overwhelmed, imbalance, poor management',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Pents02.jpg/500px-Pents02.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Three of Pentacles', 
+        upright: 'Collaboration, skill, craftsmanship', 
+        reversed: 'Lack of teamwork, poor quality, delays',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Pents03.jpg/500px-Pents03.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Four of Pentacles', 
+        upright: 'Stability, security, control', 
+        reversed: 'Greed, loss, instability',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Pents04.jpg/500px-Pents04.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Five of Pentacles', 
+        upright: 'Financial loss, hardship, isolation', 
+        reversed: 'Recovery, improvement, support',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Pents05.jpg/500px-Pents05.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Six of Pentacles', 
+        upright: 'Generosity, balance, giving and receiving', 
+        reversed: 'Inequality, selfishness, lack of generosity',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Pents06.jpg/500px-Pents06.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Seven of Pentacles', 
+        upright: 'Patience, long-term view, investment', 
+        reversed: 'Lack of progress, impatience, short-term thinking',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Pents07.jpg/500px-Pents07.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Eight of Pentacles', 
+        upright: 'Work, skill development, diligence', 
+        reversed: 'Lack of focus, poor workmanship, underachievement',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Pents08.jpg/500px-Pents08.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Nine of Pentacles', 
+        upright: 'Abundance, self-sufficiency, luxury', 
+        reversed: 'Financial dependence, insecurity, lack of reward',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Pents09.jpg/500px-Pents09.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Ten of Pentacles', 
+        upright: 'Wealth, family, legacy', 
+        reversed: 'Financial instability, family conflicts, lack of legacy',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Pents10.jpg/500px-Pents10.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Page of Pentacles', 
+        upright: 'Opportunity, ambition, new beginnings', 
+        reversed: 'Lack of progress, missed opportunities, unrealistic goals',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Pents11.jpg/500px-Pents11.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Knight of Pentacles', 
+        upright: 'Dependability, responsibility, hard work', 
+        reversed: 'Stagnation, laziness, lack of progress',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Pents12.jpg/500px-Pents12.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'Queen of Pentacles', 
+        upright: 'Nurturing, practicality, abundance', 
+        reversed: 'Neglect, financial insecurity, lack of growth',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Pents13.jpg/500px-Pents13.jpg' // Replace with the actual path or URL
+    },
+    { 
+        name: 'King of Pentacles', 
+        upright: 'Success, stability, wealth', 
+        reversed: 'Financial loss, instability, poor leadership',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Pents14.jpg/500px-Pents14.jpg' // Replace with the actual path or URL
+    }
+];
+      
+        let selectedCards = [];
+        let isReading = false;
+        let utterance = null;
+        
+
+function randomizeCards() {
+    const cardElements = document.querySelectorAll('.card');
+    const details = [];
+    const interpretations = [];
+    
+    // Shuffle the cards array
+    const shuffledCards = [...cards].sort(() => Math.random() - 0.5);
+    
+    selectedCards = [];
+    let combination = "";
+
+    cardElements.forEach((card, index) => {
+        const randomCard = shuffledCards[index];
+        const originalIndex = cards.indexOf(randomCard); // Destedeki orijinal sıra numarasını bulmak
+        const isReversed = Math.random() > 0.5;
+        const cardImage = card.querySelector('img');
+
+        cardImage.src = randomCard.image;
+        card.classList.toggle('reversed', isReversed);
+
+        const cardText = isReversed ? randomCard.reversed : randomCard.upright;
+        selectedCards.push({ card: randomCard, isReversed });
+
+        // Kimlik numarası için kombinasyon oluşturma (deste sıra numarası ve duruş)
+        const position = isReversed ? 'R' : 'U';
+        combination += `${originalIndex + 1}${position}`;
+        
+        // Details kısmı için sırayı 1, 2, 3 şeklinde ekleyin
+        details.push(`${index + 1}. ${randomCard.name} (${isReversed ? 'Reversed' : 'Upright'})`);
+        interpretations.push(`${index + 1}. ${cardText}`);
+    });
+
+    const fullText = [
+	`id: ${combination}`,
+        ...details,
+        '',
+        ...interpretations,
+        '',
+        'Final Interpretation:',
+        `This combination suggests that ${interpretations.join(', ')}.`
+    ].join('\n');
+
+    // Kimlik numarasını div içine ekleme
+    document.getElementById('kimlik').textContent = combination;
+
+    // Details kısmına kimlik numarasını ekleme
+    document.getElementById('details').value = fullText;
+}
+
+
+
+
+        function showReady() {
+            document.querySelectorAll('.card').forEach(card => {
+                const cardImage = card.querySelector('img');
+                cardImage.src = '';  
+            });
+            document.getElementById('details').classList.add('hidden');  
+            document.getElementById('tarot-container').classList.add('hidden');  
+            document.getElementById('speech-controls').classList.remove('hidden');  
+        }
+
+        function startReading() {
+            if (!isReading) {
+                document.getElementById('tarot-container').classList.remove('hidden'); 
+                document.getElementById('details').classList.remove('hidden');  
+                document.getElementById('speech-controls').classList.remove('hidden');  
+                
+                const cardElements = document.querySelectorAll('.card');
+                
+                cardElements.forEach((card, index) => {
+                    setTimeout(() => {
+                        const selectedCard = selectedCards[index];
+                        const cardImage = card.querySelector('img');
+                        cardImage.src = selectedCard.card.image;
+                        card.classList.toggle('reversed', selectedCard.isReversed);
+                    }, 500 * index);  
+                });
+
+                isReading = true;
+                const textContent = document.getElementById('details').value;
+                speak(textContent, () => isReading = false);
+            }
+        }
+
+        function speak(description, callback) {
+            const languageSelect = document.getElementById('language');
+            const selectedVoice = languageSelect.selectedOptions[0]?.value || null;
+            const baseRate = parseFloat(document.getElementById('rate').value);
+            const basePitch = parseFloat(document.getElementById('pitch').value);
+            const chunkSize = 200; // Adjust this as needed
+            const chunks = description.match(new RegExp(`.{1,${chunkSize}}(\\s|$)`, 'g')) || [];
+
+            if (chunks.length === 0) {
+                alert('Description is empty.');
+                return;
+            }
+
+            let currentIndex = 0;
+
+            const speakChunk = () => {
+                if (currentIndex >= chunks.length) {
+                    callback();
+                    return;
+                }
+
+                utterance = new SpeechSynthesisUtterance(chunks[currentIndex]);
+                const voices = speechSynthesis.getVoices();
+                const voice = voices.find(voice => voice.name === selectedVoice);
+
+                if (voice) utterance.voice = voice;
+                utterance.volume = 1;
+                utterance.rate = getRandomVariation(baseRate, 0.8, 1.1);
+                utterance.pitch = getRandomVariation(basePitch, 0.3, 0.5);
+
+                utterance.onend = () => {
+                    currentIndex++;
+                    setTimeout(speakChunk, Math.random() * 1100 + 900);
+                };
+
+                speechSynthesis.speak(utterance);
+            };
+
+            speakChunk();
+        }
+
+        function getRandomVariation(baseValue, min, max) {
+            return baseValue * (Math.random() * (max - min) + min);
+        }
+
+        function populateVoices() {
+            const synth = window.speechSynthesis;
+            const voices = synth.getVoices();
+            const languageSelect = document.getElementById('language');
+            languageSelect.innerHTML = '';
+
+            voices.forEach(voice => {
+                if (voice.lang.startsWith('en')) {
+                    const option = document.createElement('option');
+                    option.value = voice.name;
+                    option.textContent = `${voice.name} (${voice.lang})`;
+                    languageSelect.appendChild(option);
+                }
+            });
+
+            const enGbMaleVoice = voices.find(voice => voice.name.includes('Male') && voice.lang.includes('en-GB'));
+            if (enGbMaleVoice) {
+                languageSelect.value = enGbMaleVoice.name;
+            } else if (languageSelect.options.length > 0) {
+                languageSelect.selectedIndex = 0;
+            }
+        }
+
+        function initSpeech() {
+            populateVoices();
+            speechSynthesis.onvoiceschanged = populateVoices;
+        }
+
+        function stopReading() {
+            isReading = false;
+            if (utterance) {
+                speechSynthesis.cancel();
+            }
+        }
+
+        window.onload = initSpeech;
+    </script>
+</body>
+</html>
