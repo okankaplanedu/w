@@ -1,0 +1,371 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Interactive Image Sketching: Turn Your Photos into Art</title><style>
+        #container {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #imageContainer {
+            top: 0;
+            width: 400px;
+            border: solid 1px #000000;
+        }
+
+        #canvas {
+            width: 700px;
+            border: 1px solid black;
+        }
+		
+		 #image {
+            width: 400px;
+            height: 400px;
+            object-fit: cover;
+        }
+
+          #canvasor {
+			  position: absolute;
+			  top:0;
+			   left: 420px;
+			  width: 390px;
+         
+            border: 1px solid black;
+        }
+		
+		
+        input[type="range"] {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button {
+            margin-top: 10px;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .checkbox-label {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+<div id="container">
+        <div id="imageContainer">
+            <img id="image" src="1.png" alt="Resim" style="width:100%">
+        </div>
+        <canvas id="canvas"></canvas>
+    </div>
+
+	
+	
+<div id="tools" style="position: absolute; width: 400px; bottom:0; padding: 10px; background-color: aliceblue;">
+    <span id="imageContainer"  style="width: 50px ; border: none; padding: 5px">
+        <img id="image" src="" alt="Resim" style=" display: none">
+        <input type="file" id="fileInput" style="display: none; ">
+        <label for="fileInput" id="uploadIcon">67</label>
+    </span>
+
+    <script>
+        document.getElementById('fileInput').addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('image').src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+		
+		
+		
+		<button id="startBtn" style="display: none;">Start</button>
+		 <button id="pauseResumeBtn">86</button>
+		 <button id="downloadBtn">Download Image</button>
+        <div class="checkbox-container">
+            <label class="checkbox-label" for="randomAngle">Randomize Angle:</label>
+            <input type="checkbox" id="randomAngle">
+        </div>
+
+        <input type="range" id="angle" min="0" max="360" step="1" value="300">
+        <label for="xRange">X Range:</label>
+        <input type="range" id="xRange" min="0" max="10" step="1" value="4">
+        <label for="yRange">Y Range:</label>
+        <input type="range" id="yRange" min="0" max="10" step="1" value="4">
+        <div class="checkbox-container">
+            <label class="checkbox-label" for="randomLineLength">Randomize Line Length:</label>
+            <input type="checkbox" id="randomLineLength">
+        </div>
+
+        <input type="range" id="lineLength" min="5" max="50" step="1" value="15">
+        <div class="checkbox-container">
+            <label class="checkbox-label" for="randomCurvature">Randomize Curvature:</label>
+            <input type="checkbox" id="randomCurvature">
+        </div>
+
+        <input type="range" id="curvature" min="0" max="1" step="0.1" value="0">
+        <div class="checkbox-container">
+            <label class="checkbox-label" for="randomThickness">Randomize Thickness:</label>
+            <input type="checkbox" id="randomThickness">
+        </div>
+
+        <input type="range" id="thickness" min="1" max="20" step="1" value="1">
+        <div class="checkbox-container">
+            <label class="checkbox-label" for="randomAlpha">Randomize Alpha:</label>
+            <input type="checkbox" id="randomAlpha">
+        </div>
+
+        <input type="range" id="alpha" min="0" max="1" step="0.1" value="1">
+        <br>
+       
+        <button id="clearBtn">Clear Canvas</button>
+        <button id="cancelBtn" style="margin-left: 10px;">Cancel Selections</button>
+        <button id="topBtn" style="margin-left: 10px;">Top Canvas</button>
+    </div>
+<div id="canvasor" >129
+	<embed src="https://canvasor.net/events.asp" width="100%" height="300px"></embed
+	></div>
+    <script>
+        const imageContainer = document.getElementById('imageContainer');
+        const image = document.getElementById('image');
+        const fileInput = document.getElementById('fileInput');
+        const startBtn = document.getElementById('startBtn');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const angleSlider = document.getElementById('angle');
+        const thicknessSlider = document.getElementById('thickness');
+        const alphaSlider = document.getElementById('alpha');
+        const lineLengthSlider = document.getElementById('lineLength');
+        const curvatureSlider = document.getElementById('curvature');
+
+        const randomAngleCheckbox = document.getElementById('randomAngle');
+        const randomLineLengthCheckbox = document.getElementById('randomLineLength');
+        const randomCurvatureCheckbox = document.getElementById('randomCurvature');
+        const randomThicknessCheckbox = document.getElementById('randomThickness');
+        const randomAlphaCheckbox = document.getElementById('randomAlpha');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const pauseResumeBtn = document.getElementById('pauseResumeBtn');
+        let isDrawing = false;
+
+        fileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const width = img.width;
+                        const height = img.height;
+                        const aspectRatio = width / height;
+
+                        let newWidth, newHeight;
+                        if (width >= height) {
+                            newWidth = 510;
+                            newHeight = 510;
+                        } else {
+                            newHeight = 510;
+                            newWidth = 510;
+                        }
+
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        canvas.width = newWidth;
+                        canvas.height = newHeight;
+
+                        ctx.drawImage(img, (newWidth - width) / 2, (newHeight - height) / 2, width, height);
+
+                        image.src = canvas.toDataURL();
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        startBtn.addEventListener('click', () => {
+            if (!image.src || image.src === '1.png') {
+                alert('Please select an image.');
+                return;
+            }
+            canvas.width = image.width;
+            canvas.height = image.height;
+            scanImage();
+            isDrawing = true;
+        });
+
+        image.onload = () => {
+            canvas.width = image.width;
+            canvas.height = image.height;
+            scanImage.x = 0;
+            scanImage.y = 0;
+            scanImage();
+        };
+
+        randomAngleCheckbox.addEventListener('change', () => {
+            angleSlider.disabled = randomAngleCheckbox.checked;
+            scanImage();
+        });
+
+        randomLineLengthCheckbox.addEventListener('change', () => {
+            lineLengthSlider.disabled = randomLineLengthCheckbox.checked;
+            scanImage();
+        });
+
+        randomCurvatureCheckbox.addEventListener('change', () => {
+            curvatureSlider.disabled = randomCurvatureCheckbox.checked;
+            scanImage();
+        });
+
+        randomThicknessCheckbox.addEventListener('change', () => {
+            thicknessSlider.disabled = randomThicknessCheckbox.checked;
+            scanImage();
+        });
+
+        randomAlphaCheckbox.addEventListener('change', () => {
+            alphaSlider.disabled = randomAlphaCheckbox.checked;
+            scanImage();
+        });
+
+		
+		
+        pauseResumeBtn.addEventListener('click', () => {
+            isDrawing = !isDrawing;
+            pauseResumeBtn.textContent = isDrawing ? 'Pause' : 'Resume';
+            if (isDrawing) {
+                scanImage();
+            }
+        });
+
+        clearBtn.addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            scanImage.x = 0;
+            scanImage.y = 0;
+        });
+
+        topBtn.addEventListener('click', () => {
+            scanImage.x = 0;
+            scanImage.y = 0;
+            scanImage();
+        });
+
+        cancelBtn.addEventListener('click', () => {
+            randomAngleCheckbox.checked = false;
+            randomLineLengthCheckbox.checked = false;
+            randomCurvatureCheckbox.checked = false;
+            randomThicknessCheckbox.checked = false;
+            randomAlphaCheckbox.checked = false;
+
+            angleSlider.disabled = false;
+            lineLengthSlider.disabled = false;
+            curvatureSlider.disabled = false;
+            thicknessSlider.disabled = false;
+            alphaSlider.disabled = false;
+
+            scanImage();
+        });
+
+        function scanImage() {
+            if (!isDrawing) {
+                return;
+            }
+
+            const xRangeValue = document.getElementById('xRange').valueAsNumber;
+            const yRangeValue = document.getElementById('yRange').valueAsNumber;
+
+            const x = scanImage.x || 0;
+            const y = scanImage.y || 0;
+
+            const scannedColor = getPixelColor(x, y);
+            const canvasColor = getCanvasColor(x, y);
+
+            if (scannedColor !== canvasColor) {
+                const brushColor = scannedColor;
+                const brushThickness = randomThicknessCheckbox.checked ? Math.random() * 20 + 1 : thicknessSlider.value;
+                const brushAlpha = randomAlphaCheckbox.checked ? Math.random() : alphaSlider.value;
+
+                ctx.strokeStyle = brushColor;
+                ctx.lineWidth = brushThickness;
+                ctx.globalAlpha = brushAlpha;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+
+                const brushAngle = randomAngleCheckbox.checked ? Math.random() * 360 : angleSlider.value;
+                const radians = brushAngle * Math.PI / 180;
+                const lineLength = randomLineLengthCheckbox.checked ? Math.random() * 45 + 5 : lineLengthSlider.value;
+                const curvature = randomCurvatureCheckbox.checked ? Math.random() : curvatureSlider.value;
+                const controlX1 = x + (lineLength * curvature);
+                const controlY1 = y + (lineLength * curvature);
+                const endX = x + Math.cos(radians) * lineLength;
+                const endY = y + Math.sin(radians) * lineLength;
+
+                ctx.quadraticCurveTo(controlX1, controlY1, endX, endY);
+                ctx.stroke();
+            }
+
+            if (x < canvas.width - xRangeValue) {
+                scanImage.x = x + xRangeValue;
+                scanImage.y = y;
+            } else {
+                scanImage.x = 0;
+                scanImage.y = y + yRangeValue;
+            }
+
+            if (y < canvas.height) {
+                requestAnimationFrame(scanImage);
+            } else {
+                delete scanImage.x;
+                delete scanImage.y;
+                isDrawing = false;
+                pauseResumeBtn.textContent = 'Resume';
+            }
+        }
+
+        function getPixelColor(x, y) {
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCanvas.width = 1;
+            tempCanvas.height = 1;
+            tempCtx.drawImage(image, x, y, 1, 1, 0, 0, 1, 1);
+            const pixelData = tempCtx.getImageData(0, 0, 1, 1).data;
+            return `rgb(${pixelData[0]}, ${pixelData[1]}, ${pixelData[2]})`;
+        }
+
+        function getCanvasColor(x, y) {
+            const pixelData = ctx.getImageData(x, y, 1, 1).data;
+            return `rgb(${pixelData[0]}, ${pixelData[1]}, ${pixelData[2]})`;
+        }
+
+        // Start scanning from top-left corner
+        scanImage();
+const downloadBtn = document.getElementById('downloadBtn');
+        downloadBtn.addEventListener('click', () => {
+            downloadCanvas();
+        });
+
+         
+          function downloadCanvas() {
+            const mmToDpi = 1 / 25.4 * 300; // Convert millimeters to DPI
+            const widthInPixels = 420 * mmToDpi;
+            const heightInPixels = 420 * mmToDpi;
+
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCanvas.width = widthInPixels;
+            tempCanvas.height = heightInPixels;
+
+            tempCtx.drawImage(canvas, 0, 0, widthInPixels, heightInPixels);
+
+            const link = document.createElement('a');
+            link.download = 'sketch.png'; // Set the filename for download
+            link.href = tempCanvas.toDataURL('image/png', 1.0); // Set the canvas data URL
+            link.click(); // Trigger the download
+        }
+     
+    </script>
+</body>
+
+</html>
