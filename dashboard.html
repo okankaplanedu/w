@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta name="theme-color" content="#4f46e5">
+  <title>İçerik Paneli</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+  <link href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #4338ca;
+      --primary-soft: #eef2ff;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --gray-50: #f5f7fb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-500: #6b7280;
+      --gray-800: #1f2937;
+      --radius: 14px;
+      --radius-sm: 10px;
+    }
+
+    * { -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background: var(--gray-50);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      padding-bottom: 80px;
+      overscroll-behavior-y: contain;
+    }
+
+    /* ============================================
+       TOPBAR
+       ============================================ */
+    .topbar {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: #fff;
+      padding: 10px 12px;
+      position: relative;
+      z-index: 1030;
+      box-shadow: 0 2px 12px rgba(79,70,229,0.25);
+    }
+
+    .topbar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 1rem;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .icon-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      border: none;
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      transition: background .2s, transform .1s;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .icon-btn:hover,
+    .icon-btn:active {
+      background: rgba(255,255,255,0.28);
+      transform: scale(0.96);
+    }
+
+    /* ============================================
+       STICKY ARAMA
+       ============================================ */
+    .search-sticky {
+      position: sticky;
+      top: 0;
+      z-index: 1025;
+      background: var(--gray-50);
+      padding: 12px 12px 10px;
+      transition: box-shadow .25s ease, background .25s ease;
+      border-bottom: 1px solid transparent;
+    }
+
+    .search-sticky.is-stuck {
+      background: #fff;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+      border-bottom-color: var(--gray-200);
+    }
+
+    .search-wrapper { position: relative; width: 100%; }
+
+    .search-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.3rem;
+      color: var(--primary);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 16px 18px 16px 50px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--gray-800);
+      background: #fff;
+      border: 3px solid var(--primary);
+      border-radius: var(--radius);
+      outline: none;
+      transition: border-color .25s, box-shadow .25s;
+      caret-color: var(--primary);
+    }
+
+    .search-input::placeholder { color: #9ca3af; font-weight: 500; }
+
+    .search-input:focus {
+      border-color: var(--primary-dark);
+      animation: blink-glow 1.2s ease-in-out infinite;
+    }
+
+    @keyframes blink-glow {
+      0%, 100% { box-shadow: 0 0 0 4px rgba(79,70,229,0.15); }
+      50%      { box-shadow: 0 0 0 8px rgba(79,70,229,0.28); }
+    }
+
+    @media (min-width: 768px) {
+      .search-sticky { padding: 12px 24px 10px; }
+    }
+
+    /* ============================================
+       ÖZET
+       ============================================ */
+    .summary-pill {
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      border: none;
+      text-align: left;
+    }
+
+    .summary-pill:active { background: var(--gray-100); }
+    .summary-pill .label { font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; font-weight: 700; }
+    .summary-pill .value { font-size: 1.5rem; font-weight: 800; color: var(--gray-800); line-height: 1; }
+    .summary-pill .chev { transition: transform .3s; color: var(--gray-500); font-size: 1.2rem; }
+    .summary-pill[aria-expanded="true"] .chev { transform: rotate(180deg); }
+
+    .stat-card {
+      border: none;
+      border-radius: var(--radius);
+      padding: 14px;
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      height: 100%;
+      min-height: 78px;
+    }
+
+    .stat-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .stat-value { font-size: 1.25rem; font-weight: 800; margin: 0; line-height: 1.1; }
+    .stat-label { font-size: 0.72rem; color: var(--gray-500); margin: 0; font-weight: 600; text-transform: uppercase; }
+
+    /* ============================================
+       HIZLI AKSİYON BUTONLARI
+       ============================================ */
+    .quick-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .action-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 16px 12px;
+      min-height: 60px;
+      background: #fff;
+      border: 2px solid var(--gray-200);
+      border-radius: var(--radius);
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--gray-800);
+      transition: all .2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .action-btn i { font-size: 1.3rem; }
+
+    .action-btn:active { transform: scale(0.97); }
+
+    .action-btn.primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 4px 14px rgba(79,70,229,0.3);
+    }
+
+    .action-btn.secondary {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: var(--primary-soft);
+    }
+
+    /* ============================================
+       TABLO
+       ============================================ */
+    .table-card {
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    table.dataTable thead th {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--gray-500);
+      border-bottom: 2px solid var(--gray-200) !important;
+      font-weight: 700;
+    }
+
+    table.dataTable tbody td {
+      vertical-align: middle;
+      font-size: 0.9rem;
+      padding: 12px 8px;
+    }
+
+    .badge-kategori {
+      background: var(--primary-soft);
+      color: var(--primary);
+      padding: 5px 11px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .title-link { color: var(--gray-800); text-decoration: none; font-weight: 700; }
+    .title-link:hover { color: var(--primary); }
+
+    .desc-text {
+      color: var(--gray-500);
+      font-size: 0.82rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .kw-tag {
+      display: inline-block;
+      background: var(--gray-100);
+      color: #4b5563;
+      font-size: 0.7rem;
+      padding: 3px 9px;
+      border-radius: 12px;
+      margin: 1px;
+      font-weight: 600;
+    }
+
+    /* İşlem butonları */
+    .row-actions { display: flex; gap: 6px; }
+
+    .btn-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      text-decoration: none;
+      transition: all .15s;
+      flex-shrink: 0;
+    }
+
+    .btn-icon:active { transform: scale(0.92); }
+
+    .btn-icon.edit {
+      background: var(--primary-soft);
+      color: var(--primary);
+    }
+    .btn-icon.edit:hover { background: var(--primary); color: #fff; }
+
+    .btn-icon.view {
+      background: #dcfce7;
+      color: #16a34a;
+    }
+    .btn-icon.view:hover { background: #16a34a; color: #fff; }
+
+    .dataTables_filter { display: none !important; }
+
+    /* ============================================
+       OFFCANVAS
+       ============================================ */
+    .offcanvas {
+      width: 340px !important;
+      max-width: 90vw;
+    }
+
+    .offcanvas-start .offcanvas-header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+    }
+
+    .offcanvas-end .offcanvas-header {
+      background: linear-gradient(135deg, #1f2937, #111827);
+      color: #fff;
+    }
+
+    .offcanvas-header { padding: 16px 18px; }
+    .offcanvas-title { font-weight: 800; font-size: 1.05rem; }
+    .offcanvas-body { padding: 16px; }
+
+    /* ============================================
+       KATEGORİ YÖNETİMİ (sol offcanvas)
+       ============================================ */
+    .section-title {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--gray-500);
+      font-weight: 800;
+      margin: 4px 4px 8px;
+    }
+
+    .add-cat-box {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .input-lg {
+      min-height: 52px;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      border: 2px solid var(--gray-200);
+      padding: 12px 14px;
+      width: 100%;
+      transition: border-color .2s;
+      background: #fff;
+    }
+
+    .input-lg:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(79,70,229,0.12);
+      outline: none;
+    }
+
+    .btn-add-cat {
+      min-width: 52px;
+      min-height: 52px;
+      border-radius: var(--radius-sm);
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .2s, transform .1s;
+      flex-shrink: 0;
+    }
+
+    .btn-add-cat:active { transform: scale(0.95); background: var(--primary-dark); }
+
+    /* Kategori listesi */
+    .cat-list { list-style: none; padding: 0; margin: 0; }
+
+    .cat-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      background: #fff;
+      border: 2px solid var(--gray-200);
+      margin-bottom: 8px;
+      transition: border-color .2s;
+    }
+
+    .cat-item:hover { border-color: var(--primary); }
+    .cat-item.editing { border-color: var(--primary); background: var(--primary-soft); }
+
+    .cat-name {
+      flex: 1;
+      font-weight: 700;
+      font-size: 0.92rem;
+      color: var(--gray-800);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .cat-count {
+      background: var(--gray-100);
+      color: var(--gray-500);
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .cat-actions { display: flex; gap: 4px; flex-shrink: 0; }
+
+    .btn-cat-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      transition: all .15s;
+      background: var(--gray-100);
+      color: var(--gray-500);
+    }
+
+    .btn-cat-icon:active { transform: scale(0.9); }
+    .btn-cat-icon.edit:hover { background: var(--primary); color: #fff; }
+    .btn-cat-icon.save:hover { background: var(--success); color: #fff; }
+    .btn-cat-icon.del:hover { background: var(--danger); color: #fff; }
+    .btn-cat-icon.save { background: #d1fae5; color: var(--success); }
+
+    .cat-empty {
+      text-align: center;
+      padding: 30px 10px;
+      color: var(--gray-500);
+      font-size: 0.88rem;
+    }
+
+    /* ============================================
+       İÇERİK FORMU (sağ offcanvas)
+       ============================================ */
+    .form-group { margin-bottom: 16px; }
+
+    .form-label-lg {
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--gray-500);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .form-textarea-lg {
+      min-height: 110px;
+      resize: vertical;
+      font-size: 0.95rem;
+      font-weight: 500;
+      line-height: 1.5;
+      border-radius: var(--radius-sm);
+      border: 2px solid var(--gray-200);
+      padding: 12px 14px;
+      width: 100%;
+      font-family: inherit;
+      transition: border-color .2s;
+    }
+
+    .form-textarea-lg:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(79,70,229,0.12);
+      outline: none;
+    }
+
+    .form-select-lg {
+      min-height: 52px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      border: 2px solid var(--gray-200);
+      padding: 12px 14px;
+      width: 100%;
+      background: #fff;
+      transition: border-color .2s;
+    }
+
+    .form-select-lg:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(79,70,229,0.12);
+      outline: none;
+    }
+
+    .form-hint {
+      font-size: 0.72rem;
+      color: var(--gray-500);
+      margin-top: 5px;
+      font-weight: 500;
+    }
+
+    /* Form footer */
+    .form-footer {
+      padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+      border-top: 1px solid var(--gray-200);
+      display: flex;
+      gap: 10px;
+      background: #fff;
+    }
+
+    .btn-save {
+      flex: 1;
+      min-height: 54px;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+      font-weight: 800;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(79,70,229,0.3);
+      transition: transform .1s;
+    }
+
+    .btn-save:active { transform: scale(0.97); }
+
+    .btn-cancel {
+      min-width: 54px;
+      min-height: 54px;
+      border-radius: var(--radius-sm);
+      border: 2px solid var(--gray-200);
+      background: #fff;
+      color: var(--gray-500);
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-cancel:active { background: var(--gray-100); }
+
+    /* ============================================
+       BOTTOM BAR
+       ============================================ */
+    .bottom-bar {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      background: #fff;
+      border-top: 1px solid var(--gray-200);
+      padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 1040;
+      box-shadow: 0 -2px 12px rgba(0,0,0,0.06);
+    }
+
+    .bottom-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 6px 4px;
+      background: none;
+      border: none;
+      color: var(--gray-500);
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-decoration: none;
+      min-height: 56px;
+      border-radius: 10px;
+      transition: color .2s, background .2s;
+    }
+
+    .bottom-btn i { font-size: 1.4rem; }
+    .bottom-btn:active { background: var(--primary-soft); }
+    .bottom-btn.active, .bottom-btn:hover { color: var(--primary); }
+
+    @media (max-width: 576px) {
+      .brand span { display: none; }
+      .icon-btn { width: 46px; height: 46px; }
+      .stat-value { font-size: 1.15rem; }
+      .stat-icon { width: 40px; height: 40px; font-size: 1.1rem; }
+      table.dataTable tbody td { padding: 10px 6px; }
+      .table-card { padding: 10px; }
+      .search-input { font-size: 1rem; padding: 15px 16px 15px 48px; }
+      .search-icon { left: 14px; font-size: 1.15rem; }
+      .action-btn { font-size: 0.82rem; padding: 14px 8px; }
+      .action-btn i { font-size: 1.15rem; }
+    }
+
+    .collapse { transition: height .28s ease; }
+  </style>
+</head>
+<body>
+
+<!-- ============================================
+     TOPBAR
+     ============================================ -->
+<nav class="topbar">
+  <div class="topbar-inner">
+    <button class="icon-btn" type="button"
+            data-bs-toggle="offcanvas" data-bs-target="#leftMenu"
+            aria-label="Kategori Yönetimi">
+      <i class="bi bi-folder2-open"></i>
+    </button>
+
+    <div class="brand">
+      <i class="bi bi-speedometer2"></i>
+      <span>İçerik Paneli</span>
+    </div>
+
+    <button class="icon-btn" type="button" id="topEditBtn"
+            data-bs-toggle="offcanvas" data-bs-target="#rightMenu"
+            aria-label="İçerik Düzenle">
+      <i class="bi bi-pencil-square"></i>
+    </button>
+  </div>
+</nav>
+
+<!-- ============================================
+     STICKY ARAMA
+     ============================================ -->
+<div class="search-sticky" id="searchSticky">
+  <div class="search-wrapper">
+    <i class="bi bi-search search-icon"></i>
+    <input type="text" id="globalSearch" class="search-input"
+           placeholder="Ara: başlık, kategori, anahtar kelime..."
+           autocomplete="off" spellcheck="false" autofocus>
+  </div>
+</div>
+
+<!-- ============================================
+     ANA İÇERİK
+     ============================================ -->
+<main class="container-fluid px-3 px-md-4 pt-3">
+
+  <!-- ÖZET PİLL -->
+  <button class="summary-pill mb-3" type="button"
+          data-bs-toggle="collapse" data-bs-target="#statsCollapse"
+          aria-expanded="false">
+    <div class="d-flex align-items-center gap-3">
+      <div class="stat-icon" style="background: linear-gradient(135deg,#4f46e5,#4338ca); width:44px;height:44px;">
+        <i class="bi bi-graph-up-arrow"></i>
+      </div>
+      <div class="text-start">
+        <div class="label">Toplam İçerik</div>
+        <div class="value" id="totalCount">6</div>
+      </div>
+    </div>
+    <i class="bi bi-chevron-down chev"></i>
+  </button>
+
+  <div class="collapse mb-3" id="statsCollapse">
+    <div class="row g-2">
+      <div class="col-6">
+        <div class="stat-card">
+          <div class="stat-icon" style="background: var(--success);"><i class="bi bi-check-circle"></i></div>
+          <div><p class="stat-value">94</p><p class="stat-label">Yayında</p></div>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="stat-card">
+          <div class="stat-icon" style="background: var(--warning);"><i class="bi bi-pencil-square"></i></div>
+          <div><p class="stat-value">18</p><p class="stat-label">Taslak</p></div>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="stat-card">
+          <div class="stat-icon" style="background: var(--danger);"><i class="bi bi-tags"></i></div>
+          <div><p class="stat-value" id="catStatCount">6</p><p class="stat-label">Kategori</p></div>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #0ea5e9;"><i class="bi bi-eye"></i></div>
+          <div><p class="stat-value">12K</p><p class="stat-label">Görüntülenme</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⚡ HIZLI AKSİYON BUTONLARI -->
+  <div class="quick-actions">
+    <button class="action-btn secondary" id="newCategoryBtn" type="button">
+      <i class="bi bi-folder-plus"></i>
+      <span>Yeni Kategori</span>
+    </button>
+    <button class="action-btn primary" id="newContentBtn" type="button">
+      <i class="bi bi-file-earmark-plus"></i>
+      <span>Yeni Başlık</span>
+    </button>
+  </div>
+
+  <!-- TABLO -->
+  <div class="table-card">
+    <div class="table-responsive">
+      <table id="içerikTablosu" class="table table-hover align-middle w-100">
+        <thead>
+          <tr>
+            <th>Kategori</th>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Keywords</th>
+            <th>İşlem</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <!-- Satırlar JS tarafından basılır -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<!-- ============================================
+     BOTTOM BAR
+     ============================================ -->
+<nav class="bottom-bar">
+  <a href="#" class="bottom-btn active">
+    <i class="bi bi-house-door-fill"></i>
+    <span>Ana Sayfa</span>
+  </a>
+  <button class="bottom-btn" type="button"
+          data-bs-toggle="offcanvas" data-bs-target="#leftMenu">
+    <i class="bi bi-folder"></i>
+    <span>Kategoriler</span>
+  </button>
+  <button class="bottom-btn" type="button" id="bottomNewBtn">
+    <i class="bi bi-plus-circle"></i>
+    <span>Yeni Ekle</span>
+  </button>
+  <a href="#" class="bottom-btn">
+    <i class="bi bi-person"></i>
+    <span>Profil</span>
+  </a>
+</nav>
+
+<!-- ============================================
+     SOL OFFCANVAS — KATEGORİ YÖNETİMİ
+     ============================================ -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="leftMenu">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title">
+      <i class="bi bi-folder2-open me-2"></i>Kategori Yönetimi
+    </h5>
+    <button type="button" class="btn-close btn-close-white"
+            data-bs-dismiss="offcanvas" aria-label="Kapat"></button>
+  </div>
+
+  <div class="offcanvas-body">
+
+    <!-- Yeni Kategori Ekle -->
+    <div class="section-title">➕ Yeni Kategori Ekle</div>
+    <div class="add-cat-box">
+      <input type="text" id="newCatInput" class="input-lg"
+             placeholder="Kategori adı yaz..." autocomplete="off">
+      <button class="btn-add-cat" id="addCatBtn" type="button" aria-label="Ekle">
+        <i class="bi bi-plus-lg"></i>
+      </button>
+    </div>
+
+    <!-- Kategori Listesi -->
+    <div class="section-title">
+      📋 Mevcut Kategoriler (<span id="catCountLabel">0</span>)
+    </div>
+    <ul class="cat-list" id="catList"></ul>
+
+  </div>
+</div>
+
+<!-- ============================================
+     SAĞ OFFCANVAS — İÇERİK FORMU
+     ============================================ -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="rightMenu"
+     data-bs-backdrop="true" data-bs-keyboard="true">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="formHeaderTitle">
+      <i class="bi bi-pencil-square me-2"></i>İçeriği Düzenle
+    </h5>
+    <button type="button" class="btn-close btn-close-white"
+            data-bs-dismiss="offcanvas" aria-label="Kapat"></button>
+  </div>
+
+  <div class="offcanvas-body">
+
+    <input type="hidden" id="formRowId">
+
+    <div class="form-group">
+      <label class="form-label-lg" for="formKategori">Kategori</label>
+      <select class="form-select-lg" id="formKategori">
+        <!-- Kategoriler JS ile doldurulur -->
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label-lg" for="formTitle">Başlık</label>
+      <input type="text" class="input-lg" id="formTitle"
+             placeholder="İçerik başlığını yaz...">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label-lg" for="formDesc">Açıklama</label>
+      <textarea class="form-textarea-lg" id="formDesc"
+                placeholder="Kısa bir açıklama yaz..."></textarea>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label-lg" for="formKeywords">Anahtar Kelimeler</label>
+      <input type="text" class="input-lg" id="formKeywords"
+             placeholder="örn: ai, web, javascript">
+      <div class="form-hint">💡 Kelimeleri virgül ile ayırın</div>
+    </div>
+
+  </div>
+
+  <div class="form-footer">
+    <button class="btn-cancel" type="button"
+            data-bs-dismiss="offcanvas" aria-label="İptal">
+      <i class="bi bi-x-lg"></i>
+    </button>
+    <button class="btn-save" id="saveFormBtn" type="button">
+      <i class="bi bi-check2-circle"></i>
+      <span id="saveBtnText">Kaydet</span>
+    </button>
+  </div>
+</div>
+
+<!-- ============================================
+     SCRIPTS
+     ============================================ -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+
+<script>
+$(document).ready(function () {
+
+  /* ============================================================
+     📦 VERİ KATMANI (Demo — gerçekte API'den gelir)
+     ============================================================ */
+  let categories = [
+    { id: 'c1', name: 'Teknoloji', count: 32 },
+    { id: 'c2', name: 'Tasarım',   count: 24 },
+    { id: 'c3', name: 'SEO',       count: 18 },
+    { id: 'c4', name: 'Backend',   count: 28 },
+    { id: 'c5', name: 'Güvenlik',  count: 14 },
+    { id: 'c6', name: 'Performans',count: 12 }
+  ];
+
+  let contents = [
+    { id: '1', kategori: 'Teknoloji', title: 'Yapay Zeka ile Web Geliştirme', desc: 'Modern web uygulamalarında yapay zeka entegrasyonu nasıl yapılır?', keywords: 'ai, web, javascript' },
+    { id: '2', kategori: 'Tasarım',   title: 'Mobile-First UI Prensipleri',   desc: 'Mobil öncelikli tasarım yaklaşımının temel kuralları ve ipuçları.',   keywords: 'ui, mobile, css' },
+    { id: '3', kategori: 'SEO',       title: 'Meta Etiket Optimizasyonu',     desc: 'Title, description ve keywords etiketlerinin doğru kullanımı.',      keywords: 'seo, meta, google' },
+    { id: '4', kategori: 'Backend',   title: 'Node.js ile REST API',          desc: 'Express.js kullanarak ölçeklenebilir REST API tasarımı.',            keywords: 'nodejs, api, express' },
+    { id: '5', kategori: 'Performans',title: 'Lazy Loading ile Hız Artırma',  desc: 'Görsellerde lazy loading kullanarak performansı 2x artırın.',        keywords: 'performance, lazy' },
+    { id: '6', kategori: 'Güvenlik',  title: 'XSS ve CSRF Koruması',          desc: 'Web uygulamalarında yaygın güvenlik açıkları ve korunma yöntemleri.',keywords: 'security, xss, csrf' }
+  ];
+
+  /* ============================================================
+     🖼️ TABLO SATIRI HTML ÜRETİCİ
+     ============================================================ */
+  function buildRowHtml(item) {
+    const keywords = item.keywords.split(',').map(k => k.trim()).filter(Boolean);
+    const kwHtml = keywords.map(k => `<span class="kw-tag">${k}</span>`).join('');
+
+    return `
+      <td><span class="badge-kategori">${item.kategori}</span></td>
+      <td><a href="detay.html?id=${item.id}" class="title-link">${item.title}</a></td>
+      <td><div class="desc-text">${item.desc}</div></td>
+      <td>${kwHtml}</td>
+      <td>
+        <div class="row-actions">
+          <button class="btn-icon edit" data-action="edit" data-id="${item.id}" aria-label="Düzenle">
+            <i class="bi bi-pencil"></i>
+          </button>
+          <a href="detay.html?id=${item.id}" class="btn-icon view" aria-label="Görüntüle">
+            <i class="bi bi-box-arrow-up-right"></i>
+          </a>
+        </div>
+      </td>
+    `;
+  }
+
+  /* ============================================================
+     📊 TABLOYU OLUŞTUR
+     ============================================================ */
+  const tbody = $('#tableBody');
+  contents.forEach(item => {
+    tbody.append(`<tr data-id="${item.id}">${buildRowHtml(item)}</tr>`);
+  });
+
+  const table = $('#içerikTablosu').DataTable({
+    responsive: true,
+    pageLength: 5,
+    lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "Tümü"]],
+    language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/tr.json' },
+    columnDefs: [
+      { orderable: false, targets: [3, 4] },
+      { responsivePriority: 1, targets: 1 },
+      { responsivePriority: 2, targets: 0 },
+      { responsivePriority: 3, targets: 4 }
+    ],
+    order: [[1, 'asc']],
+    dom: 'lrtip'
+  });
+
+  /* ============================================================
+     🔍 ARAMA
+     ============================================================ */
+  const searchInput = document.getElementById('globalSearch');
+  $('#globalSearch').on('input', function () {
+    table.search(this.value).draw();
+  });
+  $('#globalSearch').on('keydown', function (e) {
+    if (e.key === 'Escape') {
+      this.value = '';
+      table.search('').draw();
+    }
+  });
+  setTimeout(() => searchInput.focus({ preventScroll: true }), 300);
+
+  /* ============================================================
+     📌 STICKY STATE
+     ============================================================ */
+  const stickyEl = document.getElementById('searchSticky');
+  const topbarHeight = document.querySelector('.topbar').offsetHeight;
+  function updateStickyState() {
+    if (window.scrollY >= topbarHeight - 1) stickyEl.classList.add('is-stuck');
+    else stickyEl.classList.remove('is-stuck');
+  }
+  window.addEventListener('scroll', updateStickyState, { passive: true });
+  window.addEventListener('resize', updateStickyState, { passive: true });
+  updateStickyState();
+
+  /* ============================================================
+     📂 KATEGORİ YÖNETİMİ (Sol Offcanvas)
+     ============================================================ */
+  function renderCategories() {
+    const $list = $('#catList');
+    $list.empty();
+
+    if (categories.length === 0) {
+      $list.html(`
+        <li class="cat-empty">
+          <i class="bi bi-inbox" style="font-size:2rem;opacity:.4;display:block;margin-bottom:8px;"></i>
+          Henüz kategori yok
+        </li>
+      `);
+    } else {
+      categories.forEach(cat => {
+        $list.append(`
+          <li class="cat-item" data-id="${cat.id}">
+            <span class="cat-name">${cat.name}</span>
+            <span class="cat-count">${cat.count}</span>
+            <div class="cat-actions">
+              <button class="btn-cat-icon edit" data-action="edit-cat" aria-label="Düzenle">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button class="btn-cat-icon del" data-action="del-cat" aria-label="Sil">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </li>
+        `);
+      });
+    }
+
+    $('#catCountLabel').text(categories.length);
+    $('#catStatCount').text(categories.length);
+    renderCategorySelect();
+  }
+
+  function renderCategorySelect(selectedValue = null) {
+    const $sel = $('#formKategori');
+    const current = selectedValue || $sel.val();
+    $sel.empty();
+    $sel.append(`<option value="">— Kategori seç —</option>`);
+    categories.forEach(cat => {
+      const selected = cat.name === current ? 'selected' : '';
+      $sel.append(`<option value="${cat.name}" ${selected}>${cat.name}</option>`);
+    });
+  }
+
+  // ➕ Kategori ekle
+  function addCategory() {
+    const name = $('#newCatInput').val().trim();
+    if (!name) {
+      $('#newCatInput').focus();
+      return;
+    }
+    if (categories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
+      showToast('⚠ Bu kategori zaten var');
+      return;
+    }
+    const id = 'c' + Date.now();
+    categories.push({ id, name, count: 0 });
+    $('#newCatInput').val('');
+    renderCategories();
+    showToast(`✓ "${name}" eklendi`);
+    $('#newCatInput').focus();
+  }
+
+  $('#addCatBtn').on('click', addCategory);
+  $('#newCatInput').on('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); addCategory(); }
+  });
+
+  // ✏ Kategori düzenle / sil
+  $(document).on('click', '[data-action="edit-cat"]', function () {
+    const $item = $(this).closest('.cat-item');
+    const id = $item.data('id');
+    const cat = categories.find(c => c.id === id);
+    if (!cat) return;
+
+    if ($item.hasClass('editing')) return;
+
+    $item.addClass('editing');
+    $item.find('.cat-name').replaceWith(`
+      <input type="text" class="input-lg cat-edit-input"
+             value="${cat.name}" style="padding:6px 10px;min-height:38px;font-size:.9rem;">
+    `);
+    $item.find('.cat-actions').html(`
+      <button class="btn-cat-icon save" data-action="save-cat" aria-label="Kaydet">
+        <i class="bi bi-check-lg"></i>
+      </button>
+      <button class="btn-cat-icon" data-action="cancel-cat" aria-label="İptal">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    `);
+    $item.find('.cat-edit-input').focus().select();
+  });
+
+  $(document).on('click', '[data-action="save-cat"]', function () {
+    const $item = $(this).closest('.cat-item');
+    const id = $item.data('id');
+    const cat = categories.find(c => c.id === id);
+    const newName = $item.find('.cat-edit-input').val().trim();
+
+    if (!newName) return;
+
+    const oldName = cat.name;
+    cat.name = newName;
+
+    // İçeriklerde kategori adını da güncelle
+    contents.forEach(c => { if (c.kategori === oldName) c.kategori = newName; });
+
+    renderCategories();
+    showToast('✓ Kategori güncellendi');
+  });
+
+  $(document).on('click', '[data-action="cancel-cat"]', renderCategories);
+
+  $(document).on('keydown', '.cat-edit-input', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); $(this).closest('.cat-item').find('[data-action="save-cat"]').click(); }
+    if (e.key === 'Escape') { e.preventDefault(); renderCategories(); }
+  });
+
+  $(document).on('click', '[data-action="del-cat"]', function () {
+    const $item = $(this).closest('.cat-item');
+    const id = $item.data('id');
+    const cat = categories.find(c => c.id === id);
+    if (!cat) return;
+
+    if (confirm(`"${cat.name}" kategorisini silmek istediğinize emin misiniz?`)) {
+      categories = categories.filter(c => c.id !== id);
+      renderCategories();
+      showToast('🗑 Kategori silindi');
+    }
+  });
+
+  /* ============================================================
+     📝 İÇERİK FORMU (Sağ Offcanvas)
+     ============================================================ */
+  let formMode = 'create'; // 'create' | 'edit'
+
+  function openFormCreate() {
+    formMode = 'create';
+    $('#formRowId').val('');
+    $('#formHeaderTitle').html('<i class="bi bi-file-earmark-plus me-2"></i>Yeni İçerik');
+    $('#saveBtnText').text('Oluştur');
+    $('#formKategori').val('');
+    $('#formTitle').val('');
+    $('#formDesc').val('');
+    $('#formKeywords').val('');
+
+    bootstrap.Offcanvas.getOrCreateInstance('#rightMenu').show();
+    setTimeout(() => $('#formTitle').focus(), 350);
+  }
+
+  function openFormEdit(id) {
+    const item = contents.find(c => c.id === id);
+    if (!item) return;
+
+    formMode = 'edit';
+    $('#formRowId').val(id);
+    $('#formHeaderTitle').html('<i class="bi bi-pencil-square me-2"></i>İçeriği Düzenle');
+    $('#saveBtnText').text('Kaydet');
+    $('#formKategori').val(item.kategori);
+    $('#formTitle').val(item.title);
+    $('#formDesc').val(item.desc);
+    $('#formKeywords').val(item.keywords);
+
+    bootstrap.Offcanvas.getOrCreateInstance('#rightMenu').show();
+    setTimeout(() => $('#formTitle').focus(), 350);
+  }
+
+  // İşlem butonundan düzenle
+  $(document).on('click', '[data-action="edit"]', function () {
+    const id = $(this).data('id');
+    openFormEdit(String(id));
+  });
+
+  // Ana sayfa "Yeni Başlık"
+  $('#newContentBtn').on('click', openFormCreate);
+  $('#bottomNewBtn').on('click', openFormCreate);
+
+  // Topbar'daki kalem ikonu → boş form aç
+  $('#topEditBtn').on('click', function () {
+    if (!$('#formRowId').val()) openFormCreate();
+  });
+
+  // 💾 Kaydet
+  $('#saveFormBtn').on('click', function () {
+    const kategori = $('#formKategori').val().trim();
+    const title    = $('#formTitle').val().trim();
+    const desc     = $('#formDesc').val().trim();
+    const keywords = $('#formKeywords').val().trim();
+
+    // Basit doğrulama
+    if (!kategori) { showToast('⚠ Kategori seçin'); $('#formKategori').focus(); return; }
+    if (!title)    { showToast('⚠ Başlık gerekli');  $('#formTitle').focus();    return; }
+
+    if (formMode === 'edit') {
+      // Güncelle
+      const id = String($('#formRowId').val());
+      const idx = contents.findIndex(c => c.id === id);
+      if (idx > -1) {
+        contents[idx] = { ...contents[idx], kategori, title, desc, keywords };
+      }
+
+      const $tr = $(`#tableBody tr[data-id="${id}"]`);
+      if ($tr.length) {
+        const $newRow = $(`<tr data-id="${id}">${buildRowHtml(contents[idx])}</tr>`);
+        table.row($tr).remove();
+        table.row.add($newRow[0]).draw(false);
+      }
+      showToast('✓ Güncellendi');
+    } else {
+      // Yeni
+      const newId = String(Date.now());
+      const newItem = { id: newId, kategori, title, desc, keywords };
+      contents.push(newItem);
+
+      const $newRow = $(`<tr data-id="${newId}">${buildRowHtml(newItem)}</tr>`);
+      table.row.add($newRow[0]).draw(false);
+      $('#totalCount').text(contents.length);
+      showToast('✓ Eklendi');
+    }
+
+    // Responsive'i yenile
+    table.responsive?.recalculate();
+
+    // Offcanvas kapat
+    bootstrap.Offcanvas.getInstance('#rightMenu')?.hide();
+  });
+
+  /* ============================================================
+     🔔 TOAST
+     ============================================================ */
+  function showToast(msg) {
+    const $t = $(`
+      <div style="
+        position:fixed; bottom:90px; left:50%; transform:translateX(-50%);
+        background:#1f2937; color:#fff; padding:12px 20px; border-radius:12px;
+        font-size:.88rem; font-weight:700; z-index:2100;
+        box-shadow:0 8px 24px rgba(0,0,0,.25);
+        opacity:0; transition: opacity .3s, bottom .3s; max-width:90vw; text-align:center;
+      ">${msg}</div>
+    `);
+    $('body').append($t);
+    requestAnimationFrame(() => $t.css({ opacity: 1, bottom: '100px' }));
+    setTimeout(() => {
+      $t.css({ opacity: 0, bottom: '90px' });
+      setTimeout(() => $t.remove(), 300);
+    }, 1800);
+  }
+
+  /* ============================================================
+     🚀 İLK RENDER
+     ============================================================ */
+  renderCategories();
+
+  // "Yeni Kategori" ana sayfa butonu → sol offcanvas aç + inputa focus
+  $('#newCategoryBtn').on('click', function () {
+    bootstrap.Offcanvas.getOrCreateInstance('#leftMenu').show();
+    setTimeout(() => $('#newCatInput').focus(), 350);
+  });
+
+});
+</script>
+
+</body>
+</html>
