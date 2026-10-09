@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Akıllı HTML Slayt Üretici</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Kalam:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#e9ecef;--ink:#1a1a1a;--ui:#2b2d33;--uit:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15161a}}
+:root[data-theme="dark"]{--bg:#15161a}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;overflow:hidden;background:var(--bg);font-family:'Kalam','Comic Sans MS',cursive}
+#stage{position:absolute;left:50%;top:50%;width:1280px;height:720px;background:#fff;color:var(--ink);transform-origin:center;overflow:hidden;
+ background-image:radial-gradient(#d0d4da 1.5px,transparent 1.5px);background-size:28px 28px}
+#hdr{position:absolute;left:24px;top:0;right:24px;height:82px;display:flex;align-items:center;gap:24px}
+#num{font:400 92px/1 'Caveat Brush','Kalam',cursive;min-width:80px}
+#fname{font:700 30px 'Kalam',cursive;opacity:.7}
+#main{position:absolute;left:20px;right:20px;top:84px;height:546px;display:flex;gap:22px}
+#cap{position:absolute;left:30px;right:30px;top:636px;height:76px;display:flex;align-items:center;justify-content:center;text-align:center;
+ font:400 38px/1.15 'Caveat Brush','Kalam',cursive}
+.left{flex:1.15;min-width:0;display:flex;flex-direction:column}
+.code{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:.28em;font-size:40px}
+.box{background:#ffc9c9;border:.14em dashed var(--ink);border-radius:.55em;padding:.2em .6em;font:700 1em/1.2 'Kalam',cursive;
+ white-space:pre-wrap;word-break:break-word;text-align:left;flex:none;color:var(--ink)}
+.box.new{background:#b2f2bb;animation:pop .45s ease-out}
+.box.ghost{opacity:.45;border-style:dotted}
+.box.ph{background:#fff3bf;text-align:center;letter-spacing:.08em;animation:pulse 1.4s ease-in-out infinite}
+@keyframes pop{0%{transform:scale(.8);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes pulse{50%{transform:scale(1.03)}}
+.browser{flex:1;min-width:0;background:#ffc9c9;border:7px dashed var(--ink);border-radius:30px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.blabel{font:400 40px/1 'Caveat Brush','Kalam',cursive;text-align:center;letter-spacing:.05em}
+.browser iframe{flex:1;border:4px dashed var(--ink);border-radius:16px;background:#fff;width:100%}
+.big{flex:1;background:#ffc9c9;border:7px dashed var(--ink);border-radius:30px;position:relative;padding:20px 40px;font:400 64px 'Caveat Brush','Kalam',cursive}
+.lbl{font:700 34px 'Kalam',cursive;margin:0 0 6px 12px}
+.desk{flex:1;background:#b2f2bb;border:8px dashed #e03131;border-radius:44px;position:relative}
+.desk .t{position:absolute;top:10px;width:100%;text-align:center;font:400 52px 'Caveat Brush','Kalam',cursive}
+.file{position:absolute;right:70px;bottom:50px;background:#ffc9c9;border:7px dashed var(--ink);border-radius:26px;padding:18px 34px;font:700 48px 'Kalam',cursive}
+@keyframes dash{to{stroke-dashoffset:-34}}
+
+.ico{position:absolute;width:190px;text-align:center;font:700 28px/1.1 'Kalam',cursive;word-break:break-all;color:var(--ink)}
+.ico b{display:block;font-size:90px;line-height:1.1;font-weight:400}
+.fin{animation:pop .6s both}
+.cursor{position:absolute;width:44px;height:44px;right:auto;bottom:auto;z-index:4;pointer-events:none;filter:drop-shadow(2px 3px 2px rgba(0,0,0,.3))}
+.c1{animation:cur1 2s ease-in-out forwards}.c2{animation:cur2 2s ease-in-out forwards}
+@keyframes cur1{from{left:900px;top:430px}to{left:110px;top:140px}}
+@keyframes cur2{from{left:700px;top:100px}to{left:1060px;top:420px}}
+.ring{position:absolute;width:50px;height:50px;border:6px solid #e03131;border-radius:50%;opacity:0;animation:ring .7s 2.05s ease-out;z-index:3}
+@keyframes ring{0%{opacity:1;transform:scale(.3)}100%{opacity:0;transform:scale(2.2)}}
+.win{position:absolute;left:320px;top:40px;width:640px;height:440px;background:#fff;border:6px dashed var(--ink);border-radius:22px;overflow:hidden;display:flex;flex-direction:column;z-index:2}
+.w1,.wf{animation:winin .5s 2.5s both}
+@keyframes winin{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+.tb{background:#ffc9c9;border-bottom:5px dashed var(--ink);padding:6px 16px;font:700 28px 'Kalam',cursive;flex:none}
+.wb{flex:1;min-height:0;padding:16px 22px;font:700 36px 'Kalam',cursive}
+.win iframe{width:100%;height:100%;border:0;background:#fff}
+.caret{animation:blink 1s steps(1) infinite}@keyframes blink{50%{opacity:0}}
+.dlg{position:absolute;left:230px;top:80px;width:780px;background:#fff;border:7px dashed var(--ink);border-radius:26px;overflow:hidden;padding-bottom:22px}
+.dr{display:flex;gap:18px;align-items:center;padding:10px 28px;font:700 36px 'Kalam',cursive}
+.dr span{width:210px}
+.dr u{flex:1;text-decoration:none;background:#fff3bf;border:4px dashed var(--ink);border-radius:14px;padding:2px 14px;min-height:58px}
+.btn{margin:12px 28px 0 auto;width:210px;text-align:center;font:400 44px 'Caveat Brush',cursive;background:#dee2e6;border:6px dashed var(--ink);border-radius:18px;padding:2px}
+.btn.press{background:#51cf66;animation:pop .4s}
+.tgt{position:absolute;right:50px;top:90px;width:430px;height:340px;border:7px dashed #e03131;border-radius:30px;background:#d3f9d8;display:flex;align-items:flex-end;justify-content:center;padding-bottom:14px;font:400 46px 'Caveat Brush',cursive}
+.flyfile{position:absolute;font-size:110px;line-height:1;text-align:center;animation:fly 2.2s ease-in-out forwards;z-index:3}
+.flyfile small{display:block;font:700 26px 'Kalam',cursive}
+@keyframes fly{0%{left:250px;top:230px}50%{left:540px;top:90px}100%{left:840px;top:200px}}
+.ok{position:absolute;left:0;right:0;bottom:22px;text-align:center;font:400 54px 'Caveat Brush',cursive;animation:winin .5s 2.3s both;color:#2b8a3e}
+#ui{position:fixed;left:0;right:0;bottom:0;display:flex;gap:10px;justify-content:center;align-items:center;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));
+ transition:opacity .3s;z-index:5}
+#ui.idle{opacity:0;pointer-events:none}
+#ui button{font:700 18px 'Kalam',sans-serif;background:var(--ui);color:var(--uit);border:0;border-radius:12px;padding:8px 16px;cursor:pointer}
+#prog{position:fixed;left:0;top:0;height:6px;background:#2f9e44;transition:width .25s;z-index:6}
+#ed{position:fixed;inset:0;background:rgba(10,10,14,.92);z-index:10;display:none;padding:calc(18px + env(safe-area-inset-top,0px)) 18px 18px;flex-direction:column;gap:10px;color:#fff;font-family:'Kalam',sans-serif}
+#ed.on{display:flex}
+#ed textarea{flex:1;min-height:0;width:100%;background:#1f2128;color:#e8e8e8;border:2px dashed #888;border-radius:14px;padding:14px;font:15px/1.4 ui-monospace,Menlo,Consolas,monospace;resize:none}
+#ed .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+#ed input[type=text],#ed select{background:#1f2128;color:#fff;border:1px solid #666;border-radius:8px;padding:7px 10px;font:16px 'Kalam',sans-serif}
+#ed button{font:700 18px 'Kalam',sans-serif;background:#2f9e44;color:#fff;border:0;border-radius:12px;padding:9px 18px;cursor:pointer}
+#ed button.g{background:#495057}
+#ed h2{margin:0;font:400 34px 'Caveat Brush','Kalam',cursive}
+</style>
+</head>
+<body>
+<div id="prog"></div>
+<div id="stage">
+  <div id="hdr"><div id="num">1</div><div id="fname"></div></div>
+  <div id="main"></div>
+  <div id="cap"></div>
+</div>
+
+<div id="ui">
+  <button id="bp">◀ Geri</button>
+  <button id="bn">İleri ▶</button>
+  <button id="be">✎ Kodu Değiştir (E)</button>
+  <button id="bf">⛶ Tam Ekran (F)</button>
+</div>
+
+<div id="ed">
+  <h2>✎ Kendi HTML kodunu yapıştır → slayt üret</h2>
+  <div class="row">
+    <input type="text" id="fn" value="deneme.html" size="16" aria-label="Dosya adı">
+    <label>Detay:
+      <select id="dl"><option value="1">Seviye 1 (sade)</option><option value="2" selected>Seviye 2 (orta)</option><option value="3">Seviye 3 (ayrıntılı)</option></select>
+    </label>
+    <input type="file" id="ff" accept=".html,.htm,.txt">
+  </div>
+  <textarea id="src" spellcheck="false"></textarea>
+  <div class="row">
+    <button id="go">✨ Slaytları Üret</button>
+    <button class="g" id="smp">Örnek kod</button>
+    <button class="g" id="cl">Kapat</button>
+  </div>
+</div>
+
+<script>
+var SAMPLE = '<!DOCTYPE html>\n<html lang="tr">\n<head>\n  <meta charset="UTF-8">\n  <title>İlk Sayfam</title>\n  <style>\n    body { font-family: sans-serif; background: #fff3bf; text-align: center; }\n    h1 { color: #e03131; }\n  </style>\n</head>\n<body>\n  <h1>Merhaba Dünya!</h1>\n  <p>Bu benim ilk HTML sayfam.</p>\n  <button onclick="alert(\'Selam!\')">Tıkla bana</button>\n</body>\n</html>';
+
+var VOID = new Set(['area','base','br','col','embed','hr','img','input','link','meta','source','track','wbr']);
+var slides = [], chunks = [], idx = 0, fileName = 'deneme.html', twt = null;
+function ARROW(c){ return '<svg class="cursor ' + c + '" viewBox="0 0 24 24"><path d="M3 2 L3 20 L8 15 L12 22 L15 20 L11 14 L18 14 Z" fill="#fff" stroke="#1a1a1a" stroke-width="2" stroke-linejoin="round"/></svg>'; }
+var $ = function(id){ return document.getElementById(id); };
+function esc(s){ return s.replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+/* ---------- PARSER ---------- */
+function dedent(s){
+  var l = s.split('\n'); if (l.length < 2) return s.trim();
+  var min = Infinity;
+  for (var i = 1; i < l.length; i++){ if (!l[i].trim()) continue; var m = l[i].match(/^\s*/)[0].length; if (m < min) min = m; }
+  if (min === Infinity) min = 0;
+  return l.map(function(x, i){ return i === 0 ? x.trim() : x.slice(min).replace(/\s+$/, ''); }).join('\n').trim();
+}
+function scan(src){
+  var re = /<!--[\s\S]*?-->|<(script|style)\b[^>]*>[\s\S]*?<\/\1\s*>|<\/?([a-zA-Z][\w:-]*)(?:"[^"]*"|'[^']*'|[^'">])*>|[^<]+/gi;
+  var m, d = 0, out = [], name = '', openTok = '', innerStart = 0;
+  while ((m = re.exec(src))){
+    var tok = m[0];
+    if (tok.indexOf('<!--') === 0){ if (d === 0) out.push({kind:'leaf', tag:'comment', text:tok}); continue; }
+    if (m[1]){ if (d === 0) out.push({kind:'leaf', tag:m[1].toLowerCase(), text:tok}); continue; }
+    if (!m[2]){ if (d === 0 && tok.trim()) out.push({kind:'leaf', tag:'text', text:tok.trim()}); continue; }
+    var nm = m[2].toLowerCase(), closing = tok.charAt(1) === '/', self = VOID.has(nm) || /\/>$/.test(tok);
+    if (!closing){
+      if (d === 0){
+        if (self) out.push({kind:'leaf', tag:nm, text:tok});
+        else { name = nm; openTok = tok; innerStart = m.index + tok.length; d = 1; }
+      } else if (!self) d++;
+    } else if (d > 0){
+      d--;
+      if (d === 0) out.push({kind:'el', tag:name, open:openTok, inner:src.slice(innerStart, m.index), close:tok});
+    }
+  }
+  return out;
+}
+function flatten(nodes, level, d, lim){
+  nodes.forEach(function(n){
+    if (n.kind === 'leaf'){ chunks.push({kind:'leaf', tag:n.tag, text:dedent(n.text), level:level}); return; }
+    var kids = /<[a-zA-Z!]/.test(n.inner);
+    if (kids && d < lim){
+      chunks.push({kind:'open', tag:n.tag, text:n.open.trim(), closeText:n.close.trim(), level:level});
+      flatten(scan(n.inner), level + 1, d + 1, lim);
+      chunks.push({kind:'close', tag:n.tag, text:n.close.trim(), level:level});
+    } else {
+      chunks.push({kind:'leaf', tag:n.tag, text:dedent(n.open + n.inner + n.close), level:level});
+    }
+  });
+}
+function build(src, lim){
+  src = src.trim(); chunks = [];
+  var dt = src.match(/^\s*<!doctype[^>]*>/i);
+  var rest = dt ? src.slice(dt[0].length) : src;
+  var html = scan(rest).filter(function(n){ return n.kind === 'el' && n.tag === 'html'; })[0];
+  var inner = html ? html.inner : rest;
+  var kids = scan(inner);
+  var head = kids.filter(function(n){ return n.tag === 'head'; })[0];
+  var body = kids.filter(function(n){ return n.tag === 'body'; })[0];
+  if (!head && !body) body = {open:'<body>', inner:inner, close:'</body>'};
+  chunks.push({kind:'doctype', tag:'doctype', text: dt ? dt[0].trim() : '<!DOCTYPE html>', level:0});
+  var hc = html ? html.close.trim() : '</html>';
+  chunks.push({kind:'open', tag:'html', text: html ? html.open.trim() : '<html>', closeText:hc, level:0});
+  [head, body].forEach(function(sec){
+    if (!sec) return;
+    var tg = sec === head ? 'head' : 'body';
+    chunks.push({kind:'open', tag:tg, text:sec.open.trim(), closeText:sec.close.trim(), level:1});
+    flatten(scan(sec.inner), 2, 0, lim - 1);
+    chunks.push({kind:'close', tag:tg, text:sec.close.trim(), level:1});
+  });
+  chunks.push({kind:'close', tag:'html', text:hc, level:0});
+  slides = [{type:'desk'}, {type:'split'}].concat(chunks.map(function(_, i){ return {type:'chunk', c:i}; }), [{type:'save'}, {type:'download'}, {type:'final'}]);
+}
+
+/* ---------- AÇIKLAMALAR ---------- */
+var D = {
+  doctype:'Tarayıcıya: “Bu sayfa modern HTML5 ile yazıldı.”',
+  html:'Tüm sayfayı saran ana kutu. Her şey bunun içine yazılır.',
+  head:'HEAD: Sayfanın arka planı. Görünmeyen ayarlar burada durur.',
+  body:'BODY: Ekranda gördüğün her şey burada.',
+  meta:'Sayfa hakkında ayar bilgisi (karakter seti, mobil uyum).',
+  title:'Tarayıcı sekmesinde görünen başlık.',
+  style:'CSS: Renk, boyut ve görünüm kuralları.',
+  script:'JavaScript: Sayfaya hareket ve canlılık katar.',
+  link:'Dış dosya bağlantısı (CSS, ikon vb.).',
+  p:'Paragraf: normal yazı bloğu.', a:'Link: tıklanınca başka yere götürür.',
+  img:'Resim ekler.', button:'Tıklanabilir bir buton.', div:'Kutu: içindekileri gruplar.',
+  span:'Satır içi küçük sarmalayıcı.', ul:'Madde işaretli liste.', ol:'Numaralı liste.', li:'Liste maddesi.',
+  input:'Kullanıcının yazı girdiği alan.', form:'Form: bilgi toplama alanı.', table:'Tablo.',
+  header:'Sayfa / bölüm üst kısmı.', footer:'Sayfa / bölüm alt kısmı.', nav:'Gezinme menüsü.',
+  main:'Sayfanın ana içeriği.', section:'İçerik bölümü.', br:'Satır sonu.', hr:'Yatay çizgi.', comment:'Yorum: tarayıcı bunu göstermez.',
+  text:'Düz yazı.', h1:'Başlık: sayfadaki en büyük yazı.'
+};
+function desc(c){
+  if (c.kind === 'close') return '</' + c.tag + '> kapandı. Bu bölüm bitti.';
+  var t = c.tag; if (/^h[2-6]$/.test(t)) return 'Alt başlık (' + t + ').';
+  return D[t] || '<' + t + '> elemanı.';
+}
+
+/* ---------- RENDER ---------- */
+function clip(t){ var l = t.split('\n'); return l.length > 9 ? l.slice(0, 8).join('\n') + '\n…' : t; }
+function box(t, lv, cls){ return '<div class="box ' + (cls || '') + '" style="margin-left:' + (lv * .7) + 'em">' + esc(clip(t)) + '</div>'; }
+
+function render(){
+  var s = slides[idx], main = $('main'), cap = $('cap');
+  clearInterval(twt);
+  var si = slides.findIndex(function(x){ return x.type === 'save'; });
+  $('num').textContent = idx + 1; $('fname').textContent = idx < si ? 'Başlıksız' : fileName;
+  $('prog').style.width = ((idx + 1) / slides.length * 100) + '%';
+  if (s.type === 'desk'){
+    main.innerHTML = '<div class="desk"><div class="t">masaüstü</div>' +
+      '<div class="ico" style="left:50px;top:70px"><b>📝</b>Not Defteri</div>' + ARROW('c1') +
+      '<div class="ring" style="left:112px;top:128px"></div>' +
+      '<div class="win w1"><div class="tb">📝 Başlıksız - Not Defteri</div><div class="wb">Boş sayfa… <span class="caret">|</span></div></div></div>';
+    cap.textContent = 'Önce masaüstünde Not Defteri\'ne çift tıklarız.';
+  } else if (s.type === 'split'){
+    main.innerHTML = '<div class="left"><div class="lbl">📝 Not Defteri</div><div class="big">kodlar</div></div>' +
+      '<div class="browser"><div class="blabel">BROWSER</div><iframe sandbox title="tarayıcı"></iframe></div>';
+    cap.textContent = 'Not Defteri\'ne KODLAR yazılır; tarayıcı bunları okuyup sayfayı çizer.';
+  } else if (s.type === 'save'){
+    main.innerHTML = '<div class="desk" style="background:#dbe4ff;border-color:#4263eb"><div class="t">Farklı Kaydet</div><div class="dlg"><div class="tb">💾 Farklı Kaydet</div>' +
+      '<div class="dr"><span>Kayıt yeri:</span><u>🖥️ Masaüstü</u></div>' +
+      '<div class="dr"><span>Dosya adı:</span><u id="twx">▌</u></div>' +
+      '<div class="dr"><span>Tür:</span><u>Tüm dosyalar (*.*)</u></div>' +
+      '<div class="btn" id="sv">Kaydet</div></div></div>';
+    cap.textContent = 'Dosya adını yaz, yeri Masaüstü seç, Kaydet\'e bas.';
+    var n = 0; twt = setInterval(function(){
+      n++; $('twx').textContent = fileName.slice(0, n) + (n < fileName.length ? '▌' : '');
+      if (n >= fileName.length){ clearInterval(twt); $('sv').classList.add('press'); }
+    }, 130);
+  } else if (s.type === 'download'){
+    main.innerHTML = '<div class="desk"><div class="t">kaydetme şeması</div>' +
+      '<div class="win" style="left:50px;top:90px;width:430px;height:340px"><div class="tb">📝 Not Defteri</div><div class="wb" style="font-size:34px">&lt;html&gt;<br>…kodlar…<br>&lt;/html&gt;</div></div>' +
+      '<div class="tgt">🖥️ Masaüstü</div>' +
+      '<div class="flyfile">📄<small>' + esc(fileName) + '</small></div>' +
+      '<div class="ok">✔ Dosya masaüstüne indi!</div></div>';
+    cap.textContent = 'Kaydedince dosya Not Defteri\'nden masaüstüne iner.';
+  } else if (s.type === 'final'){
+    main.innerHTML = '<div class="desk"><div class="t">masaüstü</div>' +
+      '<div class="ico" style="right:50px;top:60px"><b>📝</b>Not Defteri</div>' +
+      '<div class="ico fin" style="left:990px;top:370px"><b>📄</b>' + esc(fileName) + '</div>' +
+      ARROW('c2') + '<div class="ring" style="left:1072px;top:428px"></div>' +
+      '<div class="win wf" style="left:50px;top:70px;width:800px;height:440px"><div class="tb">🌐 ' + esc(fileName) + ' - Tarayıcı</div>' +
+      '<div class="wb" style="padding:0"><iframe sandbox="allow-scripts allow-modals" title="sonuç"></iframe></div></div></div>';
+    main.querySelector('.wf iframe').srcdoc = chunks.map(function(ch){ return ch.text; }).join('\n');
+    cap.textContent = 'FİNAL: Dosya masaüstünde! Çift tıkla, tarayıcı sayfanı açsın. 🎉';
+  } else {
+    var c = s.c, rev = chunks.slice(0, c + 1), stack = [];
+    rev.forEach(function(ch){ if (ch.kind === 'open') stack.push(ch); else if (ch.kind === 'close') stack.pop(); });
+    var h = rev.map(function(ch, i){ return box(ch.text, ch.level, i === c ? 'new' : ''); }).join('');
+    if (stack.length){
+      h += box('KODLAR', stack[stack.length - 1].level + 1, 'ph');
+      for (var k = stack.length - 1; k >= 0; k--) h += box(stack[k].closeText, stack[k].level, 'ghost');
+    }
+    var doc = rev.map(function(ch){ return ch.text; }).join('\n') + '\n' +
+      stack.slice().reverse().map(function(x){ return x.closeText; }).join('\n');
+    main.innerHTML = '<div class="left"><div class="code" id="code">' + h + '</div></div>' +
+      '<div class="browser"><div class="blabel">BROWSER</div><iframe sandbox="allow-scripts allow-modals" title="tarayıcı"></iframe></div>';
+    main.querySelector('iframe').srcdoc = doc;
+    fit();
+    cap.textContent = desc(chunks[c]);
+  }
+}
+function fit(){
+  var code = $('code'), fs = 44; code.style.fontSize = fs + 'px';
+  while (code.scrollHeight > code.clientHeight + 1 && fs > 12){ fs -= 2; code.style.fontSize = fs + 'px'; }
+}
+
+/* ---------- KONTROL ---------- */
+function go(n){ idx = Math.max(0, Math.min(slides.length - 1, n)); render(); }
+function scale(){
+  var s = Math.min(innerWidth / 1280, innerHeight / 720);
+  $('stage').style.transform = 'translate(-50%,-50%) scale(' + s + ')';
+}
+function toggleFS(){
+  if (document.fullscreenElement) document.exitFullscreen();
+  else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+}
+function openEd(on){ $('ed').classList.toggle('on', on); }
+function generate(){
+  var v = $('src').value.trim(); if (!v) return;
+  fileName = $('fn').value.trim() || 'deneme.html';
+  build(v, parseInt($('dl').value, 10)); idx = 0; render(); openEd(false);
+}
+$('bp').onclick = function(){ go(idx - 1); };
+$('bn').onclick = function(){ go(idx + 1); };
+$('be').onclick = function(){ openEd(true); };
+$('bf').onclick = toggleFS;
+$('go').onclick = generate;
+$('cl').onclick = function(){ openEd(false); };
+$('smp').onclick = function(){ $('src').value = SAMPLE; };
+$('ff').onchange = function(e){
+  var f = e.target.files[0]; if (!f) return;
+  var r = new FileReader();
+  r.onload = function(){ $('src').value = r.result; $('fn').value = f.name; };
+  r.readAsText(f);
+};
+document.addEventListener('keydown', function(e){
+  if ($('ed').classList.contains('on')){ if (e.key === 'Escape') openEd(false); return; }
+  var k = e.key;
+  if (k === 'ArrowRight' || k === ' ' || k === 'PageDown' || k === 'Enter'){ e.preventDefault(); go(idx + 1); }
+  else if (k === 'ArrowLeft' || k === 'PageUp' || k === 'Backspace'){ e.preventDefault(); go(idx - 1); }
+  else if (k === 'Home') go(0);
+  else if (k === 'End') go(slides.length - 1);
+  else if (k === 'f' || k === 'F') toggleFS();
+  else if (k === 'e' || k === 'E'){ e.preventDefault(); openEd(true); }
+});
+$('stage').addEventListener('click', function(e){
+  if (e.target.closest('iframe')) return;
+  var r = $('stage').getBoundingClientRect();
+  go((e.clientX - r.left) / r.width < .3 ? idx - 1 : idx + 1);
+});
+var tx = 0;
+addEventListener('touchstart', function(e){ tx = e.touches[0].clientX; }, {passive:true});
+addEventListener('touchend', function(e){
+  var dx = e.changedTouches[0].clientX - tx;
+  if (Math.abs(dx) > 50) go(idx + (dx < 0 ? 1 : -1));
+}, {passive:true});
+var idle;
+function wake(){ $('ui').classList.remove('idle'); clearTimeout(idle); idle = setTimeout(function(){ $('ui').classList.add('idle'); }, 2800); }
+addEventListener('mousemove', wake); addEventListener('touchstart', wake, {passive:true}); wake();
+addEventListener('resize', scale);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ render(); });
+
+$('src').value = SAMPLE;
+scale(); build(SAMPLE, 2); render();
+</script>
+</body>
+</html>
