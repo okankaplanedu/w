@@ -1,0 +1,2867 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Klasik Eserlerle İngilizce — Shorts Video Builder & Tanıtım Stüdyosu</title>
+<style>
+  :root {
+    --bg-main: #0c101c;
+    --bg-card: #151b2e;
+    --bg-card-sub: #1b243d;
+    --border: #283354;
+    --accent-gold: #e5b567;
+    --accent-gold-light: #f7d598;
+    --accent-gold-glow: rgba(229, 181, 103, 0.25);
+    --accent-blue: #3b82f6;
+    --accent-emerald: #10b981;
+    --accent-rose: #f43f5e;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --navy-dark: #0f172a;
+    --navy-mid: #1e293b;
+    --navy-light: #334155;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-serif: "Georgia", "Times New Roman", serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+
+  /* Header */
+  header {
+    background: linear-gradient(180deg, #13192c 0%, #0c101c 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .brand-logo {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent-gold) 0%, #a8792c 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    box-shadow: 0 4px 15px var(--accent-gold-glow);
+  }
+  .brand-text h1 {
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .brand-text h1 span {
+    background: linear-gradient(90deg, var(--accent-gold) 0%, #fff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .brand-text p {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .badge-tag {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: rgba(229, 181, 103, 0.15);
+    border: 1px solid rgba(229, 181, 103, 0.4);
+    color: var(--accent-gold-light);
+  }
+
+  /* Main Workspace Layout */
+  .workspace {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 460px 1fr;
+    gap: 24px;
+    padding: 24px;
+    max-width: 1700px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  @media (max-width: 1150px) {
+    .workspace {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Left Column: Phone Frame & Video Controls */
+  .preview-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  /* 9:16 Smartphone Mockup */
+  .phone-mockup {
+    width: 380px;
+    height: 675px; /* Exact 9:16 ratio */
+    background: #020617;
+    border-radius: 46px;
+    padding: 12px;
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 0 2px #334155, 0 0 40px rgba(59, 130, 246, 0.15);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .phone-notch {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 24px;
+    background: #000;
+    border-radius: 20px;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 12px;
+  }
+  .camera-lens {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #1e293b;
+    border: 1px solid #334155;
+  }
+
+  .phone-screen {
+    flex: 1;
+    border-radius: 36px;
+    overflow: hidden;
+    position: relative;
+    background: #0b1120;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #videoCanvas {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Shorts Overlay UI elements */
+  .shorts-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 24px 16px 20px;
+  }
+  .shorts-top-bars {
+    display: flex;
+    gap: 4px;
+    width: 100%;
+  }
+  .story-bar {
+    flex: 1;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .story-bar-fill {
+    width: 0%;
+    height: 100%;
+    background: #ffffff;
+    transition: width 0.1s linear;
+  }
+
+  .shorts-side-actions {
+    position: absolute;
+    right: 12px;
+    bottom: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+  .action-btn-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #fff;
+  }
+  .action-btn-circle span {
+    font-size: 9px;
+    margin-top: 1px;
+    font-weight: 600;
+  }
+
+  /* Spinning Vinyl Music Disc */
+  .music-disc {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #334155 0%, #0f172a 70%, #e5b567 100%);
+    border: 2px solid var(--accent-gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    animation: spinDisc 4s linear infinite;
+    animation-play-state: paused;
+  }
+  .music-disc.spinning {
+    animation-play-state: running;
+  }
+  @keyframes spinDisc {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* Playback Controls Panel */
+  .playback-card {
+    width: 380px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .timeline-bar-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .timeline-slider {
+    flex: 1;
+    accent-color: var(--accent-gold);
+    cursor: pointer;
+  }
+  .time-display {
+    font-family: monospace;
+    font-size: 12px;
+    color: var(--text-secondary);
+    min-width: 70px;
+    text-align: right;
+  }
+
+  .playback-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .btn-icon {
+    background: var(--bg-card-sub);
+    border: 1px solid var(--border);
+    color: #fff;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all 0.15s ease;
+  }
+  .btn-icon:hover {
+    background: var(--navy-light);
+    border-color: var(--accent-gold);
+    color: var(--accent-gold);
+  }
+  .btn-play-big {
+    background: linear-gradient(135deg, var(--accent-gold) 0%, #b8862d 100%);
+    color: #0c101c;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    font-size: 20px;
+    font-weight: bold;
+    border: none;
+    box-shadow: 0 4px 15px var(--accent-gold-glow);
+  }
+  .btn-play-big:hover {
+    transform: scale(1.05);
+    background: linear-gradient(135deg, #ffd78a 0%, #d49b38 100%);
+  }
+
+  .scene-selector-pills {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 4px;
+    margin-top: 4px;
+  }
+  .scene-pill {
+    padding: 6px 2px;
+    text-align: center;
+    background: var(--bg-card-sub);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .scene-pill.active {
+    background: rgba(229, 181, 103, 0.2);
+    border-color: var(--accent-gold);
+    color: var(--accent-gold-light);
+  }
+
+  .export-buttons-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .btn-export {
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+  .btn-export-mp4 {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: #fff;
+    border: 1px solid #3b82f6;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+  }
+  .btn-export-mp4:hover {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    transform: translateY(-1px);
+  }
+  .btn-export-snap {
+    background: var(--bg-card-sub);
+    color: #fff;
+    border: 1px solid var(--border);
+  }
+  .btn-export-snap:hover {
+    border-color: var(--text-primary);
+    background: var(--navy-light);
+  }
+
+  /* Audio Track Control Card in Left Col */
+  .audio-status-card {
+    width: 380px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .audio-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    overflow: hidden;
+  }
+  .audio-icon-box {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(59, 130, 246, 0.15);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    color: #60a5fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .audio-meta {
+    overflow: hidden;
+  }
+  .audio-name {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .audio-sub {
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+
+  /* Right Column: Studio Panels */
+  .studio-column {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Tabs Nav */
+  .studio-tabs {
+    display: flex;
+    background: #0f1526;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .studio-tab {
+    padding: 14px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+  .studio-tab:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.02);
+  }
+  .studio-tab.active {
+    color: var(--accent-gold);
+    border-bottom-color: var(--accent-gold);
+    background: rgba(229, 181, 103, 0.05);
+  }
+
+  .tab-content {
+    padding: 24px;
+    flex: 1;
+    overflow-y: auto;
+    display: none;
+  }
+  .tab-content.active {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* Preset Day Selector Grid */
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .level-pills {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .lvl-pill {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--bg-card-sub);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .lvl-pill.active {
+    background: var(--accent-gold);
+    color: #000;
+    border-color: var(--accent-gold);
+  }
+
+  .search-input-box {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+  }
+  .search-input-box input {
+    width: 100%;
+    background: var(--bg-card-sub);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 12px 8px 34px;
+    color: #fff;
+    font-size: 13px;
+    outline: none;
+  }
+  .search-input-box input:focus {
+    border-color: var(--accent-gold);
+  }
+  .search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  .days-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+    max-height: 520px;
+    overflow-y: auto;
+    padding-right: 6px;
+  }
+  .day-card {
+    background: var(--bg-card-sub);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+  }
+  .day-card:hover {
+    border-color: var(--accent-gold);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  }
+  .day-card.selected {
+    border-color: var(--accent-gold);
+    background: rgba(229, 181, 103, 0.08);
+    box-shadow: 0 0 0 1px var(--accent-gold);
+  }
+  .day-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .day-number {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent-gold);
+    letter-spacing: 0.5px;
+  }
+  .day-level {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: var(--accent-gold-light);
+  }
+  .day-topic {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.3;
+  }
+  .day-works {
+    font-size: 11px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .day-action-badge {
+    font-size: 10px;
+    color: var(--accent-emerald);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* Audio Studio Tab */
+  .audio-upload-box {
+    border: 2px dashed var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    text-align: center;
+    background: rgba(15, 23, 42, 0.4);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .audio-upload-box:hover {
+    border-color: var(--accent-gold);
+    background: rgba(229, 181, 103, 0.04);
+  }
+  .upload-icon {
+    font-size: 40px;
+    color: var(--accent-gold);
+  }
+  .audio-presets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+  }
+  .audio-preset-card {
+    background: var(--bg-card-sub);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .audio-preset-card:hover {
+    border-color: var(--accent-gold);
+  }
+  .audio-preset-card.active {
+    border-color: var(--accent-gold);
+    background: rgba(229, 181, 103, 0.1);
+  }
+
+  /* JSON Editor Tab */
+  .editor-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    height: 100%;
+  }
+  .editor-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .toolbar-left, .toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-sm {
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    background: var(--bg-card-sub);
+    border: 1px solid var(--border);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+  }
+  .btn-sm:hover {
+    background: var(--navy-light);
+    border-color: var(--accent-gold);
+    color: var(--accent-gold);
+  }
+  .btn-sm-primary {
+    background: var(--accent-gold);
+    color: #000;
+    border: none;
+    font-weight: 700;
+  }
+  .btn-sm-primary:hover {
+    background: var(--accent-gold-light);
+    color: #000;
+  }
+
+  #jsonTextarea {
+    width: 100%;
+    height: 480px;
+    background: #090d16;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    color: #38bdf8;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+    font-size: 12.5px;
+    line-height: 1.5;
+    resize: vertical;
+    outline: none;
+  }
+  #jsonTextarea:focus {
+    border-color: var(--accent-gold);
+  }
+
+  /* Style & Theme Settings Tab */
+  .settings-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent-gold-light);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .theme-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+  }
+  .theme-card {
+    background: var(--bg-card-sub);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .theme-card:hover {
+    border-color: var(--accent-gold);
+  }
+  .theme-card.active {
+    border-color: var(--accent-gold);
+    background: rgba(229, 181, 103, 0.12);
+    box-shadow: 0 0 0 1px var(--accent-gold);
+  }
+  .theme-color-preview {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+  }
+
+  .options-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+  }
+  .option-box {
+    background: var(--bg-card-sub);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .option-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+  .option-select, .option-input {
+    background: var(--bg-main);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    color: #fff;
+    font-size: 13px;
+    outline: none;
+  }
+  .option-select:focus, .option-input:focus {
+    border-color: var(--accent-gold);
+  }
+
+  /* Guide Tab */
+  .guide-box {
+    background: var(--bg-card-sub);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    line-height: 1.6;
+    font-size: 13.5px;
+    color: #cbd5e1;
+  }
+  .guide-box h3 {
+    color: var(--accent-gold);
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+  .guide-steps-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .guide-steps-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .guide-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--accent-gold);
+    color: #000;
+    font-weight: 800;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* Progress Modal for Video Export */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  .modal-overlay.active {
+    display: flex;
+  }
+  .modal-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px;
+    width: 90%;
+    max-width: 460px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+  }
+  .modal-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .progress-bar-container {
+    width: 100%;
+    height: 12px;
+    background: var(--bg-card-sub);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .progress-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-gold) 100%);
+    transition: width 0.1s;
+  }
+  .progress-status-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  /* Toast Notification */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #1e293b;
+    border: 1px solid var(--accent-gold);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .toast.show {
+    transform: translateY(0);
+    opacity: 1;
+  }
+</style>
+</head>
+<body>
+
+<!-- Hidden Audio Player for Preview & Recording -->
+<audio id="activeAudioPlayer" preload="auto" crossorigin="anonymous"></audio>
+
+<!-- Header -->
+<header>
+  <div class="brand">
+    <div class="brand-logo">📖</div>
+    <div class="brand-text">
+      <h1>Klasik Eserlerle İngilizce <span>· Shorts Builder</span></h1>
+      <p>9:16 Mobil Tanıtım & Kullanım Kılavuzu Video Stüdyosu (Sesli MP4 İndirme)</p>
+    </div>
+  </div>
+
+  <div class="header-actions">
+    <span class="badge-tag" id="audioTrackBadge">🎵 Ses: Dahili Fon Melodisi</span>
+    <span class="badge-tag" style="border-color: #3b82f6; color: #93c5fd;">1080×1920 HD 60fps</span>
+  </div>
+</header>
+
+<!-- Main Workspace -->
+<main class="workspace">
+
+  <!-- Left: 9:16 Phone Frame & Video Controls -->
+  <div class="preview-column">
+    
+    <!-- Phone Mockup Container -->
+    <div class="phone-mockup">
+      <div class="phone-notch">
+        <div class="camera-lens"></div>
+      </div>
+
+      <div class="phone-screen">
+        <!-- 9:16 High-Res Logical Canvas -->
+        <canvas id="videoCanvas" width="1080" height="1920"></canvas>
+
+        <!-- Shorts UI Overlay (Story Bars, Floating Buttons & Spinning Vinyl) -->
+        <div class="shorts-overlay">
+          <div class="shorts-top-bars" id="storyBarsContainer">
+            <div class="story-bar"><div class="story-bar-fill"></div></div>
+            <div class="story-bar"><div class="story-bar-fill"></div></div>
+            <div class="story-bar"><div class="story-bar-fill"></div></div>
+            <div class="story-bar"><div class="story-bar-fill"></div></div>
+            <div class="story-bar"><div class="story-bar-fill"></div></div>
+            <div class="story-bar"><div class="story-bar-fill"></div></div>
+          </div>
+
+          <div class="shorts-side-actions">
+            <div class="action-btn-circle">❤️<span>8.4k</span></div>
+            <div class="action-btn-circle">💬<span>412</span></div>
+            <div class="action-btn-circle">🔖<span>1.9k</span></div>
+            <div class="action-btn-circle">↗️<span>Paylaş</span></div>
+            <div class="music-disc" id="uiMusicDisc" title="Çalan Seslendirme">🎵</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Audio Status Bar -->
+    <div class="audio-status-card">
+      <div class="audio-info">
+        <div class="audio-icon-box">🎙️</div>
+        <div class="audio-meta">
+          <div class="audio-name" id="currentAudioNameDisplay">Dahili Klasik Fon Müziği</div>
+          <div class="audio-sub" id="currentAudioStatusDisplay">MP4 ihracında bu ses birleştirilecek</div>
+        </div>
+      </div>
+      <button class="btn-sm" onclick="document.querySelector('[data-tab=\'audio\']').click()" style="padding:6px 10px; font-size:11px;">Değiştir</button>
+    </div>
+
+    <!-- Playback & Render Panel -->
+    <div class="playback-card">
+      <div class="timeline-bar-wrapper">
+        <input type="range" class="timeline-slider" id="timelineScrubber" min="0" max="100" value="0" step="0.1">
+        <div class="time-display" id="timeDisplay">00:00 / 00:24</div>
+      </div>
+
+      <div class="playback-buttons">
+        <button class="btn-icon" id="btnPrevScene" title="Önceki Sahne">⏮</button>
+        <button class="btn-icon" id="btnRestart" title="Başa Sar">🔄</button>
+        <button class="btn-play-big" id="btnPlayPause" title="Oynat / Durdur">▶</button>
+        <button class="btn-icon" id="btnNextScene" title="Sonraki Sahne">⏭</button>
+        <button class="btn-icon" id="btnSoundToggle" title="Ses Aç/Kapat">🔔</button>
+      </div>
+
+      <!-- Scene Quick Pills -->
+      <div class="scene-selector-pills">
+        <div class="scene-pill active" data-scene="0">1. Kanca</div>
+        <div class="scene-pill" data-scene="1">2. Hedef</div>
+        <div class="scene-pill" data-scene="2">3. Eserler</div>
+        <div class="scene-pill" data-scene="3">4. Kılavuz</div>
+        <div class="scene-pill" data-scene="4">5. Görev</div>
+        <div class="scene-pill" data-scene="5">6. Rozet</div>
+      </div>
+
+      <!-- Export Buttons -->
+      <div class="export-buttons-group">
+        <button class="btn-export btn-export-mp4" id="btnExportMp4" title="Video + Ses Senkronize MP4 İndir">
+          <span>🎬 Sesli MP4 İndir</span>
+        </button>
+        <button class="btn-export btn-export-snap" id="btnSnapshot" title="Aktif Kareyi PNG Olarak Kaydet">
+          <span>📸 Kartı PNG Kaydet</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Right: Studio Management Panels -->
+  <div class="studio-column">
+    
+    <!-- Studio Navigation Tabs -->
+    <div class="studio-tabs">
+      <div class="studio-tab active" data-tab="presets">📚 55 Gün Müfredatı</div>
+      <div class="studio-tab" data-tab="audio">🎵 Seslendirme & MP3 Ekle</div>
+      <div class="studio-tab" data-tab="editor">⚙️ Canlı JSON Editörü</div>
+      <div class="studio-tab" data-tab="styles">🎨 Tema & Hareket Ayarları</div>
+      <div class="studio-tab" data-tab="guide">📖 Format Kılavuzu</div>
+    </div>
+
+    <!-- TAB 1: 55-Day Preset Selector -->
+    <div class="tab-content active" id="tab-presets">
+      
+      <div class="filter-bar">
+        <div class="level-pills">
+          <button class="lvl-pill active" data-lvl="ALL">Tümü (55 Gün)</button>
+          <button class="lvl-pill" data-lvl="A1">A1</button>
+          <button class="lvl-pill" data-lvl="A2">A2</button>
+          <button class="lvl-pill" data-lvl="B1">B1</button>
+          <button class="lvl-pill" data-lvl="B2">B2</button>
+          <button class="lvl-pill" data-lvl="C1">C1</button>
+          <button class="lvl-pill" data-lvl="C2">C2</button>
+        </div>
+
+        <div class="search-input-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="daySearchInput" placeholder="Gramer konusu veya klasik eser ara...">
+        </div>
+      </div>
+
+      <!-- Days Grid -->
+      <div class="days-grid" id="daysGrid">
+        <!-- Injected via JavaScript -->
+      </div>
+    </div>
+
+    <!-- TAB 2: Audio & MP3 Upload Tab -->
+    <div class="tab-content" id="tab-audio">
+      
+      <div class="settings-section">
+        <div class="section-title">📂 Özel MP3 / Ses Dosyası Yükle</div>
+        
+        <input type="file" id="customAudioFileInput" accept="audio/mp3,audio/wav,audio/ogg,audio/m4a,audio/*" style="display:none;">
+        <div class="audio-upload-box" onclick="document.getElementById('customAudioFileInput').click()">
+          <div class="upload-icon">🎧</div>
+          <div style="font-size:15px; font-weight:700; color:#fff;">Bilgisayarından MP3 veya Seslendirme Dosyası Seç</div>
+          <div style="font-size:12px; color:var(--text-secondary);">Tıkla veya sürükle bırak (.mp3, .wav, .m4a)</div>
+          <button class="btn-sm btn-sm-primary" style="margin-top:6px;">MP3 Dosyası Seç</button>
+        </div>
+      </div>
+
+      <div class="settings-section" style="margin-top:10px;">
+        <div class="section-title">🎙️ Hazır Seslendirme & Müzik Kütüphanesi</div>
+        
+        <div class="audio-presets-grid">
+          
+          <div class="audio-preset-card active" data-audio-type="synth_classical">
+            <div>
+              <div style="font-weight:700; font-size:13px;">🎼 Edebi Piyano Melodisi</div>
+              <div style="font-size:11px; color:var(--text-secondary);">Klasik Fon Müziği (Dahili Sentezleyici)</div>
+            </div>
+            <span class="badge-tag">Aktif</span>
+          </div>
+
+          <div class="audio-preset-card" data-audio-type="gun01_peter_rabbit">
+            <div>
+              <div style="font-weight:700; font-size:13px;">🎙️ Peter Rabbit Orijinal Okuma</div>
+              <div style="font-size:11px; color:var(--text-secondary);">Voice-03 (İngilizce Kadın Anlatıcı)</div>
+            </div>
+            <span style="font-size:11px; color:var(--text-muted);">Seç</span>
+          </div>
+
+          <div class="audio-preset-card" data-audio-type="gun01_grammar">
+            <div>
+              <div style="font-weight:700; font-size:13px;">🎙️ Gün 01 Gramer Anlatımı</div>
+              <div style="font-size:11px; color:var(--text-secondary);">Voice-04 (Türkçe Öğretici Ses)</div>
+            </div>
+            <span style="font-size:11px; color:var(--text-muted);">Seç</span>
+          </div>
+
+          <div class="audio-preset-card" data-audio-type="gun01_action">
+            <div>
+              <div style="font-weight:700; font-size:13px;">⚡ Gün 01 Eylem Görevi Talimatı</div>
+              <div style="font-size:11px; color:var(--text-secondary);">Voice-04 (Türkçe Eylem Görevi)</div>
+            </div>
+            <span style="font-size:11px; color:var(--text-muted);">Seç</span>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="settings-section" style="margin-top:10px;">
+        <div class="section-title">⚙️ Ses ve Senkronizasyon Ayarları</div>
+        <div class="options-row">
+          
+          <div class="option-box">
+            <div class="option-label">Ses Düzeyi (Volume)</div>
+            <input type="range" class="timeline-slider" id="audioVolumeSlider" min="0" max="1" step="0.05" value="0.8">
+          </div>
+
+          <div class="option-box">
+            <div class="option-label">Video Süresini Ses Dosyasına Uyarla</div>
+            <select class="option-select" id="autoFitAudioDuration">
+              <option value="false" selected>Sabit Süre (Her Sahne 4s)</option>
+              <option value="true">Sese Göre Otomatik Ayarla</option>
+            </select>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB 3: Live JSON Editor -->
+    <div class="tab-content" id="tab-editor">
+      <div class="editor-wrapper">
+        <div class="editor-toolbar">
+          <div class="toolbar-left">
+            <button class="btn-sm" id="btnBeautifyJson">✨ Düzenle / Format</button>
+            <button class="btn-sm" id="btnValidateJson">✔️ Doğrula</button>
+            <button class="btn-sm" id="btnCopyJson">📋 Kopyala</button>
+          </div>
+          <div class="toolbar-right">
+            <input type="file" id="jsonFileInput" accept=".json" style="display:none;">
+            <button class="btn-sm" onclick="document.getElementById('jsonFileInput').click()">📂 Dosyadan Yükle</button>
+            <button class="btn-sm btn-sm-primary" id="btnApplyJson">⚡ JSON'u Canlı Uygula</button>
+          </div>
+        </div>
+
+        <textarea id="jsonTextarea" spellcheck="false"></textarea>
+      </div>
+    </div>
+
+    <!-- TAB 4: Style & Theme Settings -->
+    <div class="tab-content" id="tab-styles">
+      
+      <div class="settings-section">
+        <div class="section-title">🎨 Görsel Renk Teması</div>
+        <div class="theme-grid">
+          <div class="theme-card active" data-theme="navy">
+            <div class="theme-color-preview" style="background: linear-gradient(135deg, #1b2540 0%, #e5b567 100%);"></div>
+            <div>
+              <div style="font-weight:700; font-size:13px;">Klasik Lacivert & Altın</div>
+              <div style="font-size:11px; color:var(--text-secondary);">Akademi & Edebi Şıklık</div>
+            </div>
+          </div>
+
+          <div class="theme-card" data-theme="emerald">
+            <div class="theme-color-preview" style="background: linear-gradient(135deg, #064e3b 0%, #34d399 100%);"></div>
+            <div>
+              <div style="font-weight:700; font-size:13px;">Zümrüt Yeşili & Fildişi</div>
+              <div style="font-size:11px; color:var(--text-secondary);">Doğa & Canlı Hikâye</div>
+            </div>
+          </div>
+
+          <div class="theme-card" data-theme="gothic">
+            <div class="theme-color-preview" style="background: linear-gradient(135deg, #4c0519 0%, #f43f5e 100%);"></div>
+            <div>
+              <div style="font-weight:700; font-size:13px;">Gotik Bordo & Oniks</div>
+              <div style="font-size:11px; color:var(--text-secondary);">Dracula / Frankenstein</div>
+            </div>
+          </div>
+
+          <div class="theme-card" data-theme="sapphire">
+            <div class="theme-color-preview" style="background: linear-gradient(135deg, #0f172a 0%, #38bdf8 100%);"></div>
+            <div>
+              <div style="font-weight:700; font-size:13px;">Gece Safiri & Neon</div>
+              <div style="font-size:11px; color:var(--text-secondary);">Modern Stüdyo & Sherlock</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section" style="margin-top:10px;">
+        <div class="section-title">⚙️ Video Süresi ve Geçiş Efektleri</div>
+        <div class="options-row">
+          <div class="option-box">
+            <div class="option-label">Sahne Başına Süre (Saniye)</div>
+            <select class="option-select" id="sceneDurationSelect">
+              <option value="3">3 Saniye (Hızlı Tanıtım - 18s Toplam)</option>
+              <option value="4" selected>4 Saniye (Dengeli Shorts - 24s Toplam)</option>
+              <option value="5">5 Saniye (Detaylı Kılavuz - 30s Toplam)</option>
+              <option value="6">6 Saniye (Kapsamlı İnceleme - 36s Toplam)</option>
+            </select>
+          </div>
+
+          <div class="option-box">
+            <div class="option-label">Animasyon Stili</div>
+            <select class="option-select" id="animStyleSelect">
+              <option value="cinematic" selected>Sinematik Zoom & Kayan Yazı</option>
+              <option value="kinetic">Kinetik Tipografi & Pop-in</option>
+              <option value="smooth">Zarif Crossfade</option>
+            </select>
+          </div>
+
+          <div class="option-box">
+            <div class="option-label">Edebi Parçacık Efekti (Particles)</div>
+            <select class="option-select" id="particlesToggle">
+              <option value="true" selected>Açık (Uçuşan Altın Işıltılar)</option>
+              <option value="false">Kapalı (Sade Arka Plan)</option>
+            </select>
+          </div>
+
+          <div class="option-box">
+            <div class="option-label">📣 Marka Bağlantıları (bilgibeceri · shopier · youtube)</div>
+            <select class="option-select" id="brandDisplaySelect">
+              <option value="all" selected>Tüm Sahnelerde Dönen Kart + Final CTA (Önerilen)</option>
+              <option value="final">Sadece Final Sahnesinde Büyük CTA Paneli</option>
+              <option value="off">Kapalı</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB 5: Format Guide -->
+    <div class="tab-content" id="tab-guide">
+      <div class="guide-box">
+        <h3>🎬 Shorts Video Builder & Sesli MP4 Mimarisi</h3>
+        <p>Bu stüdyo, 55 günlük <strong>Klasik Eserlerle İngilizce</strong> müfredatının her bir gününü hem <strong>etkileyici bir sosyal medya tanıtımı</strong> hem de öğrenci için <strong>adım adım kullanım kılavuzu</strong> olarak 9:16 formatında ve <strong>seslendirme senkronizasyonuyla</strong> derler.</p>
+        
+        <ul class="guide-steps-list">
+          <li>
+            <div class="guide-num">1</div>
+            <div>
+              <strong>Kanca Sahnesi (Hook):</strong> Gün numarası, CEFR seviyesi ve edebi tema rozetiyle izleyicinin dikkatini ilk saniyede yakalar.
+            </div>
+          </li>
+          <li>
+            <div class="guide-num">2</div>
+            <div>
+              <strong>İngilizce Hedefi:</strong> O gün öğrenilecek gramer yapısını net ve çarpıcı bir kural kartıyla özetler.
+            </div>
+          </li>
+          <li>
+            <div class="guide-num">3</div>
+            <div>
+              <strong>İki Eser Karşılaştırması:</strong> Birincil eser ve Karşılaştırma eserinin Gutenberg alıntılarını yan yana sergiler.
+            </div>
+          </li>
+          <li>
+            <div class="guide-num">4</div>
+            <div>
+              <strong>Kullanım Kılavuzu:</strong> PDF'i açmaktan ses kaydına kadar 4 adımlı günlük çalışma metodolojisini gösterir.
+            </div>
+          </li>
+          <li>
+            <div class="guide-num">5</div>
+            <div>
+              <strong>Eylem Görevi:</strong> Öğrencinin yapacağı konuşma/yazma pratiğini verir.
+            </div>
+          </li>
+          <li>
+            <div class="guide-num">6</div>
+            <div>
+              <strong>Rozet & Sesli MP4 İndirme:</strong> Yüklediğiniz MP3 ses dosyası ile videoyu birleştirip doğrudan cihazınıza MP4 olarak kaydeder.
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<!-- Video Export Progress Modal -->
+<div class="modal-overlay" id="exportModal">
+  <div class="modal-box">
+    <div style="font-size: 38px;">🎬</div>
+    <div class="modal-title">Sesli Shorts Videosu İşleniyor...</div>
+    <div class="progress-bar-container">
+      <div class="progress-fill" id="exportProgressBar"></div>
+    </div>
+    <div class="progress-status-text" id="exportStatusText">Video kareleri ve ses dalgası birleştiriliyor (0%)</div>
+    <button class="btn-sm" id="btnCancelExport" style="margin-top:8px;">İptal Et</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toastBox">
+  <span id="toastIcon">✨</span>
+  <span id="toastMsg">İşlem başarıyla tamamlandı!</span>
+</div>
+
+<script>
+/* ====================================================================
+   DATABASE & STATE
+   ==================================================================== */
+let curriculumDatabase = [];
+let currentDayIndex = 0;
+let currentDayData = null;
+
+// Player & Video Engine State
+let isPlaying = false;
+let currentTime = 0;
+let slideDuration = 4.0;
+const totalScenes = 6;
+let totalDuration = totalScenes * slideDuration;
+let animFrameId = null;
+let lastTimestamp = null;
+let soundEnabled = true;
+
+// Active Settings
+let activeTheme = 'navy';
+let activeAnimStyle = 'cinematic';
+let showParticles = true;
+let brandDisplayMode = 'all'; // 'all' | 'final' | 'off'
+
+// BilgiBeceri Dijital — Marka & Sosyal Medya Bağlantıları
+const brandLinks = [
+  {
+    icon: '🌐',
+    text: 'bilgibeceri.com',
+    sub: 'Web Sitemiz · Tüm Ders Modülleri',
+    color: '#38bdf8',
+    c1: '#0ea5e9',
+    c2: '#0369a1',
+    fs: 42
+  },
+  {
+    icon: '🛒',
+    text: 'shopier.com/bilgibeceri_dijital',
+    sub: 'Dijital Mağaza · Hemen Satın Al',
+    color: '#e5b567',
+    c1: '#f59e0b',
+    c2: '#b45309',
+    fs: 32
+  },
+  {
+    icon: '▶',
+    text: 'youtube  @bilgibeceri-dijital',
+    sub: 'Abone Ol · Bildirim Zilini Aç 🔔',
+    color: '#ef4444',
+    c1: '#ef4444',
+    c2: '#b91c1c',
+    fs: 38
+  }
+];
+
+// Audio Management State
+let audioMode = 'synth_classical'; // 'custom', 'synth_classical', 'preset'
+let customAudioUrl = null;
+let customAudioName = 'Özel MP3';
+let activeAudioElement = document.getElementById('activeAudioPlayer');
+let synthAudioInterval = null;
+
+// Theme Palettes
+const themes = {
+  navy: {
+    bgTop: '#131c31',
+    bgMid: '#1b2540',
+    bgBot: '#0f172a',
+    cardBg: '#ffffff',
+    cardDarkBg: '#1e293b',
+    gold: '#e5b567',
+    goldLight: '#fde68a',
+    accent: '#38bdf8',
+    textDark: '#0f172a',
+    textLight: '#ffffff',
+    subText: '#94a3b8'
+  },
+  emerald: {
+    bgTop: '#064e3b',
+    bgMid: '#065f46',
+    bgBot: '#022c22',
+    cardBg: '#ffffff',
+    cardDarkBg: '#064e3b',
+    gold: '#34d399',
+    goldLight: '#a7f3d0',
+    accent: '#6ee7b7',
+    textDark: '#064e3b',
+    textLight: '#ffffff',
+    subText: '#a7f3d0'
+  },
+  gothic: {
+    bgTop: '#4c0519',
+    bgMid: '#881337',
+    bgBot: '#0f172a',
+    cardBg: '#ffffff',
+    cardDarkBg: '#4c0519',
+    gold: '#fb7185',
+    goldLight: '#fecdd3',
+    accent: '#fda4af',
+    textDark: '#4c0519',
+    textLight: '#ffffff',
+    subText: '#fecdd3'
+  },
+  sapphire: {
+    bgTop: '#0f172a',
+    bgMid: '#1e3a8a',
+    bgBot: '#020617',
+    cardBg: '#ffffff',
+    cardDarkBg: '#1e293b',
+    gold: '#38bdf8',
+    goldLight: '#bae6fd',
+    accent: '#818cf8',
+    textDark: '#0f172a',
+    textLight: '#ffffff',
+    subText: '#93c5fd'
+  }
+};
+
+// Canvas Setup
+const canvas = document.getElementById('videoCanvas');
+const ctx = canvas.getContext('2d', { alpha: false });
+
+// Ambient Particles
+const particles = [];
+for (let i = 0; i < 40; i++) {
+  particles.push({
+    x: Math.random() * 1080,
+    y: Math.random() * 1920,
+    size: Math.random() * 4 + 1.5,
+    speedY: -(Math.random() * 0.8 + 0.3),
+    speedX: (Math.random() - 0.5) * 0.4,
+    alpha: Math.random() * 0.6 + 0.2
+  });
+}
+
+/* ====================================================================
+   WEB AUDIO ENGINE & SYNTHESIZER
+   ==================================================================== */
+let audioCtx = null;
+let synthGain = null;
+let mediaElementSource = null;
+let mediaStreamDest = null;
+
+function initWebAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    synthGain = audioCtx.createGain();
+    synthGain.gain.setValueAtTime(0.7, audioCtx.currentTime);
+    synthGain.connect(audioCtx.destination);
+  }
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+  return audioCtx;
+}
+
+// Classical Background Lo-Fi Piano Synthesizer (When no custom mp3 is loaded)
+const classicalChords = [
+  [261.63, 329.63, 392.00], // C
+  [220.00, 261.63, 329.63], // Am
+  [174.61, 220.00, 261.63], // F
+  [196.00, 246.94, 293.66]  // G
+];
+
+function playSynthPianoChord(step) {
+  if (!soundEnabled || audioMode !== 'synth_classical') return;
+  try {
+    const actx = initWebAudio();
+    const chord = classicalChords[step % classicalChords.length];
+    chord.forEach((freq, idx) => {
+      const osc = actx.createOscillator();
+      const noteGain = actx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, actx.currentTime + idx * 0.08);
+
+      noteGain.gain.setValueAtTime(0.06, actx.currentTime + idx * 0.08);
+      noteGain.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + idx * 0.08 + 1.6);
+
+      osc.connect(noteGain);
+      noteGain.connect(synthGain);
+
+      osc.start(actx.currentTime + idx * 0.08);
+      osc.stop(actx.currentTime + idx * 0.08 + 1.8);
+    });
+  } catch (e) {}
+}
+
+function playSlideTransitionSound() {
+  if (!soundEnabled) return;
+  try {
+    const actx = initWebAudio();
+    const osc = actx.createOscillator();
+    const gain = actx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(440, actx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(880, actx.currentTime + 0.12);
+    gain.gain.setValueAtTime(0.08, actx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.15);
+    osc.connect(gain);
+    gain.connect(actx.destination);
+    osc.start();
+    osc.stop(actx.currentTime + 0.16);
+  } catch (e) {}
+}
+
+/* ====================================================================
+   INITIALIZATION & DATA LOADING
+   ==================================================================== */
+async function initApp() {
+  try {
+    const res = await fetch('/klasik_ingilizce_v2/mufredat_55gun.json');
+    if (res.ok) {
+      curriculumDatabase = await res.json();
+    }
+  } catch (e) {
+    console.warn('Local JSON fetch failed, using embedded dataset', e);
+  }
+
+  if (!curriculumDatabase || curriculumDatabase.length === 0) {
+    generateFallbackCurriculum();
+  }
+
+  renderDaysGrid();
+  loadDay(0);
+  setupEvents();
+  setupAudioHandling();
+  requestAnimationFrame(renderLoop);
+}
+
+function generateFallbackCurriculum() {
+  const levels = [
+    { range: [1, 11], lvl: 'A1', name: 'Başlangıç Seviyesi' },
+    { range: [12, 19], lvl: 'A2', name: 'Temel Seviye' },
+    { range: [20, 31], lvl: 'B1', name: 'Orta Seviye' },
+    { range: [32, 42], lvl: 'B2', name: 'İleri Orta Seviye' },
+    { range: [43, 50], lvl: 'C1', name: 'İleri Düzey' },
+    { range: [51, 55], lvl: 'C2', name: 'Ustalık Seviyesi' }
+  ];
+
+  const coreTopics = [
+    "be fiili (am/is/are) + Kişi Zamirleri",
+    "İyelik Sıfatları (my/your/his/her/their)",
+    "Çoğul İsimler & Artikeller (a/an/the)",
+    "this/that & there is/are + Edatlar",
+    "Present Simple (Geniş Zaman)",
+    "Emir Kipi (Imperatives)",
+    "Present Continuous (-ing)",
+    "Past Simple (Geçmiş Zaman)",
+    "Wh- Soru Kalıpları",
+    "can / can't (Yetenek & İzin)",
+    "Temel Bağlaçlar (and/but/so/because)"
+  ];
+
+  curriculumDatabase = [];
+  for (let i = 1; i <= 55; i++) {
+    const lvlObj = levels.find(l => i >= l.range[0] && i <= l.range[1]) || levels[0];
+    const topic = coreTopics[(i - 1) % coreTopics.length];
+
+    curriculumDatabase.push({
+      gun_no: i,
+      seviye_cefr: lvlObj.lvl,
+      seviye_adi: lvlObj.name,
+      ingilizce_hedefi: topic,
+      hedef_aciklama: `${lvlObj.lvl} seviyesinde ${topic} yapısını klasik edebi metinler üzerinden ustalıkla kavrama.`,
+      birincil_eser: {
+        ad: "The Tale of Peter Rabbit",
+        yazar: "Beatrix Potter (1902)",
+        yil: 1902,
+        gutenberg_no: 14838,
+        onemli_cumle: "Once upon a time there were four little Rabbits, and their names were: Flopsy, Mopsy, Cotton-tail, and Peter."
+      },
+      karsilastirma_eser: {
+        ad: "Aesop's Fables",
+        yazar: "Aesop / Townsend (1867)",
+        yil: 1867,
+        gutenberg_no: 21,
+        onemli_cumle: "A Wolf, meeting with a Lamb astray from the fold, resolved not to lay violent hands on him..."
+      },
+      kullanim_klavuzu: [
+        { adim: 1, baslik: "PDF Modülünü Aç", aciklama: `Günün 12 sayfalık ders notunu ve ${topic} tablosunu incele.` },
+        { adim: 2, baslik: "Paragrafları Dinle", aciklama: "Klasik eser okumalarının orijinal telaffuzunu tekrar et." },
+        { adim: 3, baslik: "Gramer Analizini Çöz", aciklama: "İki eser arasındaki cümle kuruluş farklarını analiz et." },
+        { adim: 4, baslik: "Eylemini Yap & Kaydet", aciklama: "Kendi cümlelerini kurarak sesli telaffuz kaydını oluştur!" }
+      ],
+      eylem_gorevi: {
+        baslik: `Gün ${i < 10 ? '0' + i : i} Eylem Görevi: ${topic}`,
+        talimat: `Öğrenilen ${topic} kuralıyla en az 3 cümle yazıp yüksek sesle oku.`,
+        ornek: `I read classical English every single day!`
+      },
+      rozet: `🏅 Gün ${i < 10 ? '0' + i : i} — ${lvlObj.lvl} ${topic.split('(')[0].strip?.() || topic} Rozeti`
+    });
+  }
+}
+
+function renderDaysGrid(filterLevel = 'ALL', search = '') {
+  const container = document.getElementById('daysGrid');
+  container.innerHTML = '';
+
+  const query = search.toLowerCase().trim();
+
+  curriculumDatabase.forEach((day, idx) => {
+    if (filterLevel !== 'ALL' && day.seviye_cefr !== filterLevel) return;
+    if (query) {
+      const match = day.ingilizce_hedefi.toLowerCase().includes(query) ||
+                    day.birincil_eser.ad.toLowerCase().includes(query) ||
+                    day.karsilastirma_eser.ad.toLowerCase().includes(query) ||
+                    day.gun_no.toString().includes(query);
+      if (!match) return;
+    }
+
+    const card = document.createElement('div');
+    card.className = `day-card ${idx === currentDayIndex ? 'selected' : ''}`;
+    card.innerHTML = `
+      <div class="day-card-header">
+        <span class="day-number">GÜN ${day.gun_no < 10 ? '0' + day.gun_no : day.gun_no}</span>
+        <span class="day-level">${day.seviye_cefr}</span>
+      </div>
+      <div class="day-topic">${day.ingilizce_hedefi}</div>
+      <div class="day-works">📖 ${day.birincil_eser.ad} × ${day.karsilastirma_eser.ad}</div>
+      <div class="day-action-badge">🎯 ${day.rozet.split('—')[0]}</div>
+    `;
+
+    card.addEventListener('click', () => {
+      loadDay(idx);
+    });
+
+    container.appendChild(card);
+  });
+}
+
+function loadDay(index) {
+  currentDayIndex = index;
+  currentDayData = curriculumDatabase[index];
+
+  document.querySelectorAll('.day-card').forEach((c, idx) => {
+    c.classList.toggle('selected', idx === index);
+  });
+
+  document.getElementById('jsonTextarea').value = JSON.stringify(currentDayData, null, 2);
+
+  currentTime = 0;
+  updateTimelineUI();
+  showToast(`Gün ${currentDayData.gun_no} (${currentDayData.ingilizce_hedefi}) yüklendi!`);
+}
+
+/* ====================================================================
+   AUDIO FILE INPUT & PRESET HANDLERS
+   ==================================================================== */
+function setupAudioHandling() {
+  const customFileInput = document.getElementById('customAudioFileInput');
+  
+  customFileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const url = URL.createObjectURL(file);
+    customAudioUrl = url;
+    customAudioName = file.name;
+    audioMode = 'custom';
+
+    activeAudioElement.src = url;
+    activeAudioElement.load();
+
+    document.getElementById('currentAudioNameDisplay').innerText = `🎵 ${file.name}`;
+    document.getElementById('currentAudioStatusDisplay').innerText = `Yüklendi (${(file.size / (1024*1024)).toFixed(2)} MB)`;
+    document.getElementById('audioTrackBadge').innerText = `🎵 ${file.name.slice(0, 18)}...`;
+
+    document.querySelectorAll('.audio-preset-card').forEach(c => c.classList.remove('active'));
+
+    // Check auto-fit duration
+    activeAudioElement.onloadedmetadata = () => {
+      if (document.getElementById('autoFitAudioDuration').value === 'true') {
+        const audioDur = activeAudioElement.duration;
+        if (audioDur > 5) {
+          slideDuration = audioDur / totalScenes;
+          totalDuration = audioDur;
+          document.getElementById('sceneDurationSelect').value = Math.round(slideDuration).toString();
+          updateTimelineUI();
+          showToast(`Video süresi ses dosyasına göre (${audioDur.toFixed(1)}s) uyarlandı.`);
+        }
+      }
+    };
+
+    showToast(`'${file.name}' seslendirmesi yüklendi ve senkronize edildi!`);
+  });
+
+  // Preset Audio Selection
+  const presets = {
+    'synth_classical': { name: 'Dahili Klasik Fon Müziği', url: null },
+    'gun01_peter_rabbit': { name: 'Peter Rabbit Orijinal Okuma (Voice-03)', url: '/klasik_ingilizce_v2/audio/gun01/Gun01_Paragraf1_Peter_Rabbit.mp3' },
+    'gun01_grammar': { name: 'Gün 01 Gramer Anlatımı (Voice-04)', url: '/klasik_ingilizce_v2/audio/gun01/Gun01_Grammar_Aciklama_TR.mp3' },
+    'gun01_action': { name: 'Gün 01 Eylem Görevi Talimatı (Voice-04)', url: '/klasik_ingilizce_v2/audio/gun01/Gun01_Eylem_TR.mp3' }
+  };
+
+  document.querySelectorAll('.audio-preset-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const type = card.dataset.audioType;
+      audioMode = type;
+
+      document.querySelectorAll('.audio-preset-card').forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
+
+      const preset = presets[type];
+      if (preset.url) {
+        activeAudioElement.src = preset.url;
+        activeAudioElement.load();
+      } else {
+        activeAudioElement.removeAttribute('src');
+      }
+
+      document.getElementById('currentAudioNameDisplay').innerText = preset.name;
+      document.getElementById('audioTrackBadge').innerText = `🎵 ${preset.name.slice(0, 20)}...`;
+      showToast(`Ses kaynağı ayarlandı: ${preset.name}`);
+    });
+  });
+
+  // Volume Slider
+  document.getElementById('audioVolumeSlider').addEventListener('input', (e) => {
+    const vol = parseFloat(e.target.value);
+    activeAudioElement.volume = vol;
+    if (synthGain) synthGain.gain.setValueAtTime(vol * 0.7, audioCtx.currentTime);
+  });
+}
+
+/* ====================================================================
+   CANVAS RENDERING ENGINE (1080x1920 HD Standard 9:16)
+   ==================================================================== */
+function renderLoop(timestamp) {
+  if (!lastTimestamp) lastTimestamp = timestamp;
+  const dt = (timestamp - lastTimestamp) / 1000;
+  lastTimestamp = timestamp;
+
+  if (isPlaying) {
+    const prevScene = Math.floor(currentTime / slideDuration);
+    currentTime += dt;
+    const newScene = Math.floor(currentTime / slideDuration);
+
+    if (newScene !== prevScene && newScene < totalScenes) {
+      playSlideTransitionSound();
+      if (audioMode === 'synth_classical') {
+        playSynthPianoChord(newScene);
+      }
+    }
+
+    if (currentTime >= totalDuration) {
+      currentTime = 0;
+      if (activeAudioElement.src) {
+        activeAudioElement.currentTime = 0;
+        activeAudioElement.play().catch(() => {});
+      }
+    }
+    updateTimelineUI();
+  }
+
+  drawFrame(currentTime);
+  animFrameId = requestAnimationFrame(renderLoop);
+}
+
+function drawFrame(timeSec) {
+  if (!currentDayData) return;
+
+  const sceneIndex = Math.min(Math.floor(timeSec / slideDuration), totalScenes - 1);
+  const sceneProgress = (timeSec % slideDuration) / slideDuration;
+
+  const theme = themes[activeTheme] || themes.navy;
+
+  // Background
+  const grad = ctx.createLinearGradient(0, 0, 0, 1920);
+  grad.addColorStop(0, theme.bgTop);
+  grad.addColorStop(0.5, theme.bgMid);
+  grad.addColorStop(1, theme.bgBot);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 1080, 1920);
+
+  // Particles
+  if (showParticles) {
+    drawAmbientParticles(theme);
+  }
+
+  // Header & Footer
+  drawBrandingHeader(theme);
+
+  // Scene Renderers
+  ctx.save();
+  switch (sceneIndex) {
+    case 0: drawScene1_Hook(currentDayData, theme, sceneProgress); break;
+    case 1: drawScene2_Target(currentDayData, theme, sceneProgress); break;
+    case 2: drawScene3_Works(currentDayData, theme, sceneProgress); break;
+    case 3: drawScene4_Guide(currentDayData, theme, sceneProgress); break;
+    case 4: drawScene5_Action(currentDayData, theme, sceneProgress); break;
+    case 5: drawScene6_BadgeOutro(currentDayData, theme, sceneProgress); break;
+  }
+  ctx.restore();
+
+  drawBrandingFooter(theme, sceneIndex, timeSec);
+}
+
+function drawAmbientParticles(theme) {
+  ctx.save();
+  particles.forEach(p => {
+    p.y += p.speedY;
+    p.x += p.speedX;
+    if (p.y < -10) p.y = 1930;
+    if (p.x < -10) p.x = 1090;
+    if (p.x > 1090) p.x = -10;
+
+    ctx.fillStyle = theme.gold;
+    ctx.globalAlpha = p.alpha;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.restore();
+}
+
+function drawBrandingHeader(theme) {
+  ctx.save();
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+  roundRect(ctx, 80, 100, 920, 90, 45, true, false);
+
+  ctx.strokeStyle = 'rgba(229, 181, 103, 0.4)';
+  ctx.lineWidth = 2;
+  roundRect(ctx, 80, 100, 920, 90, 45, false, true);
+
+  ctx.fillStyle = theme.gold;
+  ctx.font = 'bold 32px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('KLASİK ESERLERLE İNGİLİZCE', 540, 155);
+  ctx.restore();
+}
+
+function drawBrandingFooter(theme, sceneIndex, timeSec) {
+  ctx.save();
+  ctx.fillStyle = theme.subText;
+  ctx.font = '500 26px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(`Adım ${sceneIndex + 1} / ${totalScenes}  ·  bilgibeceri.com`, 540, 1852);
+  ctx.restore();
+
+  // Dönen marka bağlantı kartı: ilk 5 sahnede gösterilir (final sahnesinde büyük CTA paneli var)
+  if (brandDisplayMode === 'all' && sceneIndex < totalScenes - 1) {
+    drawBrandTicker(theme, timeSec);
+  }
+}
+
+/* Animasyonlu dönen sosyal medya bağlantı kartı (Sahne 1-5) */
+function drawBrandTicker(theme, timeSec) {
+  const cycle = 2.6; // her bağlantı 2.6 saniye ekranda kalır
+  const idx = Math.floor(timeSec / cycle) % brandLinks.length;
+  const prog = (timeSec % cycle) / cycle;
+  const link = brandLinks[idx];
+
+  // Giriş/çıkış: aşağıdan süzülme + solma
+  let alpha = 1, dy = 0;
+  if (prog < 0.18) {
+    const p = prog / 0.18;
+    alpha = p;
+    dy = (1 - easeOutCubic(p)) * 40;
+  } else if (prog > 0.82) {
+    const p = (prog - 0.82) / 0.18;
+    alpha = Math.max(0, 1 - p);
+    dy = -easeOutCubic(p) * 40;
+  }
+
+  const cardX = 70, cardY = 1618 + dy, cardW = 940, cardH = 118;
+  const pulse = 0.5 + 0.5 * Math.sin(timeSec * 3.2);
+  const iconColor = link.color === '#e5b567' ? '#451a03' : '#ffffff';
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+
+  // Nabız atan dış parlama (dikkat çekici glow)
+  ctx.shadowColor = link.color;
+  ctx.shadowBlur = 22 + 22 * pulse;
+  const cardGrad = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH);
+  cardGrad.addColorStop(0, 'rgba(255,255,255,0.17)');
+  cardGrad.addColorStop(1, 'rgba(255,255,255,0.07)');
+  ctx.fillStyle = cardGrad;
+  roundRect(ctx, cardX, cardY, cardW, cardH, 30, true, false);
+  ctx.shadowBlur = 0;
+
+  // Renkli çerçeve
+  ctx.strokeStyle = link.color;
+  ctx.lineWidth = 3;
+  roundRect(ctx, cardX, cardY, cardW, cardH, 30, false, true);
+
+  // Simge dairesi (sol, hafif nabız ölçeği)
+  const icX = cardX + 62, icY = cardY + cardH / 2;
+  const iconScale = 1 + 0.07 * Math.sin(timeSec * 4);
+  ctx.fillStyle = link.color;
+  ctx.beginPath();
+  ctx.arc(icX, icY, 40 * iconScale, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = iconColor;
+  ctx.font = 'bold 38px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(link.icon, icX, icY + 14);
+
+  // Bağlantı metni (genişliğe göre otomatik küçülür)
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#ffffff';
+  const tickFontPx = fitFontSize(link.text, 660, link.fs, 'bold');
+  ctx.font = `bold ${tickFontPx}px -apple-system, BlinkMacSystemFont, sans-serif`;
+  ctx.fillText(link.text, cardX + 124, cardY + 52);
+  ctx.fillStyle = link.color;
+  ctx.font = '600 23px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.fillText(link.sub, cardX + 124, cardY + 92);
+
+  // "TIKLA" çipi (sağ, yanıp sönen)
+  const chipBlink = 0.55 + 0.45 * Math.sin(timeSec * 5);
+  ctx.globalAlpha = alpha * (0.7 + 0.3 * chipBlink);
+  ctx.fillStyle = link.color;
+  roundRect(ctx, cardX + cardW - 116, cardY + cardH / 2 - 27, 98, 54, 27, true, false);
+  ctx.fillStyle = iconColor;
+  ctx.font = 'bold 22px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('TIKLA', cardX + cardW - 67, cardY + cardH / 2 + 8);
+
+  // Döngü ilerleme noktaları
+  ctx.globalAlpha = alpha;
+  for (let i = 0; i < brandLinks.length; i++) {
+    ctx.fillStyle = i === idx ? link.color : 'rgba(255,255,255,0.3)';
+    ctx.beginPath();
+    ctx.arc(500 + i * 40, cardY + cardH + 24, 7, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+/* ====================================================================
+   SCENE RENDERERS
+   ==================================================================== */
+function drawScene1_Hook(data, theme, prog) {
+  const ease = easeOutCubic(Math.min(prog * 1.4, 1.0));
+  const alpha = Math.min(prog * 2.0, 1.0);
+  ctx.globalAlpha = alpha;
+
+  const badgeY = 360 - (1 - ease) * 50;
+  ctx.fillStyle = theme.gold;
+  roundRect(ctx, 360, badgeY, 360, 80, 40, true, false);
+
+  ctx.fillStyle = '#0f172a';
+  ctx.font = '900 36px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(`GÜN ${data.gun_no < 10 ? '0' + data.gun_no : data.gun_no}  ·  ${data.seviye_cefr}`, 540, badgeY + 52);
+
+  const titleY = 560;
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 62px Georgia, serif';
+  ctx.textAlign = 'center';
+  
+  const wrappedTitle = wrapText(ctx, data.ingilizce_hedefi, 900);
+  let curY = titleY;
+  wrappedTitle.forEach(line => {
+    ctx.fillText(line, 540, curY);
+    curY += 80;
+  });
+
+  const cardY = curY + 60;
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+  roundRect(ctx, 80, cardY, 920, 360, 32, true, false);
+
+  ctx.fillStyle = theme.textDark;
+  ctx.font = 'italic 34px Georgia, serif';
+  const descLines = wrapText(ctx, `"${data.hedef_aciklama}"`, 820);
+  let descY = cardY + 90;
+  descLines.forEach(l => {
+    ctx.fillText(l, 540, descY);
+    descY += 52;
+  });
+
+  ctx.fillStyle = theme.bgMid;
+  roundRect(ctx, 240, cardY + 260, 600, 64, 32, true, false);
+  ctx.fillStyle = theme.gold;
+  ctx.font = 'bold 28px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.fillText('✨ 2 Eserle Karşılaştırmalı Öğren', 540, cardY + 302);
+}
+
+function drawScene2_Target(data, theme, prog) {
+  const alpha = Math.min(prog * 2.0, 1.0);
+  ctx.globalAlpha = alpha;
+
+  ctx.fillStyle = theme.gold;
+  ctx.font = 'bold 36px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('🎯 GÜNÜN İNGİLİZCE HEDEFİ', 540, 320);
+
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+  ctx.strokeStyle = theme.gold;
+  ctx.lineWidth = 3;
+  roundRect(ctx, 80, 380, 920, 240, 28, true, true);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 50px -apple-system, BlinkMacSystemFont, sans-serif';
+  const lines = wrapText(ctx, data.ingilizce_hedefi, 840);
+  let y = 470;
+  lines.forEach(l => {
+    ctx.fillText(l, 540, y);
+    y += 64;
+  });
+
+  ctx.fillStyle = '#ffffff';
+  roundRect(ctx, 80, 680, 920, 780, 32, true, false);
+
+  ctx.fillStyle = theme.textDark;
+  ctx.font = '900 36px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('📌 Nasıl Öğreneceksin?', 140, 760);
+
+  const pillars = [
+    { num: "1", title: "Dilbilgisi Omurgası", desc: "Özne, fiil ve cümle dizilimini mantığıyla kavra." },
+    { num: "2", title: "Orijinal Edebi Metin", desc: "Basitleştirilmiş değil, yazarların gerçek cümleleri." },
+    { num: "3", title: "Canlı Karşılaştırma", desc: "Farklı dönem ve yazarlardaki üslup farkını gör." }
+  ];
+
+  let pY = 820;
+  pillars.forEach(p => {
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.06)';
+    roundRect(ctx, 120, pY, 840, 160, 20, true, false);
+
+    ctx.fillStyle = theme.bgTop;
+    ctx.beginPath();
+    ctx.arc(180, pY + 80, 36, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = theme.gold;
+    ctx.font = 'bold 36px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(p.num, 180, pY + 93);
+
+    ctx.fillStyle = theme.textDark;
+    ctx.textAlign = 'left';
+    ctx.font = 'bold 34px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText(p.title, 240, pY + 68);
+
+    ctx.fillStyle = '#475569';
+    ctx.font = '30px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText(p.desc, 240, pY + 118);
+
+    pY += 190;
+  });
+}
+
+function drawScene3_Works(data, theme, prog) {
+  const alpha = Math.min(prog * 2.0, 1.0);
+  ctx.globalAlpha = alpha;
+
+  ctx.fillStyle = theme.gold;
+  ctx.font = 'bold 36px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('📚 İKİ ESER · AYNI GRAMER YAPISI', 540, 300);
+
+  // Work 1
+  ctx.fillStyle = '#ffffff';
+  roundRect(ctx, 80, 360, 920, 500, 28, true, false);
+
+  ctx.fillStyle = '#0f172a';
+  ctx.font = 'bold 42px Georgia, serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(data.birincil_eser.ad, 130, 440);
+
+  ctx.fillStyle = '#64748b';
+  ctx.font = '600 28px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.fillText(`✍️ ${data.birincil_eser.yazar} (Gutenberg #${data.birincil_eser.gutenberg_no})`, 130, 485);
+
+  ctx.fillStyle = '#1e293b';
+  ctx.font = 'italic 34px Georgia, serif';
+  const q1Lines = wrapText(ctx, `"${data.birincil_eser.onemli_cumle}"`, 820);
+  let q1Y = 550;
+  q1Lines.slice(0, 4).forEach(l => {
+    ctx.fillText(l, 130, q1Y);
+    q1Y += 46;
+  });
+
+  // VS Circle
+  ctx.fillStyle = theme.gold;
+  ctx.beginPath();
+  ctx.arc(540, 900, 45, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#0f172a';
+  ctx.font = '900 36px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('VS', 540, 912);
+
+  // Work 2
+  ctx.fillStyle = '#ffffff';
+  roundRect(ctx, 80, 940, 920, 500, 28, true, false);
+
+  ctx.fillStyle = '#0f172a';
+  ctx.font = 'bold 42px Georgia, serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(data.karsilastirma_eser.ad, 130, 1020);
+
+  ctx.fillStyle = '#64748b';
+  ctx.font = '600 28px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.fillText(`✍️ ${data.karsilastirma_eser.yazar} (Gutenberg #${data.karsilastirma_eser.gutenberg_no})`, 130, 1065);
+
+  ctx.fillStyle = '#1e293b';
+  ctx.font = 'italic 34px Georgia, serif';
+  const q2Lines = wrapText(ctx, `"${data.karsilastirma_eser.onemli_cumle}"`, 820);
+  let q2Y = 1130;
+  q2Lines.slice(0, 4).forEach(l => {
+    ctx.fillText(l, 130, q2Y);
+    q2Y += 46;
+  });
+
+  ctx.fillStyle = theme.goldLight;
+  ctx.font = 'bold 30px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('💡 İki farklı yüzyıl, tek bir evrensel gramer kalıbı!', 540, 1510);
+}
+
+function drawScene4_Guide(data, theme, prog) {
+  const alpha = Math.min(prog * 2.0, 1.0);
+  ctx.globalAlpha = alpha;
+
+  ctx.fillStyle = theme.gold;
+  ctx.font = 'bold 36px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('📖 NASIL İLERLENMELİ? (4 ADIM)', 540, 300);
+
+  let y = 370;
+  const steps = data.kullanim_klavuzu || [
+    { adim: 1, baslik: "PDF Modülünü Aç", aciklama: "Kapsamlı ders notunu ve analiz tablosunu incele." },
+    { adim: 2, baslik: "Paragrafları Dinle", aciklama: "Eserlerin anadil telaffuzunu tekrar et." },
+    { adim: 3, baslik: "Gramer Tablosunu Çöz", aciklama: "Karakterler üzerinden cümleleri eşleştir." },
+    { adim: 4, baslik: "Kendi Sesini Kaydet", aciklama: "Günün eylem görevini seslendir!" }
+  ];
+
+  steps.forEach(st => {
+    ctx.fillStyle = '#ffffff';
+    roundRect(ctx, 80, y, 920, 240, 24, true, false);
+
+    ctx.fillStyle = theme.bgTop;
+    roundRect(ctx, 110, y + 30, 80, 80, 20, true, false);
+
+    ctx.fillStyle = theme.gold;
+    ctx.font = 'bold 44px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(st.adim.toString(), 150, y + 88);
+
+    ctx.fillStyle = theme.textDark;
+    ctx.textAlign = 'left';
+    ctx.font = 'bold 38px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText(st.baslik, 220, y + 80);
+
+    ctx.fillStyle = '#475569';
+    ctx.font = '30px -apple-system, BlinkMacSystemFont, sans-serif';
+    const lines = wrapText(ctx, st.aciklama, 740);
+    let descY = y + 135;
+    lines.slice(0, 2).forEach(l => {
+      ctx.fillText(l, 220, descY);
+      descY += 42;
+    });
+
+    y += 275;
+  });
+}
+
+function drawScene5_Action(data, theme, prog) {
+  const alpha = Math.min(prog * 2.0, 1.0);
+  ctx.globalAlpha = alpha;
+
+  ctx.fillStyle = theme.gold;
+  ctx.font = 'bold 36px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('⚡ GÜNÜN EYLEM GÖREVİ', 540, 320);
+
+  ctx.fillStyle = '#ffffff';
+  roundRect(ctx, 80, 390, 920, 1000, 36, true, false);
+
+  ctx.fillStyle = '#0f172a';
+  ctx.font = '900 48px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('🎙️ Kendi Cümleni Kur & Kaydet', 540, 480);
+
+  ctx.fillStyle = '#334155';
+  ctx.font = '34px -apple-system, BlinkMacSystemFont, sans-serif';
+  const insLines = wrapText(ctx, data.eylem_gorevi.talimat, 820);
+  let insY = 560;
+  insLines.forEach(l => {
+    ctx.fillText(l, 540, insY);
+    insY += 50;
+  });
+
+  ctx.fillStyle = 'rgba(229, 181, 103, 0.15)';
+  ctx.strokeStyle = theme.gold;
+  ctx.lineWidth = 3;
+  roundRect(ctx, 120, insY + 40, 840, 340, 24, true, true);
+
+  ctx.fillStyle = '#0f172a';
+  ctx.font = 'bold 34px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('🌟 Örnek Telaffuz Cümlesi:', 160, insY + 110);
+
+  ctx.fillStyle = theme.textDark;
+  ctx.font = 'italic bold 36px Georgia, serif';
+  const exLines = wrapText(ctx, `"${data.eylem_gorevi.ornek}"`, 760);
+  let exY = insY + 180;
+  exLines.forEach(l => {
+    ctx.fillText(l, 160, exY);
+    exY += 48;
+  });
+
+  ctx.fillStyle = theme.bgTop;
+  roundRect(ctx, 220, insY + 420, 640, 90, 45, true, false);
+
+  ctx.fillStyle = theme.gold;
+  ctx.font = 'bold 32px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('▶️ Sesini Kaydet & Pratik Yap!', 540, insY + 478);
+}
+
+function drawScene6_BadgeOutro(data, theme, prog) {
+  const alpha = Math.min(prog * 2.2, 1.0);
+  const t = currentTime; // global zaman → kayan animasyonlar sahne sınırlarını aşar
+
+  // Başlık
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = theme.gold;
+  ctx.font = 'bold 38px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('🏅 GÜNÜN KAZANIMI & ROZETİ', 540, 296);
+
+  // Rozet halkası (dönen yay + nabız)
+  const badgePulse = 1 + 0.025 * Math.sin(t * 3);
+  ctx.strokeStyle = theme.gold;
+  ctx.lineWidth = 6;
+  ctx.beginPath();
+  ctx.arc(540, 512, 148 * badgePulse, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.strokeStyle = theme.goldLight;
+  ctx.lineWidth = 3;
+  const spin = t * 1.2;
+  for (let a = 0; a < 3; a++) {
+    ctx.beginPath();
+    ctx.arc(540, 512, 165, spin + a * (Math.PI * 2 / 3), spin + a * (Math.PI * 2 / 3) + 0.9);
+    ctx.stroke();
+  }
+  ctx.font = '86px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.fillText('🏆', 540, 542);
+
+  // Rozet adı
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 40px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.fillText(data.rozet, 540, 716);
+  ctx.restore();
+
+  // Büyük beyaz CTA paneli
+  const panelIn = easeOutCubic(Math.min(Math.max((prog - 0.08) / 0.25, 0), 1));
+  const panelY = 780 + (1 - panelIn) * 60;
+  ctx.save();
+  ctx.globalAlpha = alpha * panelIn;
+
+  ctx.shadowColor = 'rgba(0,0,0,0.45)';
+  ctx.shadowBlur = 40;
+  ctx.fillStyle = '#ffffff';
+  roundRect(ctx, 70, panelY, 940, 880, 40, true, false);
+  ctx.shadowBlur = 0;
+
+  // Panel başlığı
+  ctx.fillStyle = theme.textDark;
+  ctx.font = '900 46px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.textAlign = 'center';
+  const titleBounce = 1 + 0.03 * Math.sin(t * 4);
+  ctx.save();
+  ctx.translate(540, panelY + 90);
+  ctx.scale(titleBounce, titleBounce);
+  ctx.fillText('🚀 Hemen Başla & Takip Et!', 0, 0);
+  ctx.restore();
+
+  ctx.fillStyle = '#64748b';
+  ctx.font = '500 30px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.fillText('Tüm dersler, PDF paketleri ve sesli içerikler:', 540, panelY + 148);
+
+  // Üç animasyonlu bağlantı butonu (kademeli giriş)
+  brandLinks.forEach((link, i) => {
+    const delay = 0.22 + i * 0.14;
+    const btnIn = easeOutCubic(Math.min(Math.max((prog - delay) / 0.22, 0), 1));
+    if (btnIn <= 0) return;
+
+    const btnW = 820, btnH = 168;
+    const btnX = 130 + (1 - btnIn) * -320; // soldan kayma
+    const btnY = panelY + 190 + i * 196;
+    const pulse = 0.5 + 0.5 * Math.sin(t * 3.4 + i * 1.3);
+    const isYoutube = link.color === '#ef4444';
+
+    ctx.save();
+    ctx.globalAlpha = alpha * btnIn;
+
+    // Nabız atan renk glow
+    ctx.shadowColor = link.c1;
+    ctx.shadowBlur = 18 + 26 * pulse;
+    const btnGrad = ctx.createLinearGradient(btnX, btnY, btnX + btnW, btnY + btnH);
+    btnGrad.addColorStop(0, link.c1);
+    btnGrad.addColorStop(1, link.c2);
+    ctx.fillStyle = btnGrad;
+    roundRect(ctx, btnX, btnY, btnW, btnH, 34, true, false);
+    ctx.shadowBlur = 0;
+
+    // Işıltı süpürmesi (shimmer sweep)
+    const sweepPos = ((t * 0.55 + i * 0.33) % 1.6) - 0.35;
+    const gradX = btnX + sweepPos * btnW;
+    const shimmer = ctx.createLinearGradient(gradX - 90, btnY, gradX + 90, btnY + btnH);
+    shimmer.addColorStop(0, 'rgba(255,255,255,0)');
+    shimmer.addColorStop(0.5, 'rgba(255,255,255,0.35)');
+    shimmer.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.save();
+    roundRect(ctx, btnX, btnY, btnW, btnH, 34, true, false);
+    ctx.clip();
+    ctx.fillStyle = shimmer;
+    ctx.fillRect(btnX, btnY, btnW, btnH);
+    ctx.restore();
+
+    // Simge dairesi (zıplama animasyonu)
+    const iconCX = btnX + 84, iconCY = btnY + btnH / 2;
+    const bounce = Math.abs(Math.sin(t * 2.6 + i * 1.1)) * 5;
+    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+    ctx.beginPath();
+    ctx.arc(iconCX, iconCY - bounce, 46, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(iconCX, iconCY - bounce, 46, 0, Math.PI * 2);
+    ctx.stroke();
+
+    if (isYoutube) {
+      // Beyaz YouTube oynat üçgeni
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(iconCX - 12, iconCY - bounce - 18);
+      ctx.lineTo(iconCX - 12, iconCY - bounce + 18);
+      ctx.lineTo(iconCX + 20, iconCY - bounce);
+      ctx.closePath();
+      ctx.fill();
+    } else {
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 44px -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(link.icon, iconCX, iconCY - bounce + 16);
+    }
+
+    // Bağlantı metni + açıklama (genişliğe göre otomatik küçülür)
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#ffffff';
+    const ctaFontPx = fitFontSize(link.text, 600, link.fs + 6, '800');
+    ctx.font = `800 ${ctaFontPx}px -apple-system, BlinkMacSystemFont, sans-serif`;
+    ctx.fillText(link.text, btnX + 168, btnY + 76);
+    ctx.fillStyle = 'rgba(255,255,255,0.92)';
+    ctx.font = '600 26px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillText(link.sub, btnX + 168, btnY + 122);
+
+    // Ok işareti (nabız)
+    const arrowPulse = 1 + 0.15 * Math.sin(t * 5 + i);
+    ctx.fillStyle = 'rgba(255,255,255,0.95)';
+    ctx.font = 'bold 52px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.save();
+    ctx.translate(btnX + btnW - 54, btnY + btnH / 2 + 18);
+    ctx.scale(arrowPulse, arrowPulse);
+    ctx.fillText('›', 0, 0);
+    ctx.restore();
+
+    ctx.restore();
+  });
+
+  // Alt kapanış çipi
+  const chipIn = easeOutCubic(Math.min(Math.max((prog - 0.66) / 0.2, 0), 1));
+  if (chipIn > 0) {
+    ctx.globalAlpha = alpha * chipIn;
+    const chipW = 640, chipX = 540 - chipW / 2, chipY = panelY + 778;
+    ctx.shadowColor = theme.gold;
+    ctx.shadowBlur = 14 + 14 * Math.sin(t * 3) ** 2;
+    ctx.fillStyle = theme.bgTop;
+    roundRect(ctx, chipX, chipY, chipW, 72, 36, true, false);
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = theme.gold;
+    ctx.lineWidth = 2.5;
+    roundRect(ctx, chipX, chipY, chipW, 72, 36, false, true);
+    ctx.fillStyle = theme.gold;
+    ctx.font = 'bold 32px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('BilgiBeceri Dijital 📚 55 Gün', 540, chipY + 48);
+  }
+
+  ctx.restore();
+  ctx.globalAlpha = 1;
+}
+
+/* ====================================================================
+   CANVAS HELPERS
+   ==================================================================== */
+function roundRect(ctx, x, y, w, h, r, fill, stroke) {
+  if (typeof r === 'undefined') r = 5;
+  if (typeof r === 'number') {
+    r = { tl: r, tr: r, br: r, bl: r };
+  } else {
+    const defaultRadius = { tl: 0, tr: 0, br: 0, bl: 0 };
+    for (let side in defaultRadius) {
+      r[side] = r[side] || defaultRadius[side];
+    }
+  }
+  ctx.beginPath();
+  ctx.moveTo(x + r.tl, y);
+  ctx.lineTo(x + w - r.tr, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r.tr);
+  ctx.lineTo(x + w, y + h - r.br);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r.br, y + h);
+  ctx.lineTo(x + r.bl, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r.bl);
+  ctx.lineTo(x, y + r.tl);
+  ctx.quadraticCurveTo(x, y, x + r.tl, y);
+  ctx.closePath();
+  if (fill) ctx.fill();
+  if (stroke) ctx.stroke();
+}
+
+function wrapText(ctx, text, maxWidth) {
+  if (!text) return [];
+  const words = text.split(' ');
+  const lines = [];
+  let currentLine = words[0];
+
+  for (let i = 1; i < words.length; i++) {
+    const word = words[i];
+    const width = ctx.measureText(currentLine + ' ' + word).width;
+    if (width < maxWidth) {
+      currentLine += ' ' + word;
+    } else {
+      lines.push(currentLine);
+      currentLine = word;
+    }
+  }
+  lines.push(currentLine);
+  return lines;
+}
+
+function easeOutCubic(x) {
+  return 1 - Math.pow(1 - x, 3);
+}
+
+/* Metni hedef genişliğe sığdırmak için font boyutunu kademeli küçültür */
+function fitFontSize(text, maxWidth, startPx, weight) {
+  const w = weight || 'bold';
+  let px = startPx;
+  while (px > 18) {
+    ctx.font = `${w} ${px}px -apple-system, BlinkMacSystemFont, sans-serif`;
+    if (ctx.measureText(text).width <= maxWidth) break;
+    px -= 2;
+  }
+  return px;
+}
+
+/* ====================================================================
+   TIMELINE & UI EVENT HANDLING
+   ==================================================================== */
+function updateTimelineUI() {
+  const scrubber = document.getElementById('timelineScrubber');
+  const progressPct = (currentTime / totalDuration) * 100;
+  scrubber.value = progressPct;
+
+  const curM = Math.floor(currentTime / 60);
+  const curS = Math.floor(currentTime % 60);
+  const totM = Math.floor(totalDuration / 60);
+  const totS = Math.floor(totalDuration % 60);
+
+  document.getElementById('timeDisplay').innerText =
+    `${String(curM).padStart(2, '0')}:${String(curS).padStart(2, '0')} / ${String(totM).padStart(2, '0')}:${String(totS).padStart(2, '0')}`;
+
+  const sceneIdx = Math.min(Math.floor(currentTime / slideDuration), totalScenes - 1);
+  const sceneProg = (currentTime % slideDuration) / slideDuration;
+
+  document.querySelectorAll('.story-bar-fill').forEach((bar, idx) => {
+    if (idx < sceneIdx) {
+      bar.style.width = '100%';
+    } else if (idx === sceneIdx) {
+      bar.style.width = `${sceneProg * 100}%`;
+    } else {
+      bar.style.width = '0%';
+    }
+  });
+
+  document.querySelectorAll('.scene-pill').forEach((pill, idx) => {
+    pill.classList.toggle('active', idx === sceneIdx);
+  });
+}
+
+function setupEvents() {
+  const btnPlay = document.getElementById('btnPlayPause');
+  const uiDisc = document.getElementById('uiMusicDisc');
+
+  btnPlay.addEventListener('click', () => {
+    isPlaying = !isPlaying;
+    btnPlay.innerText = isPlaying ? '⏸' : '▶';
+    uiDisc.classList.toggle('spinning', isPlaying);
+
+    initWebAudio();
+
+    if (isPlaying) {
+      if (activeAudioElement.src) {
+        activeAudioElement.currentTime = currentTime;
+        activeAudioElement.play().catch(() => {});
+      } else if (audioMode === 'synth_classical') {
+        const curScene = Math.floor(currentTime / slideDuration);
+        playSynthPianoChord(curScene);
+      }
+    } else {
+      if (activeAudioElement.src) {
+        activeAudioElement.pause();
+      }
+    }
+  });
+
+  document.getElementById('btnRestart').addEventListener('click', () => {
+    currentTime = 0;
+    if (activeAudioElement.src) activeAudioElement.currentTime = 0;
+    updateTimelineUI();
+  });
+
+  document.getElementById('btnPrevScene').addEventListener('click', () => {
+    const curScene = Math.floor(currentTime / slideDuration);
+    const targetScene = Math.max(curScene - 1, 0);
+    currentTime = targetScene * slideDuration;
+    if (activeAudioElement.src) activeAudioElement.currentTime = currentTime;
+    updateTimelineUI();
+  });
+
+  document.getElementById('btnNextScene').addEventListener('click', () => {
+    const curScene = Math.floor(currentTime / slideDuration);
+    const targetScene = Math.min(curScene + 1, totalScenes - 1);
+    currentTime = targetScene * slideDuration;
+    if (activeAudioElement.src) activeAudioElement.currentTime = currentTime;
+    updateTimelineUI();
+  });
+
+  const scrubber = document.getElementById('timelineScrubber');
+  scrubber.addEventListener('input', (e) => {
+    const pct = parseFloat(e.target.value);
+    currentTime = (pct / 100) * totalDuration;
+    if (activeAudioElement.src) activeAudioElement.currentTime = currentTime;
+    updateTimelineUI();
+  });
+
+  document.querySelectorAll('.scene-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      const sIdx = parseInt(pill.dataset.scene);
+      currentTime = sIdx * slideDuration;
+      if (activeAudioElement.src) activeAudioElement.currentTime = currentTime;
+      updateTimelineUI();
+    });
+  });
+
+  const btnSound = document.getElementById('btnSoundToggle');
+  btnSound.addEventListener('click', () => {
+    soundEnabled = !soundEnabled;
+    btnSound.innerText = soundEnabled ? '🔔' : '🔕';
+    activeAudioElement.muted = !soundEnabled;
+    showToast(soundEnabled ? 'Sesler açıldı.' : 'Sesler kapatıldı.');
+  });
+
+  document.querySelectorAll('.studio-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.studio-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
+    });
+  });
+
+  document.querySelectorAll('.lvl-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.lvl-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      const search = document.getElementById('daySearchInput').value;
+      renderDaysGrid(pill.dataset.lvl, search);
+    });
+  });
+
+  document.getElementById('daySearchInput').addEventListener('input', (e) => {
+    const activeLvl = document.querySelector('.lvl-pill.active')?.dataset.lvl || 'ALL';
+    renderDaysGrid(activeLvl, e.target.value);
+  });
+
+  document.getElementById('btnApplyJson').addEventListener('click', () => {
+    try {
+      const parsed = JSON.parse(document.getElementById('jsonTextarea').value);
+      currentDayData = parsed;
+      curriculumDatabase[currentDayIndex] = parsed;
+      showToast('JSON uygulandı ve güncellendi!');
+    } catch (err) {
+      showToast('⚠️ Geçersiz JSON: ' + err.message);
+    }
+  });
+
+  document.getElementById('btnBeautifyJson').addEventListener('click', () => {
+    try {
+      const parsed = JSON.parse(document.getElementById('jsonTextarea').value);
+      document.getElementById('jsonTextarea').value = JSON.stringify(parsed, null, 2);
+      showToast('JSON formatlandı.');
+    } catch (e) {
+      showToast('⚠️ JSON hatası!');
+    }
+  });
+
+  document.getElementById('btnValidateJson').addEventListener('click', () => {
+    try {
+      JSON.parse(document.getElementById('jsonTextarea').value);
+      showToast('✔️ JSON geçerli ve hatasız!');
+    } catch (e) {
+      showToast('❌ Hata: ' + e.message);
+    }
+  });
+
+  document.getElementById('btnCopyJson').addEventListener('click', () => {
+    navigator.clipboard.writeText(document.getElementById('jsonTextarea').value);
+    showToast('📋 JSON panoya kopyalandı.');
+  });
+
+  document.getElementById('jsonFileInput').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const parsed = JSON.parse(evt.target.result);
+        document.getElementById('jsonTextarea').value = JSON.stringify(parsed, null, 2);
+        currentDayData = parsed;
+        showToast(`'${file.name}' yüklendi!`);
+      } catch (err) {
+        showToast('⚠️ JSON okunamadı: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  document.querySelectorAll('.theme-card').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
+      activeTheme = card.dataset.theme;
+      showToast(`Tema: ${card.querySelector('div div').innerText}`);
+    });
+  });
+
+  document.getElementById('sceneDurationSelect').addEventListener('change', (e) => {
+    slideDuration = parseFloat(e.target.value);
+    totalDuration = totalScenes * slideDuration;
+    currentTime = 0;
+    updateTimelineUI();
+    showToast(`Sahne süresi: ${slideDuration}s`);
+  });
+
+  document.getElementById('particlesToggle').addEventListener('change', (e) => {
+    showParticles = e.target.value === 'true';
+  });
+
+  document.getElementById('brandDisplaySelect').addEventListener('change', (e) => {
+    brandDisplayMode = e.target.value;
+    showToast(brandDisplayMode === 'all'
+      ? '📣 Marka kartları tüm sahnelerde + final CTA aktif'
+      : brandDisplayMode === 'final'
+        ? '📣 Marka bağlantıları sadece final sahnesinde'
+        : '📣 Marka bağlantıları gizlendi');
+  });
+
+  document.getElementById('btnSnapshot').addEventListener('click', () => {
+    const link = document.createElement('a');
+    link.download = `Klasik_Ingilizce_Gun${currentDayData.gun_no}_Sahne.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showToast('📸 1080×1920 PNG kartı indirildi!');
+  });
+
+  document.getElementById('btnExportMp4').addEventListener('click', exportVideoShortWithAudio);
+}
+
+/* ====================================================================
+   REAL AUDIO + VIDEO SYNCHRONIZED EXPORTER
+   ==================================================================== */
+async function exportVideoShortWithAudio() {
+  const modal = document.getElementById('exportModal');
+  const progressBar = document.getElementById('exportProgressBar');
+  const statusText = document.getElementById('exportStatusText');
+
+  modal.classList.add('active');
+  progressBar.style.width = '0%';
+  statusText.innerText = 'Video ve Ses akışı birleştiriliyor...';
+
+  // Pause playback
+  isPlaying = false;
+  document.getElementById('btnPlayPause').innerText = '▶';
+  document.getElementById('uiMusicDisc').classList.remove('spinning');
+  if (activeAudioElement.src) activeAudioElement.pause();
+
+  const actx = initWebAudio();
+  const fps = 30;
+  const canvasStream = canvas.captureStream(fps);
+
+  // Setup Web Audio MediaStreamDestination for audio mixing into video
+  const audioDestination = actx.createMediaStreamDestination();
+
+  let audioSourceNode = null;
+  if (activeAudioElement.src && !mediaElementSource) {
+    try {
+      mediaElementSource = actx.createMediaElementSource(activeAudioElement);
+      mediaElementSource.connect(audioDestination);
+      mediaElementSource.connect(actx.destination);
+    } catch (e) {
+      console.warn('MediaElementSource already connected or CORS error', e);
+    }
+  }
+
+  // If using synthetic classical melody, route synthGain to audioDestination as well
+  if (synthGain) {
+    synthGain.connect(audioDestination);
+  }
+
+  // Combine video track + audio track
+  const audioTracks = audioDestination.stream.getAudioTracks();
+  const combinedStream = new MediaStream([
+    ...canvasStream.getVideoTracks(),
+    ...audioTracks
+  ]);
+
+  const mimeTypes = [
+    'video/mp4;codecs=h264,aac',
+    'video/mp4',
+    'video/webm;codecs=vp9,opus',
+    'video/webm;codecs=vp8,opus',
+    'video/webm'
+  ];
+  const selectedMime = mimeTypes.find(m => MediaRecorder.isTypeSupported(m)) || 'video/webm';
+  const isMp4 = selectedMime.includes('mp4');
+
+  const recorder = new MediaRecorder(combinedStream, {
+    mimeType: selectedMime,
+    videoBitsPerSecond: 8000000,
+    audioBitsPerSecond: 192000
+  });
+
+  const chunks = [];
+  recorder.ondataavailable = (e) => {
+    if (e.data && e.data.size > 0) chunks.push(e.data);
+  };
+
+  recorder.onstop = () => {
+    const blob = new Blob(chunks, { type: selectedMime });
+    const url = URL.createObjectURL(blob);
+    const ext = isMp4 ? 'mp4' : 'webm';
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Klasik_Ingilizce_Gun${currentDayData.gun_no < 10 ? '0' + currentDayData.gun_no : currentDayData.gun_no}_Tanitim_Sesli.${ext}`;
+    a.click();
+
+    modal.classList.remove('active');
+    showToast(`🎬 Sesli Shorts Videosu İndirildi (${ext.toUpperCase()})!`);
+  };
+
+  recorder.start();
+
+  // If audio element has source, start it from time 0
+  if (activeAudioElement.src) {
+    activeAudioElement.currentTime = 0;
+    activeAudioElement.play().catch(() => {});
+  }
+
+  const totalFrames = Math.floor(totalDuration * fps);
+  let frame = 0;
+  let isCancelled = false;
+
+  document.getElementById('btnCancelExport').onclick = () => {
+    isCancelled = true;
+    recorder.stop();
+    if (activeAudioElement.src) activeAudioElement.pause();
+    modal.classList.remove('active');
+    showToast('Video ihracı iptal edildi.');
+  };
+
+  function stepRecord() {
+    if (isCancelled) return;
+
+    if (frame >= totalFrames) {
+      recorder.stop();
+      if (activeAudioElement.src) activeAudioElement.pause();
+      return;
+    }
+
+    const t = (frame / fps);
+    drawFrame(t);
+
+    const prevSc = Math.floor((frame - 1) / (fps * slideDuration));
+    const curSc = Math.floor(frame / (fps * slideDuration));
+    if (curSc !== prevSc && curSc < totalScenes) {
+      if (audioMode === 'synth_classical') {
+        playSynthPianoChord(curSc);
+      }
+    }
+
+    frame++;
+    const pct = Math.round((frame / totalFrames) * 100);
+    progressBar.style.width = `${pct}%`;
+    statusText.innerText = `Kareler ve ses derleniyor: ${frame} / ${totalFrames} (%${pct})`;
+
+    setTimeout(stepRecord, 1000 / fps);
+  }
+
+  stepRecord();
+}
+
+/* ====================================================================
+   TOAST NOTIFICATION
+   ==================================================================== */
+let toastTimeout = null;
+function showToast(msg) {
+  const toast = document.getElementById('toastBox');
+  document.getElementById('toastMsg').innerText = msg;
+  toast.classList.add('show');
+  if (toastTimeout) clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => {
+    toast.classList.remove('show');
+  }, 3200);
+}
+
+window.addEventListener('DOMContentLoaded', initApp);
+</script>
+
+</body>
+</html>
