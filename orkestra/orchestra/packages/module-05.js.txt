@@ -1,0 +1,104 @@
+
+/* ==========================================================================
+   SAYAÇ — benzersizlik sayacı (counter algorithm)
+   Her hücre / motif / akor yürüyüşü / ezgi / desen / renk / ordu çifti sayılır.
+   Seçim DAİMA en az kullanılan havuzdan yapılır → sonraki eserler benzersiz.
+   İmza (signature) ile birebir tekrar engellenir; geçmiş 96 eser tutulur.
+   ========================================================================== */
+(function (root) {
+  'use strict';
+
+  var C = {};
+  var counts = {};                 // pool -> { key: n }
+  var sigs = [];                   // imza geçmişi
+  var MAXH = 96;
+  var total = 0;
+
+  function ensure(p) { if (!counts[p]) counts[p] = {}; return counts[p]; }
+
+  /* en az kullanılan öğeyi seç (eşitlikte rastgele) ve sayacı artır */
+  C.pick = function (R, pool, items, keyFn) {
+    if (!items || !items.length) return null;
+    var c = ensure(pool), min = Infinity, cands = [];
+    for (var i = 0; i < items.length; i++) {
+      var key = keyFn ? keyFn(items[i], i) : String(i);
+      var n = c[key] || 0;
+      if (n < min) { min = n; cands = [{ it: items[i], key: key }]; }
+      else if (n === min) cands.push({ it: items[i], key: key });
+    }
+    var ch = cands[Math.floor(R() * cands.length) % cands.length];
+    c[ch.key] = (c[ch.key] || 0) + 1;
+    return ch.it;
+  };
+
+  C.key = function (R, pool, items, keyFn) {
+    var it = C.pick(R, pool, items, keyFn);
+    return it == null ? null : (keyFn ? keyFn(it) : String(it));
+  };
+
+  C.mark = function (pool, key) { var c = ensure(pool); c[key] = (c[key] || 0) + 1; };
+  C.get = function (pool, key) { var c = ensure(pool); return c[key] || 0; };
+  C.tally = function (pool) {
+    var c = ensure(pool), ks = Object.keys(c), s = 0;
+    ks.forEach(function (k) { s += c[k]; });
+    return { items: ks.length, uses: s, min: ks.length ? Math.min.apply(null, ks.map(function (k) { return c[k]; })) : 0 };
+  };
+
+  /* imza: eserin kimliği (birebir tekrarı yakalar) */
+  C.signature = function (sc) {
+    var p = (sc.prog || []).map(function (x) { return x[0]; }).join('-');
+    var ch = sc.chaos && sc.chaos.detail ? sc.chaos.detail.map(function (d) { return d.type + d.start + d.len; }).join('') : '';
+    var cf = sc.ceasefire && sc.ceasefire.detail ? sc.ceasefire.detail.map(function (d) { return d.start + d.len + d.solo; }).join('') : '';
+    var fo = sc.forces ? sc.forces.armies.map(function (a) { return a.id; }).join('+') : '';
+    var st = sc.storePicks ? [sc.storePicks.melody, sc.storePicks.motif, sc.storePicks.ostinato,
+      sc.storePicks.pattern, sc.storePicks.prog].join('/') : '';
+    var sg = (sc.sig || []).join('.');
+    return [sc.arrId, sc.tempo, p, sc.themeId, sc.ostId, sc.drumId, fo,
+      sc.forces ? sc.forces.colorName : '', st, ch, cf, sg].join('|');
+  };
+
+  C.seen = function (sig) { return sigs.indexOf(sig) >= 0; };
+  /* benzerlik: iki 8-bit imza arasındaki ortalama fark (0 = aynı) */
+  C.similarity = function (a, b) {
+    if (!a || !b || a.length !== b.length) return 0;
+    var d = 0;
+    for (var i = 0; i < a.length; i++) d += Math.abs(a[i] - b[i]);
+    return d / (a.length * 15);
+  };
+  C.push = function (sig) {
+    if (sigs.indexOf(sig) < 0) sigs.push(sig);
+    if (sigs.length > MAXH) sigs.shift();
+    total++;
+    try { root.localStorage.setItem('oksl_sayac', C.dump()); } catch (e) { }
+  };
+  C.history = function () { return sigs.length; };
+  C.total = function () { return total; };
+
+  C.dump = function () {
+    return JSON.stringify({ c: counts, s: sigs.slice(-MAXH), n: total });
+  };
+  C.load = function () {
+    try {
+      var raw = root.localStorage.getItem('oksl_sayac');
+      if (!raw) return false;
+      var o = JSON.parse(raw);
+      counts = o.c || {}; sigs = o.s || []; total = o.n || 0;
+      return true;
+    } catch (e) { return false; }
+  };
+
+  C.report = function () {
+    var out = {};
+    Object.keys(counts).forEach(function (p) {
+      var ks = Object.keys(counts[p]);
+      out[p] = { cells: ks.length, uses: ks.reduce(function (a, k) { return a + counts[p][k]; }, 0) };
+    });
+    out.imza = { gecmis: sigs.length, toplam: total };
+    return out;
+  };
+  C.reset = function () { counts = {}; sigs = []; total = 0; };
+
+  C.load(); // Önceki sayaçlar varsa yükle; özel modda sessizce bellekte çalışır.
+  root.Sayac = C;
+})(typeof window !== 'undefined' ? window : this);
+

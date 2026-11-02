@@ -1,0 +1,23 @@
+
+/* Süresiz, drumsuz geçiş: komşu bölümlerin ortak notalarından kısa karşılık. */
+(function(root){
+ 'use strict';
+ var melodic={violin:1,viola:1,cello:1,contrabass:1,string_ensemble_1:1,string_ensemble_2:1,
+  french_horn:1,trumpet:1,trombone:1,brass_section:1,flute:1,oboe:1,clarinet:1,bassoon:1,choir_aahs:1,voice_oohs:1};
+ function pcs(events,low,high){
+  var result={};events.forEach(function(e){
+   if(!melodic[e.inst] || !isFinite(e.midi) || !isFinite(e.t) || !isFinite(e.d))return;
+   if(e.t<high && e.t+e.d>low) result[((Math.round(e.midi)%12)+12)%12]=1;
+  });return result;
+ }
+ function closest(pc, target){
+  var best=target, delta=99;
+  for(var m=48;m<=84;m++)if(m%12===pc && Math.abs(m-target)<delta){best=m;delta=Math.abs(m-target);}
+  return best;
+ }
+ /*__ORCHESTRA_LESSON_39__*/
+ function boot(){if(!root.Konser || !root.Konser.build)return;var inner=root.Konser.build;
+   root.Konser.build=function(opts){return transitions(inner(opts));};
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})(window);

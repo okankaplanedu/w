@@ -1,0 +1,257 @@
+
+
+<!-- ============ FİNAL UI · 16:9 KOKPİT (tüm araçlar tek ekranda) ============ -->
+<div id="gate">
+  <div class="gate-card">
+    <h2>OKAN KAPLAN SOUND LAB</h2>
+    <p>Professional Orchestra Concert Generator · recorded instrument samples</p>
+    <div id="loadWrap">
+      <div id="loadTrack"><div id="loadBar"></div></div>
+      <div id="loadLabel">orchestra tuning…</div>
+    </div>
+  </div>
+</div>
+<div id="loopFlash">NEW CYCLE · NEW OSTINATO</div>
+
+<div id="screen">
+
+  <!-- ======================= BAŞLIK ======================= -->
+  <header>
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 72 72" fill="none" role="img" aria-label="Okan Kaplan Sound Lab nota ve ses dalgası amblemi">
+        <defs><linearGradient id="ok-gold" x1="0" y1="0" x2="72" y2="72"><stop stop-color="#f7e5b8"/><stop offset="1" stop-color="#a4783d"/></linearGradient></defs>
+        <path d="M36 2 61 12 70 36 61 60 36 70 11 60 2 36 11 12Z" fill="#101923" stroke="url(#ok-gold)" stroke-width="2"/>
+        <path d="M14 38h7l4-10 6 18 5-13 4 5h16" stroke="#81d4c8" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+        <path d="M44 33V19l12-3v14" stroke="url(#ok-gold)" stroke-width="2.6" stroke-linecap="round"/>
+        <ellipse cx="41" cy="34" rx="4" ry="2.6" transform="rotate(-20 41 34)" fill="#ead09a"/>
+        <ellipse cx="53" cy="31" rx="4" ry="2.6" transform="rotate(-20 53 31)" fill="#ead09a"/>
+        <path d="M22 55h28" stroke="#d6b26e" stroke-opacity=".7" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <h1><i class="code-brace">&lt;/&gt;</i> OKAN KAPLAN <strong>SOUND LAB</strong></h1>
+        <span>ORCHESTRAL INTELLIGENCE &nbsp; // &nbsp; LIVE CONCERT ENGINE · HEARTBEAT DRUM</span>
+      </div>
+    </div>
+    <div class="pill">concert key <b id="kTon">—</b></div>
+    <div class="pill">bar <b>4/4</b></div>
+    <div class="pill">tempo <b id="bpmPill">140</b></div>
+    <div class="pill">aranjman <b id="arrPill">—</b></div>
+    <div class="hdr-right">
+      <div class="grade-box"><b id="kqOverall">—</b><span>OVERALL SCORE</span></div>
+      <button id="fsBtn" title="16:9 tam ekran">⛶ FULL SCREEN</button>
+    </div>
+  </header>
+
+  <!-- ======================= ANA SATIR ======================= -->
+  <div class="main">
+
+    <!-- ---------- SOL: SAHNE ---------- -->
+    <div class="col">
+      <div class="stagerow">
+        <div class="sec-dots">
+          <div class="sec-dot on">INTRO</div>
+          <div class="sec-dot">THEME</div>
+          <div class="sec-dot">BRIDGE</div>
+          <div class="sec-dot">FINALE</div>
+          <div class="pill" id="scInfo" style="margin-left:8px">A minor · 4/4</div>
+        </div>
+        <div class="meters">
+          <div class="meter"><b id="secName">Intro</b><span>MOVEMENT</span></div>
+          <div class="meter"><b id="secDyn">ff</b><span>DYNAMICS</span></div>
+          <div class="meter"><b id="barInfo">0 / 46 bar</b><span>BAR</span></div>
+          <div class="meter"><b id="clockInfo">0:00</b><span>DURATION</span></div>
+          <div class="meter"><b id="loopInfo">1</b><span>CYCLE</span></div>
+        </div>
+      </div>
+
+      <canvas id="tl" width="1206" height="88"></canvas>
+
+      <div class="front-wrap">
+        <canvas id="front" width="964" height="456"></canvas>
+        <div class="front-side">
+          <span>FRONT LINE</span>
+          <b id="phaseName">Equal forces</b>
+          <div>balance <span id="frontVal">0.00</span></div>
+          <div class="armies">
+            <span class="ar" id="armyA"><i></i><b>—</b></span>
+            <span class="vs">vs</span>
+            <span class="ar" id="armyB"><i></i><b>—</b></span>
+          </div>
+          <div class="frontline" id="corpsRow"></div>
+          <div class="emostrip" id="emoStrip"></div>
+          <div class="secphase"><span>STATUS</span><b id="secPhase">—</b><i id="secBpm">—</i></div>
+          <div class="palette" id="palRow"></div>
+          <div class="phase-dots">
+            <span class="phase-dot on" data-p="esit">equal</span>
+            <span class="phase-dot" data-p="ilerleme">advance</span>
+            <span class="phase-dot" data-p="baskin">dominance</span>
+            <span class="phase-dot" data-p="gerileme">retreat</span>
+            <span class="phase-dot" data-p="kusatma">encirclement</span>
+            <span class="phase-dot" data-p="karsi">counter</span>
+            <span class="phase-dot" data-p="zafer">victory</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- klavye paneli kaldırıldı (kod #keys tuvalini görünmez tutar) -->
+
+      <div class="nowline">
+        <span class="cur">movement <b id="secName2">Intro</b> · <span id="secBars">—</span></span>
+        <span id="arrInfo">—</span>
+        <span id="chaosInfo" style="color:#e0607a">chaos —</span>
+        <span id="uniqInfo" style="color:#7fd8c8">uniqueness —</span>
+        <span id="m3Info" style="color:#c9a227">markov-3 —</span>
+        <span id="modelInfo">tabu similarity —</span>
+      </div>
+    </div>
+
+    <!-- ---------- SAĞ: ARAÇLAR ---------- -->
+    <div class="col">
+
+      <div class="card" style="flex:0 0 auto">
+        <h4>CONCERT CONTROLS <em id="kMove">—</em></h4>
+        <div class="kp-profiles" id="kProfiles"></div>
+        <div class="kp-controls">
+          <button id="kPlayBtn">PLAY CONCERT</button>
+          <button id="playBtn" class="ghost">▶ PLAY</button>
+          <button id="kNewBtn" class="ghost">NEW CONCERT</button>
+          <button id="newBtn" class="ghost">NEW COMPOSITION</button>
+          <button id="kSeedBtn" class="ghost">RANDOM SEED</button>
+          <button id="seedBtn" class="ghost">SEED</button>
+          <div class="kp-seg" id="kLenSeg">
+            <span>DURATION</span>
+            <b data-len="210">3:30</b><b data-len="222" class="on">3:42</b><b data-len="240">4:00</b>
+          </div>
+          <div class="vol"><label for="vol">MASTER GAIN</label><input type="range" id="vol" min="0" max="0.70" step="0.01" value="0.50"><span id="volv">0.50</span></div>
+        </div>
+        <div class="kp-now">
+          <span class="cur">now <b id="kNow">preparing…</b></span>
+          <span id="kPlanInfo">—</span>
+        </div>
+      </div>
+
+      <div class="card" style="flex:0 0 auto">
+        <h4>◉ LISTENING MODE <em id="kqIzleme">HEADPHONES</em></h4>
+        <div class="kq-grid" id="kqBoards"></div>
+        <div class="dq-foot">
+          <div class="kp-profiles" id="kqModes" style="margin:0"></div>
+          <div class="kp-profiles" id="mxSep" style="margin:0"></div>
+          <button id="kqRunBtn" class="ghost" style="padding:5px 10px;font-size:8px">REFRESH CHECKS</button>
+        </div>
+      </div>
+
+      <div class="card" style="flex:1 1 auto">
+        <h4>CORPS CONSOLE · COLOUR PALETTE <em>sharp contour</em></h4>
+        <div id="mxUnits"></div>
+      </div>
+
+      <div class="card" style="flex:0 0 auto">
+        <h4>AUDIO BALANCE <em>controlled gain</em></h4>
+        <div id="sdFam"></div>
+        <div class="sd-foot"><span id="sdStats">—</span> · <span id="sdHealth">—</span></div>
+      </div>
+      <div class="card story-card" aria-label="Konserin hikâyesi">
+        <h4>◈ FRONT LINE STORY <em id="storyMoment">READY</em></h4>
+        <div class="story-count">2 ARMIES <span>×</span> 4 CORPS <span>×</span> 4 UNITS <span>×</span> 10 PEOPLE</div>
+        <div class="story-names" id="storyArmies">Units preparing</div>
+        <div id="storyTitle" class="story-title">Preparing a new concert</div>
+        <p id="storyText" class="story-text">The armies and the home front meet in one story.</p>
+        <div class="story-foot">// Each person is part of the story model, not a separate audio voice.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ======================= ALT ŞERİT ======================= -->
+  <div class="bottom">
+    <div class="bot-left">
+      <canvas id="ezgiCanvas" width="1206" height="240"></canvas>
+      <canvas id="kTimeline" width="1206" height="80"></canvas>
+    </div>
+    <div class="bot-right">
+      <div class="card" style="flex:1 1 auto">
+        <h4>CONCERT PLAN <em>intro · theme · bridge · finale</em></h4>
+        <div id="kPlan"></div>
+      </div>
+      <div class="stat-chips">
+        <span>LIVE: BPM <em id="kBpm">—</em> · DURATION <em id="kClock">0:00</em></span>
+        <span id="mxStats">colour separation —</span>
+        <span id="ezgiStats">contour melodies —</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- betiklerin yazdığı güvenli kaplar (görünmez) -->
+  <div class="hidden-keep">
+    <div id="kimlik"></div>
+    <div id="scoreSheet"></div>
+    <div id="instList"></div>
+    <div id="ezgiTex"></div>
+    <canvas id="mxStage" width="560" height="330"></canvas>
+    <canvas id="keys" width="1800" height="150"></canvas>
+    <span id="instHot">live instruments</span>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<button id="tm-open" type="button" aria-controls="tm-panel" aria-expanded="false">TON MASTER · EDİTÖR</button>
+<section id="tm-panel" hidden aria-label="Ton master editörü">
+<h3>◈ Ton Master</h3><small>Stereo ana çıkış · yumuşak başlangıç · canlı dijital ölçüm</small>
+<label>Bas <output id="tm-low-v">0</output> dB<input id="tm-low" type="range" min="-4" max="4" step="0.5" value="0"></label>
+<label>Orta <output id="tm-mid-v">0</output> dB<input id="tm-mid" type="range" min="-4" max="4" step="0.5" value="0"></label>
+<label>Tiz <output id="tm-high-v">0</output> dB<input id="tm-high" type="range" min="-4" max="4" step="0.5" value="0"></label>
+<label>Akortlu deri davul gain <output id="tm-drum-v">0.90</output><input id="tm-drum" type="range" min="0.35" max="1.00" step="0.01" value="0.90"></label>
+<label>Yaylı / üflemeli vibrato <output id="tm-vibrato-v">0.34</output><input id="tm-vibrato" type="range" min="0" max="0.45" step="0.01" value="0.34"></label>
+<label>Ses buğusu <output id="tm-haze-v">0.48</output><input id="tm-haze" type="range" min="0" max="1" step="0.01" value="0.48"></label>
+<label>Tiz yumuşatma <output id="tm-softness-v">0.82</output><input id="tm-softness" type="range" min="0" max="1" step="0.01" value="0.82"></label>
+<label><input id="tm-dynamic" type="checkbox" checked> Dinamik tepe kontrolü</label>
+<label><input id="tm-economy" type="checkbox" checked> İşlemci dostu (ek ışıltı katmanı kapalı)</label>
+<label><input id="tm-battle" type="checkbox" checked> Kılıç ve ok efektleri (sentez)</label>
+<button type="button" id="tm-reset">Sıfırla</button><p id="tm-meter" aria-live="off">Ölçüm için konseri başlatın.</p>
+<small>Ölçüm tarayıcının dijital çıkışındadır; gerçek kulaklık veya hoparlör ses basıncı ve işlemci kullanımı ölçülemez. Cihazların ses düzeyi farklı olabilir. Davul, vibrato, buğu ve tiz yumuşatma ayarları sonraki notalarda uygulanır.</small>
+</section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

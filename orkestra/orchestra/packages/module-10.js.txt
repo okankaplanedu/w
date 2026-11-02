@@ -1,0 +1,535 @@
+
+/* ==========================================================================
+   ORKESTRA MOTORU v6 — gerçek kayıtlı enstrüman örnekleriyle (FluidR3 GM)
+   · Örnekler -3 dBFS'e normalize edilir  → güçlü, dolu ses
+   · Uzun / tok çalım: gövde döngüsü (sıfır-geçişine oturtulmuş) + uzun bırakış
+   · Aile veri yolları (yaylı / nefesli / bakır / vurmalı / koro) + ayrı sıkıştırma
+     → her aile duyulur, hiçbiri diğerini maskelemez
+   · Kısılma (clipping) koruması: 3 katmanlı limiter + yumuşak ses çalma
+   ========================================================================== */
+(function (root) {
+  'use strict';
+
+  var ORC = {};
+  var ctx = null;
+  var master = null, limiter2 = null, hp = null;
+  var gateGain, dynamicGain, finalLimiter, monitor, lowEQ, midEQ, highEQ, deEsser;
+  var masterTimer = null, meterData, freqData, autoGain = 1, masterPeak = 0, masterRms = 0, trebleReduction = 0;
+  var masterConfig = { low: 0, mid: 0, high: 0, drum: 0.90, dynamic: true, economy: true, battle: true, vibrato: 0.34, haze: 0.48, softness: 0.82 };
+  function paramSmooth(p, value, tc) {
+    if (!p || !ctx) return;
+    p.cancelScheduledValues(ctx.currentTime);
+    p.setTargetAtTime(value, ctx.currentTime, tc || 0.05);
+  }
+  /*__ORCHESTRA_LESSON_12__*/
+  var glue = null, makeup = null;
+  var reverb = null, revGain = null, dry = null, predelay = null;
+  var busLP = null, mudCut = null, presence = null, air = null;
+  var buses = {};              // aile veri yolları
+  var buffers = {};            // inst -> [{midi, buf}]
+  var pending = {};
+  var ready = false, loading = false;
+  var loadedCount = 0, totalInst = 0;
+  var activeLog = {};
+  var voices = 0, peaks = 0, stolen = 0, live = [], liveIdx = 0;
+  var VOICE_MAX = 176;
+
+  /* ---- aile tablosu: hangi enstrüman hangi veri yolunda ---- */
+  var FAMILY = {
+    violin: 'str', viola: 'str', cello: 'str', contrabass: 'str',
+    pizzicato_strings: 'str', tremolo_strings: 'str',
+    string_ensemble_1: 'str', string_ensemble_2: 'str',
+    french_horn: 'brass', trumpet: 'brass', trombone: 'brass', tuba: 'brass',
+    brass_section: 'brass',
+    timpani: 'perc', taiko_drum: 'perc', melodic_tom: 'perc', woodblock: 'perc',
+    orchestra_hit: 'perc', reverse_cymbal: 'perc',
+    glockenspiel: 'bell', tubular_bells: 'bell',
+    flute: 'wood', oboe: 'wood', clarinet: 'wood', bassoon: 'wood',
+    orchestral_harp: 'wood',
+    choir_aahs: 'choir', voice_oohs: 'choir'
+  };
+
+  /* ---- enstrüman karakteri ----
+     g   : temel kazanç      cut : alçak geçiren kesim
+     wet : salon gönderimi   hp  : taban temizliği (f0 çarpanı)
+     atk : atak              rel : bırakış (uzun = tok)
+     sus : gövde döngüsü     len : nota ömrü çarpanı            */
+  var CHAR = {
+    violin:            { g: 0.90, pan: -0.30, cut: 11000, wet: 0.52, atk: 0.030, rel: 0.34, sus: 1, len: 1.18 },
+    viola:             { g: 0.86, pan: -0.12, cut: 9000,  wet: 0.48, atk: 0.034, rel: 0.32, sus: 1, len: 1.16 },
+    cello:             { g: 1.00, pan: 0.20,  cut: 7200,  wet: 0.46, atk: 0.032, rel: 0.34, sus: 1, len: 1.18 },
+    contrabass:        { g: 1.06, pan: 0.06,  cut: 3600,  wet: 0.38, atk: 0.028, rel: 0.30, sus: 1, len: 1.14 },
+    pizzicato_strings: { g: 0.92, pan: 0.12,  cut: 6200,  wet: 0.50, atk: 0.004, rel: 0.22, short: 1, len: 0.9 },
+    tremolo_strings:   { g: 0.62, pan: -0.18, cut: 10000, wet: 0.50, atk: 0.040, rel: 0.30, sus: 1, len: 1.1 },
+    string_ensemble_1: { g: 0.82, pan: 0.00,  cut: 9600,  wet: 0.58, atk: 0.030, rel: 0.36, sus: 1, len: 1.2 },
+    string_ensemble_2: { g: 0.80, pan: -0.06, cut: 9200,  wet: 0.58, atk: 0.030, rel: 0.36, sus: 1, len: 1.2 },
+    french_horn:       { g: 1.02, pan: -0.34, cut: 6200,  wet: 0.52, atk: 0.026, rel: 0.34, sus: 1, len: 1.16 },
+    trumpet:           { g: 0.96, pan: 0.34,  cut: 9800,  wet: 0.48, atk: 0.016, rel: 0.28, sus: 1, len: 1.12 },
+    trombone:          { g: 1.00, pan: 0.26,  cut: 5600,  wet: 0.48, atk: 0.020, rel: 0.30, sus: 1, len: 1.14 },
+    tuba:              { g: 1.08, pan: 0.18,  cut: 3000,  wet: 0.40, atk: 0.024, rel: 0.30, sus: 1, len: 1.12 },
+    brass_section:     { g: 0.94, pan: 0.20,  cut: 7600,  wet: 0.52, atk: 0.020, rel: 0.30, sus: 1, len: 1.14 },
+    timpani:           { g: 1.30, pan: -0.16, cut: 4200,  wet: 0.40, atk: 0.003, rel: 1.10, perc: 1, len: 1.0 },
+    taiko_drum:        { g: 1.22, pan: 0.10,  cut: 3600,  wet: 0.34, atk: 0.003, rel: 0.90, perc: 1, len: 1.0 },
+    melodic_tom:       { g: 1.14, pan: 0.16,  cut: 5600,  wet: 0.36, atk: 0.003, rel: 0.70, perc: 1, len: 1.0 },
+    woodblock:         { g: 0.72, pan: 0.30,  cut: 10000, wet: 0.40, atk: 0.002, rel: 0.30, perc: 1, len: 1.0 },
+    orchestra_hit:     { g: 1.20, pan: 0.00,  cut: 10000, wet: 0.62, atk: 0.003, rel: 1.00, perc: 1, len: 1.0 },
+    reverse_cymbal:    { g: 0.82, pan: -0.30, cut: 12000, wet: 0.70, atk: 0.004, rel: 0.90, perc: 1, len: 1.0 },
+    glockenspiel:      { g: 0.56, pan: 0.42,  cut: 15000, wet: 0.46, atk: 0.002, rel: 0.90, perc: 1, len: 1.0 },
+    tubular_bells:     { g: 0.78, pan: -0.42, cut: 10000, wet: 0.78, atk: 0.003, rel: 1.30, perc: 1, len: 1.0 },
+    orchestral_harp:   { g: 0.80, pan: -0.38, cut: 10000, wet: 0.58, atk: 0.002, rel: 0.75, perc: 1, len: 1.0 },
+    flute:             { g: 0.86, pan: 0.30,  cut: 12000, wet: 0.56, atk: 0.024, rel: 0.30, sus: 1, len: 1.16 },
+    oboe:              { g: 0.86, pan: -0.22, cut: 10000, wet: 0.54, atk: 0.022, rel: 0.28, sus: 1, len: 1.14 },
+    clarinet:          { g: 0.88, pan: 0.22,  cut: 8600,  wet: 0.52, atk: 0.026, rel: 0.28, sus: 1, len: 1.14 },
+    bassoon:           { g: 0.94, pan: -0.26, cut: 5200,  wet: 0.46, atk: 0.026, rel: 0.30, sus: 1, len: 1.14 },
+    choir_aahs:        { g: 0.56, pan: 0.00,  cut: 7000,  wet: 0.52, atk: 0.060, rel: 0.40, sus: 1, len: 1.2, hp: 1.5 },
+    voice_oohs:        { g: 0.54, pan: 0.06,  cut: 6600,  wet: 0.54, atk: 0.060, rel: 0.40, sus: 1, len: 1.2, hp: 1.6 }
+  };
+
+  /* oktav-üstü ışıltı (parlaklık) — yaylı/nefeslide hafif */
+  var SHINE = {
+    violin: 0.26, viola: 0.18, string_ensemble_1: 0.18, string_ensemble_2: 0.18,
+    trumpet: 0.24, french_horn: 0.14, trombone: 0.12, oboe: 0.20, flute: 0.18,
+    clarinet: 0.12, cello: 0.14
+  };
+
+  function nyq() { return (ctx ? ctx.sampleRate : 44100) * 0.45; }
+  function clampF(f) {
+    var lo = 20, hi = nyq();
+    f = +f;
+    if (!isFinite(f)) f = Math.min(2000, hi);
+    return Math.max(lo, Math.min(hi, f));
+  }
+
+  /* salon: 3.2 s, ön-gecikmeli, yumuşak kuyruk */
+  /*__ORCHESTRA_LESSON_13__*/
+
+  function mkBus(gainV, compOpt) {
+    var g = ctx.createGain(); g.gain.value = gainV;
+    var c = ctx.createDynamicsCompressor();
+    c.threshold.value = compOpt.th; c.knee.value = compOpt.knee;
+    c.ratio.value = compOpt.ratio; c.attack.value = compOpt.attack; c.release.value = compOpt.release;
+    g.connect(c);
+    return { g: g, c: c, out: c };
+  }
+
+  ORC.init = function () {
+    if (ctx) return ctx;
+    var AC = root.AudioContext || root.webkitAudioContext;
+    ctx = new AC();
+
+    master = ctx.createGain(); master.gain.value = 0.50;
+    dry = ctx.createGain(); dry.gain.value = 1.0;
+
+    reverb = ctx.createConvolver();
+    try { reverb.buffer = makeIR(3.2, 2.2); } catch (e) { }
+    predelay = ctx.createDelay(0.1); predelay.delayTime.value = 0.022;
+    revGain = ctx.createGain(); revGain.gain.value = 0.30;
+
+    /* aile veri yolları: her aile kendi sıkıştırmasıyla duyulur */
+    buses.str   = mkBus(1.00, { th: -18, knee: 12, ratio: 2.0, attack: 0.010, release: 0.30 });
+    buses.brass = mkBus(0.96, { th: -16, knee: 10, ratio: 2.4, attack: 0.008, release: 0.26 });
+    buses.perc  = mkBus(1.06, { th: -14, knee: 8,  ratio: 3.0, attack: 0.004, release: 0.22 });
+    buses.bell  = mkBus(0.80, { th: -18, knee: 10, ratio: 2.0, attack: 0.004, release: 0.30 });
+    buses.wood  = mkBus(0.88, { th: -18, knee: 12, ratio: 1.8, attack: 0.012, release: 0.28 });
+    buses.choir = mkBus(0.66, { th: -20, knee: 14, ratio: 1.6, attack: 0.020, release: 0.36 });
+
+    /* ana zincir: çamur kes → varlık → hava → sıkıştırma → limiter → HP */
+    /* --- BERRAKLIK: 130/250 Hz çamuru alınır, 1.8 k gövde, 4.5 k + 8 k parlaklık --- */
+    mudCut = ctx.createBiquadFilter();
+    mudCut.type = 'peaking'; mudCut.frequency.value = clampF(130); mudCut.Q.value = 0.9; mudCut.gain.value = -2.0;
+    presence = ctx.createBiquadFilter();
+    presence.type = 'peaking'; presence.frequency.value = clampF(250); presence.Q.value = 0.85; presence.gain.value = -1.5;
+    air = ctx.createBiquadFilter();
+    air.type = 'peaking'; air.frequency.value = clampF(1800); air.Q.value = 1.0; air.gain.value = 0.7;
+    var pres3k = ctx.createBiquadFilter();
+    pres3k.type = 'peaking'; pres3k.frequency.value = clampF(3400); pres3k.Q.value = 0.9; pres3k.gain.value = 1.2;
+    var sh45 = ctx.createBiquadFilter();
+    sh45.type = 'highshelf'; sh45.frequency.value = clampF(4500); sh45.gain.value = 1.5;
+    var sh8 = ctx.createBiquadFilter();
+    sh8.type = 'highshelf'; sh8.frequency.value = clampF(8000); sh8.gain.value = 1.0;
+    busLP = ctx.createBiquadFilter();
+    busLP.type = 'lowpass'; busLP.frequency.value = clampF(16000); busLP.Q.value = 0.5;
+
+    glue = ctx.createDynamicsCompressor();
+    glue.threshold.value = -15; glue.knee.value = 12; glue.ratio.value = 1.9;
+    glue.attack.value = 0.012; glue.release.value = 0.26;
+    makeup = ctx.createGain(); makeup.gain.value = 1.0;
+
+    limiter2 = ctx.createDynamicsCompressor();
+    limiter2.threshold.value = -3.0; limiter2.knee.value = 4;
+    limiter2.ratio.value = 20; limiter2.attack.value = 0.0012; limiter2.release.value = 0.14;
+
+    var clip = ctx.createWaveShaper ? ctx.createWaveShaper() : null;
+    if (clip) {
+      var n = 1024, curve = new Float32Array(n);
+      for (var i = 0; i < n; i++) { var x = i / (n - 1) * 2 - 1; curve[i] = Math.tanh(x * 1.15) / 1.15; }
+      clip.curve = curve; clip.oversample = '2x';
+    }
+
+    hp = ctx.createBiquadFilter();
+    hp.type = 'highpass'; hp.frequency.value = clampF(50);
+
+    /* ---- AURAL EXCITER: örneklerin 6 kHz üstü ölü; harmonik üretip havayı açar ---- */
+    var excHp1 = ctx.createBiquadFilter();
+    excHp1.type = 'highpass'; excHp1.frequency.value = clampF(1100); excHp1.Q.value = 0.7;
+    var excShaper = ctx.createWaveShaper ? ctx.createWaveShaper() : null;
+    if (excShaper) {
+      var en = 2048, ec = new Float32Array(en);
+      for (var ei = 0; ei < en; ei++) {
+        var ex = (ei / (en - 1)) * 2 - 1;
+        /* asimetrik yumuşak kırpma → çift+tek harmonik, ölçülü */
+        ec[ei] = Math.tanh(ex * 3.2) * 0.72 + Math.tanh(ex * ex * 2.2) * 0.28 * (ex > 0 ? 1 : -1);
+      }
+      excShaper.curve = ec; excShaper.oversample = '2x';
+    }
+    var excHp2 = ctx.createBiquadFilter();
+    excHp2.type = 'highpass'; excHp2.frequency.value = clampF(6500); excHp2.Q.value = 0.6;
+    var excGain = ctx.createGain(); excGain.gain.value = 0.08;
+
+    for (var k in buses) {
+      buses[k].out.connect(mudCut);
+      // Nota bazlı salon gönderimi kullanılır; ikinci paralel gönderim kaldırıldı.
+    }
+    predelay.connect(reverb); reverb.connect(revGain); revGain.connect(mudCut);
+    dry.connect(mudCut);
+    mudCut.connect(presence); presence.connect(air); air.connect(pres3k); pres3k.connect(sh45);
+    sh45.connect(sh8); sh8.connect(busLP);
+    busLP.connect(glue); glue.connect(makeup);
+    /* exciter: kuru sinyalden harmonik türet, 5.2 kHz üstünü geri karıştır */
+    busLP.connect(excHp1);
+    if (excShaper) { excHp1.connect(excShaper); excShaper.connect(excHp2); } else { excHp1.connect(excHp2); }
+    excHp2.connect(excGain); excGain.connect(glue);
+    makeup.connect(limiter2); // Ana çıkışta dalga şekillendirici kullanılmaz.
+    // Ayrı ses seviyesi ve geçiş kapısı: fade işlemleri kullanıcı kazancını ezmez.
+    gateGain = ctx.createGain(); gateGain.gain.value = 0.0001;
+    dynamicGain = ctx.createGain(); dynamicGain.gain.value = 1;
+    lowEQ = ctx.createBiquadFilter(); lowEQ.type = 'lowshelf'; lowEQ.frequency.value = 120;
+    midEQ = ctx.createBiquadFilter(); midEQ.type = 'peaking'; midEQ.frequency.value = 900; midEQ.Q.value = 0.7;
+    highEQ = ctx.createBiquadFilter(); highEQ.type = 'highshelf'; highEQ.frequency.value = 4500;
+    deEsser = ctx.createBiquadFilter(); deEsser.type = 'highshelf'; deEsser.frequency.value = 3500;
+    finalLimiter = ctx.createDynamicsCompressor();
+    finalLimiter.threshold.value = -5; finalLimiter.knee.value = 2; finalLimiter.ratio.value = 20;
+    finalLimiter.attack.value = 0.003; finalLimiter.release.value = 0.20;
+    monitor = ctx.createAnalyser(); monitor.fftSize = 2048; meterData = new Float32Array(monitor.fftSize); freqData = new Float32Array(monitor.frequencyBinCount);
+    limiter2.connect(hp); hp.connect(dynamicGain); dynamicGain.connect(lowEQ);
+    lowEQ.connect(midEQ); midEQ.connect(highEQ); highEQ.connect(deEsser); deEsser.connect(master);
+    master.connect(gateGain); gateGain.connect(finalLimiter); finalLimiter.connect(monitor); monitor.connect(ctx.destination);
+    masterTimer = setInterval(masterMonitor, 200);
+    return ctx;
+  };
+
+  ORC.ctx = function () { return ctx; };
+  ORC.now = function () { return ctx ? ctx.currentTime : 0; };
+  ORC.latency = function () { return ctx ? (ctx.outputLatency || ctx.baseLatency || 0.01) : 0.01; };
+  ORC.isReady = function () { return ready; };
+  ORC.progress = function () { return totalInst ? loadedCount / totalInst : 0; };
+  ORC.instList = function () { return Object.keys(CHAR); };
+  ORC.lastPlayed = function () { return activeLog; };
+
+  function noteName(m) {
+    var N = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+    return N[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1);
+  }
+
+  /* --- yükleme: bozuk/sessiz örnekleri ayıkla (contrabass C4 gibi) --- */
+  ORC.loadInstrument = function (inst) {
+    if (buffers[inst]) return Promise.resolve(buffers[inst]);
+    if (pending[inst]) return pending[inst];
+    var src = (root.ORC_SAMPLES && root.ORC_SAMPLES[inst]) || {};
+    var keys = Object.keys(src);
+    pending[inst] = Promise.all(keys.map(function (k) {
+      var url = src[k];
+      return fetch(url).then(function (r) { return r.arrayBuffer(); })
+        .then(function (ab) {
+          return new Promise(function (res) {
+            ctx.decodeAudioData(ab, function (buf) {
+              /* sessiz örnek kapısı */
+              try {
+                var d = buf.getChannelData(0), mx = 0;
+                for (var i = 0; i < d.length; i += 64) { var v = Math.abs(d[i]); if (v > mx) mx = v; }
+                if (mx < 0.004) return res(null);
+              } catch (e) { }
+              res({ midi: +k, buf: buf });
+            }, function () { res(null); });
+          });
+        }).catch(function () { return null; });
+    })).then(function (list) {
+      var arr = list.filter(Boolean).sort(function (a, b) { return a.midi - b.midi; });
+      buffers[inst] = arr;
+      loadedCount++;
+      return arr;
+    });
+    return pending[inst];
+  };
+
+  ORC.loadAll = function (onStep) {
+    loading = true;
+    var insts = Object.keys(CHAR).filter(function (i) { return root.ORC_SAMPLES && root.ORC_SAMPLES[i]; });
+    totalInst = insts.length; loadedCount = 0;
+    var chain = Promise.resolve();
+    insts.forEach(function (inst) {
+      chain = chain.then(function () {
+        return ORC.loadInstrument(inst).then(function () {
+          if (onStep) onStep(loadedCount, totalInst, inst);
+        });
+      });
+    });
+    return chain.then(function () { ready = true; loading = false; return true; });
+  };
+
+  /*__ORCHESTRA_LESSON_11__*/
+
+  /* döngü noktasını sıfır geçişine oturt (tık/çızırtı önleme) */
+  function snapZero(buf, sec) {
+    try {
+      var sr = buf.sampleRate, d = buf.getChannelData(0);
+      var i = Math.max(1, Math.min(d.length - 2, Math.floor(sec * sr)));
+      var span = Math.floor(sr * 0.012);
+      for (var k = 0; k < span; k++) {
+        if (i + k < d.length - 2 && d[i + k] <= 0 && d[i + k + 1] > 0) return (i + k) / sr;
+        if (i - k > 1 && d[i - k] <= 0 && d[i - k + 1] > 0) return (i - k) / sr;
+      }
+      return sec;
+    } catch (e) { return sec; }
+  }
+
+  // Bu, kaydın kendi spektral ölçümü değil: nota perdesi, enstrüman ve
+  // velocity üzerinden hesaplanan sınırlı bir parlaklık/risk tahminidir.
+  function sharpRisk(inst, midi, vel) {
+    var families = { violin:1, viola:1, string_ensemble_1:1, string_ensemble_2:1, tremolo_strings:1,
+      flute:1, oboe:1, clarinet:1, trumpet:1, french_horn:1, brass_section:1, glockenspiel:1, tubular_bells:1 };
+    if (!families[inst]) return 0;
+    var pitch = Math.max(0, Math.min(1, (midi - 72) / 25));
+    var accent = Math.max(0, Math.min(1, (vel - 0.40) / 0.80));
+    return Math.max(0, Math.min(1, pitch * (0.65 + 0.35 * accent))) * masterConfig.softness;
+  }
+
+  /* --- ses çalma: tek nota, aile veri yoluna bağlanır --- */
+  function voice(inst, ch, s, t0, hold, amp, vel, opts, f0) {
+    var rate = Math.pow(2, (opts.midi - s.midi) / 12);
+    // Örnek transpozisyonu gerçek perde oranını korur; 0.70–1.42 sıkıştırması detoneye yol açıyordu.
+    rate = Math.max(0.125, Math.min(8, rate));
+
+    var src = ctx.createBufferSource();
+    src.buffer = s.buf;
+    src.playbackRate.value = rate;
+
+    var bd = s.buf.duration / rate;
+    var useLoop = !ch.perc && ch.sus && hold > (bd * 0.62);
+    if (useLoop && bd > 0.6) {
+      try {
+        src.loop = true;
+        src.loopStart = snapZero(s.buf, s.buf.duration * 0.38);
+        src.loopEnd = Math.max(src.loopStart + 0.12, snapZero(s.buf, s.buf.duration * 0.86));
+      } catch (e) { }
+    }
+
+    var filt = ctx.createBiquadFilter();
+    filt.type = 'lowpass';
+    var comfortCut = ch.cut * (0.90 + 0.30 * Math.min(1.3, vel)) * (opts.cut || 1);
+    // Nota başına yüksek frekans sınırı: perde değişmez, yalnız parlaklık azalır.
+    if (opts.midi >= 88) comfortCut = Math.min(comfortCut, Math.max(5000, 8500 - (opts.midi - 88) * 110));
+    var expressiveFam = FAMILY[inst] === 'str' || FAMILY[inst] === 'wood' || FAMILY[inst] === 'brass';
+    var softRisk = sharpRisk(inst, opts.midi, vel);
+    if (expressiveFam) comfortCut *= 1 - 0.18 * masterConfig.haze;
+    comfortCut *= 1 - 0.36 * softRisk;
+    if (expressiveFam && opts.midi >= 79) comfortCut = Math.min(comfortCut, 6200 - Math.min(1800, (opts.midi - 79) * 70));
+    filt.frequency.value = clampF(comfortCut);
+    filt.Q.value = 0.4;
+
+    var hpN = ctx.createBiquadFilter();
+    hpN.type = 'highpass';
+    hpN.frequency.value = clampF(Math.max(30, Math.min(900, f0 * 0.55 * (ch.hp || 1))));
+    hpN.Q.value = 0.5;
+
+    var g = ctx.createGain();
+    var atk = Math.max(0.002, ch.atk * (ch.perc ? 0.9 : (1.15 - 0.25 * Math.min(1.3, vel))));
+    if (expressiveFam) atk *= 1 + 0.40 * softRisk;
+    var rel = ch.perc ? ((opts.bridgeAttack || opts.harpGrain) ? Math.min(ch.rel, 0.22) : ch.rel) : (ch.rel * (0.9 + 0.4 * (1 - Math.min(1, vel))));
+    var ampOk = (isFinite(amp) && amp > 0) ? amp : 0.02;
+
+    g.gain.setValueAtTime(0.0001, Math.max(0, t0 - 0.004));
+    g.gain.linearRampToValueAtTime(ampOk, t0 + atk);
+
+    if (ch.perc && (opts.bridgeAttack || opts.harpGrain)) {
+      // Kısa arpej notalarında kuyruklar akor değişimine taşmasın.
+      g.gain.setTargetAtTime(0.0001, t0 + atk + Math.min(hold, opts.harpGrain ? 0.16 : 0.10), 0.065);
+    } else if (ch.perc) {
+      /* tok vuruş: uzun doğal kuyruk, yumuşak iniş */
+      var tail = Math.max(0.25, rel);
+      g.gain.setTargetAtTime(ampOk * 0.62, t0 + atk + 0.4, tail * 0.55);
+      g.gain.setTargetAtTime(0.0001, t0 + atk + tail * 0.55, tail * 0.42);
+    } else {
+      var susEnd = t0 + Math.max(0.06, hold);
+      g.gain.setValueAtTime(ampOk, Math.max(t0 + atk + 0.002, susEnd - rel * 0.35));
+      g.gain.setTargetAtTime(0.0001, susEnd, rel * 0.34);
+    }
+
+    src.connect(hpN); hpN.connect(filt); filt.connect(g);
+
+    var pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    var panV = (opts.px != null) ? (opts.px * 0.85 + ch.pan * 0.15) : (ch.pan + (opts.pan || 0));
+    if (pan) pan.pan.value = Math.max(-1, Math.min(1, panV));
+
+    var dist = (opts.pz != null) ? Math.abs(opts.pz) : 0;
+    var fam = FAMILY[inst] || 'str';
+    var bus = buses[fam] || buses.str;
+    if (pan) { g.connect(pan); pan.connect(bus.g); } else { g.connect(bus.g); }
+
+    var rg = ctx.createGain();
+    rg.gain.value = ch.wet * (opts.wet != null ? opts.wet : 1) * (1 + dist * 0.8) * (expressiveFam ? 0.90 + 0.28 * masterConfig.haze + 0.10 * softRisk : 1);
+    if (pan) pan.connect(rg); else g.connect(rg);
+    rg.connect(reverb);
+
+    /* eşzamanlı ses tavanı: en eski sesi yumuşak kıs (asla ani kesme) */
+    if (voices >= VOICE_MAX) {
+      var old = live[liveIdx % live.length];
+      if (old) { try { old.gain.cancelScheduledValues(ctx.currentTime); old.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.03); } catch (e2) { } }
+      stolen++;
+      voices = Math.max(0, voices - 1);
+    }
+    live[liveIdx % 512] = g; liveIdx++;
+    voices++;
+    src.onended = function () { voices = Math.max(0, voices - 1); };
+
+    var playDur = (useLoop ? hold + rel * 2.2 + 0.5 : Math.min(bd, hold + rel * 2.2 + 0.25));
+    playDur = Math.max(0.12, playDur);
+    // Sürekli perdeli yaylı/üflemelilerde yumuşak, nota ömrüyle sınırlı vibrato.
+    // Perde merkezi değişmez; her nota için derinlik doğal ataktan sonra açılır.
+    if (expressiveFam && !ch.perc && ch.sus && hold >= 0.34 && voices < 96 && masterConfig.vibrato > 0) {
+      try {
+        var lfo = ctx.createOscillator(), vib = ctx.createGain();
+        lfo.type = 'sine'; lfo.frequency.value = 4.5 + (opts.midi % 7) * 0.11;
+        var cents = Math.min(8, masterConfig.vibrato * (20 + 6 * softRisk));
+        var depth = rate * (Math.pow(2, cents / 1200) - 1);
+        vib.gain.setValueAtTime(0, t0);
+        vib.gain.setValueAtTime(0, t0 + Math.min(0.12, playDur * 0.18));
+        vib.gain.linearRampToValueAtTime(depth, t0 + Math.min(0.38, playDur * 0.45));
+        vib.gain.setTargetAtTime(0, t0 + Math.max(0.05, playDur - 0.15), 0.05);
+        lfo.connect(vib); vib.connect(src.playbackRate);
+        // Yüksek perdeli nefeslilerde aynı yumuşak titreşim, filtreye de az miktarda uygulanır.
+        // Perde merkezini kaydırmaz, yeni ses katmanı oluşturmaz.
+        var throat=null;
+        if ((fam === 'wood' || fam === 'brass') && softRisk > 0.10) {
+          throat=ctx.createGain();
+          var depthHz=Math.min(180, filt.frequency.value * 0.028 * softRisk * masterConfig.vibrato / 0.34);
+          throat.gain.setValueAtTime(0,t0);
+          throat.gain.linearRampToValueAtTime(depthHz,t0+Math.min(0.35,playDur*0.4));
+          throat.gain.setTargetAtTime(0,t0+Math.max(0.05,playDur-0.15),0.05);
+          lfo.connect(throat);throat.connect(filt.frequency);
+        }
+        lfo.start(t0); lfo.stop(t0 + playDur + 0.06);
+        lfo.onended = function(){ try { lfo.disconnect(); vib.disconnect(); if(throat)throat.disconnect(); } catch (ignore) {} };
+      } catch (vibError) { /* vibrato desteklenmezse örnek normal çalar */ }
+    }
+    try {
+      var off = Math.min(Math.max(0, s.buf.duration - 0.25), Math.random() * 0.012);
+      src.start(t0, off, playDur);
+      src.stop(t0 + playDur + 0.05);
+    } catch (e) { try { src.start(t0); } catch (e2) { } }
+
+    /* ışıltı katmanı */
+    if (!masterConfig.economy && SHINE[inst] && vel > 0.45 && !ch.perc && voices < 70) {
+      var src2 = ctx.createBufferSource();
+      src2.buffer = s.buf; src2.playbackRate.value = rate * 2;
+      var hp2 = ctx.createBiquadFilter();
+      hp2.type = 'highpass'; hp2.frequency.value = clampF(Math.max(1400, f0 * 1.6)); hp2.Q.value = 0.6;
+      var g2 = ctx.createGain();
+      var a2 = ampOk * SHINE[inst] * 0.55;
+      if (!isFinite(a2) || a2 <= 0) a2 = ampOk * 0.12;
+      g2.gain.setValueAtTime(0.0001, t0);
+      g2.gain.linearRampToValueAtTime(a2, t0 + Math.max(0.03, atk * 1.6));
+      g2.gain.setTargetAtTime(0.0001, t0 + Math.max(0.12, hold * 0.7), 0.18);
+      src2.connect(hp2); hp2.connect(g2);
+      if (pan) g2.connect(pan); else g2.connect(bus.g);
+      try { src2.start(t0, 0.01, Math.min(1.4, hold * 0.8 + 0.3)); src2.stop(t0 + hold * 0.8 + 0.4); } catch (e3) { }
+    }
+    return true;
+  }
+
+  /* vurmalı gövde desteği: alt oktav, düşük seviye → dijital değil, tok */
+  var SUB = { timpani: 0.30, taiko_drum: 0.24, melodic_tom: 0.18, orchestra_hit: 0.20 };
+
+  var fxNoise = null;
+  function battleFx(inst, when, vel, opts) {
+    if (!ctx || !ready || !masterConfig.battle) return false;
+    var t = Math.max(when, ctx.currentTime + 0.004), duration = inst === 'battle_arrow' ? 0.22 : 0.30;
+    if (!fxNoise) {
+      fxNoise = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.35), ctx.sampleRate);
+      var data = fxNoise.getChannelData(0);
+      for (var i=0;i<data.length;i++) data[i]=(Math.random()*2-1);
+    }
+    var noise = ctx.createBufferSource(); noise.buffer=fxNoise;
+    var filter = ctx.createBiquadFilter(); filter.type='bandpass';
+    filter.frequency.setValueAtTime(inst === 'battle_arrow' ? 1100 : 2300, t);
+    filter.frequency.exponentialRampToValueAtTime(inst === 'battle_arrow' ? 3600 : 900, t+duration);
+    filter.Q.value=inst === 'battle_arrow' ? 1.4 : 2.4;
+    var g=ctx.createGain(), pan=ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(Math.min(0.09,vel*0.12),t+0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+duration);
+    noise.connect(filter);filter.connect(g);
+    if(pan){pan.pan.value=Math.max(-0.6,Math.min(0.6,(opts&&opts.px)||0));g.connect(pan);pan.connect(buses.perc.g);} else g.connect(buses.perc.g);
+    noise.start(t);noise.stop(t+duration+0.01);
+    return true;
+  }
+  ORC.note = function (inst, midi, when, dur, vel, opts) {
+    if (!ctx || !ready) return false;
+    if (inst === 'battle_sword' || inst === 'battle_arrow') return battleFx(inst, +when, +vel || 0.4, opts);
+    midi = Math.round(+midi); when = +when; dur = +dur; vel = +vel;
+    if (!isFinite(midi) || midi < 14 || midi > 118) return false;
+    if (!isFinite(when)) when = ctx.currentTime + 0.02;
+    if (!isFinite(dur) || dur <= 0) dur = 0.30;
+    if (!isFinite(vel) || vel <= 0) vel = 0.65;
+    opts = opts || {}; opts.midi = midi;
+    var ch = CHAR[inst] || CHAR.string_ensemble_1;
+    var s = nearest(inst, midi);
+    if (!s) return false;
+    var t0 = Math.max(when, ctx.currentTime + 0.004);
+    var f0 = 440 * Math.pow(2, (midi - 69) / 12);
+    /* tok çalım: nota ömrü uzatılır (legato) + dinamik kazanç */
+    var hold = Math.max(0.08, dur * (ch.len || 1.1));
+    var amp = Math.min(1.5, vel) * ch.g * (opts.amp || 1) / (1 + Math.abs(opts.pz || 0) * 0.45);
+    if (inst === 'taiko_drum' || inst === 'timpani' || inst === 'melodic_tom') amp *= masterConfig.drum;
+    // Yüksek perdede artan parlaklık, nota başına ölçülü zayıflatılır.
+    if (!ch.perc && midi > 84) amp *= Math.max(0.48, 1 - (midi - 84) * 0.023);
+    if ((inst === 'glockenspiel' || inst === 'tubular_bells') && midi > 84) amp *= Math.max(0.48, 1 - (midi - 84) * 0.025);
+    amp *= 1 - 0.33 * sharpRisk(inst, midi, vel);
+    var ok = voice(inst, ch, s, t0, hold, amp, vel, opts, f0);
+    /* alt oktav gövde (vurmalı): gerçek davul ağırlığı */
+    if (ok && SUB[inst] && midi - 12 >= 20) {
+      var o2 = {}; for (var kk in opts) o2[kk] = opts[kk];
+      o2.midi = midi - 12; o2.cut = 0.55;
+      voice(inst, ch, nearest(inst, midi - 12) || s, t0 + 0.002, hold, amp * SUB[inst], vel * 0.9, o2, f0 * 0.5);
+    }
+    if (ok) activeLog[inst] = ctx.currentTime;
+    if (voices > peaks) peaks = voices;
+    return ok;
+  };
+
+  ORC.stats = function () {
+    return { voices: voices, peak: peaks, stolen: stolen, max: VOICE_MAX,
+      ready: ready, loaded: loadedCount, total: totalInst };
+  };
+  ORC.setVolume = function (v) { if (master) paramSmooth(master.gain, Math.max(0, Math.min(0.70, Number(v) || 0)), 0.08); };
+  ORC.resume = function () { if (ctx && ctx.state === 'suspended') return ctx.resume(); return Promise.resolve(); };
+  ORC.fadeOut = function (sec) { if (!gateGain || !ctx) return; var p = gateGain.gain; p.cancelScheduledValues(ctx.currentTime); p.setValueAtTime(p.value, ctx.currentTime); p.linearRampToValueAtTime(0.0001, ctx.currentTime + (sec || 0.4)); };
+  ORC.fadeIn = function (sec) { if (!gateGain || !ctx) return; var p = gateGain.gain; p.cancelScheduledValues(ctx.currentTime); p.setValueAtTime(p.value, ctx.currentTime); p.linearRampToValueAtTime(1, ctx.currentTime + (sec || 0.6)); };
+  ORC.toneMaster = {
+    configure: function (o) {
+      o = o || {}; ['low','mid','high'].forEach(function (k) { if (isFinite(o[k])) masterConfig[k] = Math.max(-4, Math.min(4, +o[k])); });
+      if (isFinite(o.drum)) masterConfig.drum = Math.max(0.35, Math.min(1.00, +o.drum));
+      if (isFinite(o.vibrato)) masterConfig.vibrato = Math.max(0, Math.min(0.45, +o.vibrato));
+      if (isFinite(o.haze)) masterConfig.haze = Math.max(0, Math.min(1, +o.haze));
+      if (isFinite(o.softness)) masterConfig.softness = Math.max(0, Math.min(1, +o.softness));
+      if (typeof o.dynamic === 'boolean') masterConfig.dynamic = o.dynamic;
+      if (typeof o.economy === 'boolean') masterConfig.economy = o.economy;
+      if (typeof o.battle === 'boolean') masterConfig.battle = o.battle;
+      if (lowEQ) { paramSmooth(lowEQ.gain, masterConfig.low); paramSmooth(midEQ.gain, masterConfig.mid); paramSmooth(highEQ.gain, masterConfig.high); }
+    },
+    stats: function () { return { peak: masterPeak, rms: masterRms, autoGain: autoGain, reduction: finalLimiter ? finalLimiter.reduction : 0, treble: trebleReduction, voices: voices, max: VOICE_MAX, state: ctx ? ctx.state : 'unavailable' }; }
+  };
+  ORC.familyOf = function (inst) { return FAMILY[inst] || 'str'; };
+  ORC.noteName = noteName;
+  root.Orchestra = ORC;
+})(typeof window !== 'undefined' ? window : this);
+

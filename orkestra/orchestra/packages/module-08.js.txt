@@ -1,0 +1,177 @@
+
+/* ==========================================================================
+   KAOS — rastlantısal "mix fazları"
+   Amaç: aralarda karışıklık/türbülans hissedilsin, ama DÜZEN BOZULMASIN.
+   · Yalnızca seçilmiş 1–2 ölçülük pencerelerde çalışır
+   · Vurmalı, bas ve karar vuruşları asla kaymaz (ızgara korunur)
+   · Her pencere "çözülme" vuruşuyla (tutti, tam ızgarada) kapanır
+   · Armoni çerçevesi sabit: yalnızca akor/ölçek içi sesler
+   ========================================================================== */
+(function (root) {
+  'use strict';
+
+  var C = {};
+  var SCALE = [9, 11, 0, 2, 4, 5, 7, 8];         // La minör (E majör için sol diyez dahil)
+
+  function rng(seed) {
+    var s = seed >>> 0;
+    return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+  }
+  function pick(R, a) { return a[Math.floor(R() * a.length) % a.length]; }
+  function inScale(m) {
+    var pc = ((m % 12) + 12) % 12;
+    return SCALE.indexOf(pc) >= 0;
+  }
+  /* ölçek içine çek (detone yasak) */
+  function snapScale(m) {
+    if (inScale(m)) return m;
+    var best = m, bd = 99;
+    for (var d = -2; d <= 2; d++) {
+      if (inScale(m + d)) { var a = Math.abs(d); if (a < bd) { bd = a; best = m + d; } }
+    }
+    return best;
+  }
+
+  var TYPES = ['faz', 'polimetri', 'kume', 'kanon', 'kayma'];
+
+  /* ---- plan: pencereler ---- */
+  C.plan = function (opts) {
+    opts = opts || {};
+    var bars = opts.bars || 46;
+    var R = rng((opts.seed || 7) ^ 0x9E37);
+    var n = 3 + Math.floor(R() * 4);                 // 3–6 pencere
+    var wins = [], guard = 0;
+    while (wins.length < n && guard++ < 200) {
+      var st = 3 + Math.floor(R() * (bars - 8));
+      var len = 1 + Math.floor(R() * 2);             // 1–2 ölçü
+      /* pencereler çakışmasın, aralarında en az 3 ölçü düzen kalsın */
+      var clash = wins.some(function (w) { return Math.abs(w.start - st) < (len + w.len + 2); });
+      if (clash) continue;
+      wins.push({
+        start: st, len: len,
+        type: pick(R, TYPES),
+        amp: 0.55 + R() * 0.45,                      // şiddet
+        dir: R() < 0.5 ? -1 : 1
+      });
+    }
+    wins.sort(function (a, b) { return a.start - b.start; });
+    return { bars: bars, windows: wins, seed: opts.seed };
+  };
+
+  /* ---- uygula: olayları kaydır + yeni kaotik katmanlar ekle ---- */
+  C.apply = function (o) {
+    var ev = o.events, plan = o.plan, bar = o.bar, beat = o.beat;
+    var R = o.R || rng(11), push = o.push, chordAt = o.chordAt || {};
+    var pal = o.palette || { str: 1, brass: 1, perc: 1, wood: 1, choir: 1, bell: 1 };
+    var dyn = o.dyn || 1;
+    var NO_MOVE = { timpani: 1, taiko_drum: 1, melodic_tom: 1, woodblock: 1,
+      reverse_cymbal: 1, orchestra_hit: 1, contrabass: 1, tuba: 1, pizzicato_strings: 1, bassoon: 1 };
+    var FAM = {
+      violin: 'str', viola: 'str', cello: 'str', tremolo_strings: 'str',
+      string_ensemble_1: 'str', string_ensemble_2: 'str',
+      trumpet: 'brass', french_horn: 'brass', trombone: 'brass', brass_section: 'brass',
+      flute: 'wood', oboe: 'wood', clarinet: 'wood', orchestral_harp: 'wood',
+      glockenspiel: 'bell', tubular_bells: 'bell', choir_aahs: 'choir', voice_oohs: 'choir'
+    };
+    var moved = 0, added = 0, maxShift = 0, detail = [];
+
+    (plan.windows || []).forEach(function (w) {
+      var t0 = w.start * bar, t1 = (w.start + w.len) * bar;
+      var ch = chordAt[w.start] || o.chord || [57, 60, 64];
+      detail.push({ start: w.start, len: w.len, type: w.type, amp: +w.amp.toFixed(2) });
+
+      /* ---------- 1) FAZ KAYMASI: aileler birbirinden ayrışır ---------- */
+      if (w.type === 'faz') {
+        ev.forEach(function (e) {
+          if (e.t < t0 || e.t >= t1) return;
+          if (NO_MOVE[e.inst]) return;
+          var fam = FAM[e.inst] || 'str';
+          var dirF = fam === 'str' ? w.dir : fam === 'brass' ? -w.dir : w.dir * 0.5;
+          var prog = (e.t - t0) / (t1 - t0);                    // 0→1
+          var shape = Math.sin(Math.PI * prog);                  // gir-çık
+          var off = dirF * w.amp * 0.34 * beat * shape;          // en çok ~1/3 vuruş
+          e.t = Math.max(0, e.t + off);
+          if (Math.abs(off) > maxShift) maxShift = Math.abs(off);
+          moved++;
+        });
+      }
+
+      /* ---------- 2) POLİMETRİ: 3'e karşı 4 ---------- */
+      if (w.type === 'polimetri') {
+        for (var b = w.start; b < w.start + w.len; b++) {
+          var tb = b * bar, cb = chordAt[b] || ch;
+          var n3 = 12;                                            // vuruşta 3'lü
+          for (var i = 0; i < n3; i++) {
+            var m = snapScale(cb[i % 3] + (i >= 6 ? 12 : 0));
+            push('viola', m, tb + i * (bar / n3), bar / n3 * 0.62, 0.24 * w.amp * pal.str);
+            if (i % 3 === 0) push('oboe', snapScale(m + 12), tb + i * (bar / n3), bar / n3 * 0.6,
+              0.20 * w.amp * pal.wood);
+          }
+          added += n3;
+        }
+      }
+
+      /* ---------- 3) KÜME: bitişik sesler, hızlı ataklar ---------- */
+      if (w.type === 'kume') {
+        for (var k = 0; k < 2; k++) {
+          var base = (w.start + k * 0.5) * bar + Math.floor(R() * 4) * beat;
+          for (var j = 0; j < 4; j++) {
+            var mm = snapScale(ch[0] + 12 + j);
+            push(pick(R, ['oboe', 'clarinet', 'flute']), mm, base + j * beat * 0.25,
+              beat * 0.22, (0.30 - j * 0.03) * w.amp * pal.wood);
+          }
+          added += 4;
+        }
+      }
+
+      /* ---------- 4) KANON: uzaktaki alayın yankısı (1 vuruş gecikme) ---------- */
+      if (w.type === 'kanon') {
+        var copied = 0;
+        ev.forEach(function (e) {
+          if (copied > 26) return;
+          if (e.t < t0 || e.t >= t1) return;
+          if (NO_MOVE[e.inst]) return;
+          if (!(FAM[e.inst] === 'brass' || FAM[e.inst] === 'wood')) return;
+          push(e.inst, e.midi, e.t + beat, e.d * 0.9, e.v * 0.42,
+            { px: (R() < 0.5 ? -0.5 : 0.5), pz: -1.8 - R() * 1.2 });
+          copied++; added++;
+        });
+      }
+
+      /* ---------- 5) KAYMA: ölçek içi hızlı tırmanış ---------- */
+      if (w.type === 'kayma') {
+        for (var s2 = 0; s2 < w.len; s2++) {
+          var ts = (w.start + s2) * bar + Math.floor(R() * 3) * beat;
+          var base2 = ch[0] + (R() < 0.5 ? 0 : 12);
+          for (var q = 0; q < 8; q++) {
+            push(pick(R, ['violin', 'viola', 'clarinet']), snapScale(base2 + q),
+              ts + q * beat * 0.125, beat * 0.12, (0.26 + q * 0.02) * w.amp * pal.str);
+            added++;
+          }
+        }
+      }
+
+      /* ---------- 6) ÇÖZÜLME: düzen geri gelir (tam ızgarada, tutti) ---------- */
+      var tEnd = w.start + w.len;                 // pencere sonu, ÖLÇÜ BAŞI
+      if (tEnd < (plan.bars || 46)) {
+        var ce = chordAt[tEnd] || ch, te = tEnd * bar;
+        push('timpani', ce[0] - 12, te, 0.5, 0.85 * dyn);
+        push('orchestra_hit', 57, te, bar * 0.5, 0.55 * dyn);
+        push('brass_section', ce[0], te, beat * 1.2, 0.5 * dyn * pal.brass);
+        push('violin', ce[2] + 12, te, beat * 1.4, 0.42 * dyn * pal.str);
+        added += 4;
+      }
+    });
+
+    ev.sort(function (a, b) { return a.t - b.t; });
+    return {
+      windows: detail.length, moved: moved, added: added,
+      maxShiftMs: +(maxShift * 1000 / (o.tempo || 140) * 60 / 60).toFixed(1),
+      maxShiftBeats: +maxShift.toFixed(3), detail: detail
+    };
+  };
+
+  C.SCALE = SCALE; C.snapScale = snapScale; C.inScale = inScale;
+  root.Chaos = C;
+})(typeof window !== 'undefined' ? window : this);
+

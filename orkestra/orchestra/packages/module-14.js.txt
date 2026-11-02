@@ -1,0 +1,783 @@
+
+/* ==========================================================================
+   KONSER MOTORU v1 · PROFESYONEL ORKESTRA KONSER ÜRETECİ — FİNAL KATMAN
+   --------------------------------------------------------------------------
+   KODLAR KESİNLİKLE KORUNUR: Model, Store, Battle, Drums, Forces, Chaos,
+   Jest, Fib, Sayac, Score ve Orchestra motorları AYNEN kullanılır.
+   Bu katman yalnızca KONSER PLANI kurar (üretim mekanizmasına dokunmaz):
+
+     · 4 BÖLÜM: GİRİŞ · TEMA · KÖPRÜ · FİNAL — aralarda DİNLENMELER
+     · 8 ARANJMAN PROFİLİ — her birinin kendi GİRİŞİ ve KADANSI
+     · 3–4 DAKİKA: hedef süreye göre akıllı ölçü seçimi (kesin süre)
+     · TEMPO EĞRİSİ: tümsekler ve çukurlarla dengeli tempo değişimleri
+     · SICAK TRANSPOZELER + akor hücre / solo nota rastgele sıra değişimleri
+     · SUSLAR + ritmik varyasyonlar (vurmalı ızgarası asla kaymaz)
+     · FAZ GEÇİŞ KÖRÜ: monoton zaman haritası + kenar sönümleme + kesme
+       (eklem noktalarında tıklama/kopma olmaz)
+     · KONTROLLÜ MASTERING: bölüm dengesi, yumuşak kazanç, temiz çıktı
+       (yormayan ama maksimum enerjik — uzun tok gerçek enstrüman notaları)
+   ========================================================================== */
+(function (root) {
+  'use strict';
+
+  var K = {};
+  var VERSION = '1.0-FINAL';
+
+  /* ---------------- yardımcılar ---------------- */
+  function rng(seed) {
+    var s = (seed >>> 0) || 1;
+    return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+  }
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+  function pick(R, a) { return a[Math.floor(R() * a.length) % a.length]; }
+  function shuffle(R, a) {
+    var b = a.slice();
+    for (var i = b.length - 1; i > 0; i--) {
+      var j = Math.floor(R() * (i + 1)); var t = b[i]; b[i] = b[j]; b[j] = t;
+    }
+    return b;
+  }
+  function fmt(sec) {
+    if (!isFinite(sec) || sec < 0) sec = 0;
+    var m = Math.floor(sec / 60), s2 = Math.floor(sec % 60);
+    return m + ':' + (s2 < 10 ? '0' : '') + s2;
+  }
+  K.fmt = fmt;
+
+  /* ==========================================================================
+     GARANTİLİ FARKLILIK — tohum & parmak izi defterleri
+     Her kompozisyon farklı bir tohumla üretilir; aynı parmak izi (nota örüntüsü
+     özeti) asla iki kez oluşmaz. Bir çalan diğerine benzemez.
+     ========================================================================== */
+  var SEED_LEDGER = {}, FP_LEDGER = {};
+  /*__ORCHESTRA_LESSON_20__*/
+  function fingerprint(events) {
+    var h = 2166136261 >>> 0;
+    for (var i = 0; i < events.length; i += 5) {
+      var e = events[i];
+      var q = (((e.midi >> 2) * 31) + (Math.round(e.t * 2) * 17) + ((e.v * 8) | 0)) | 0;
+      h ^= q; h = Math.imul(h, 16777619) >>> 0;
+    }
+    return ('00000000' + h.toString(16)).slice(-8);
+  }
+  /* ---------------- VARYA: konser başına maksimum örüntü/duygu/değişkenlik ---------------- */
+  /*__ORCHESTRA_LESSON_21__*/
+  K.ledger = function () {
+    return { seeds: Object.keys(SEED_LEDGER).length, prints: Object.keys(FP_LEDGER).length };
+  };
+
+  /* ---------------- aile tablosu (motorla uyumlu) ---------------- */
+  var FAM = {
+    violin: 'str', viola: 'str', cello: 'str', contrabass: 'str', pizzicato_strings: 'str',
+    tremolo_strings: 'str', string_ensemble_1: 'str', string_ensemble_2: 'str',
+    french_horn: 'brass', trumpet: 'brass', trombone: 'brass', tuba: 'brass', brass_section: 'brass',
+    timpani: 'perc', taiko_drum: 'perc', melodic_tom: 'perc', woodblock: 'perc',
+    orchestra_hit: 'perc', reverse_cymbal: 'perc',
+    glockenspiel: 'bell', tubular_bells: 'bell',
+    flute: 'wood', oboe: 'wood', clarinet: 'wood', bassoon: 'wood', orchestral_harp: 'wood',
+    choir_aahs: 'choir', voice_oohs: 'choir'
+  };
+  /* transpozeye girmeyenler: perdesiz vurmalılar (timpani HARİÇ — akortludur) */
+  var NO_TRANS = { taiko_drum: 1, woodblock: 1, melodic_tom: 1, reverse_cymbal: 1, orchestra_hit: 1 };
+  /* akor hücresi sesleri (permütasyon adayı) */
+  var CHORD_SET = { french_horn: 1, brass_section: 1, string_ensemble_1: 1, string_ensemble_2: 1, choir_aahs: 1, voice_oohs: 1 };
+  /* solo sesler (sıra değiştirme + insani kayma adayı) */
+  var LEAD_SET = { violin: 1, trumpet: 1, oboe: 1, flute: 1, clarinet: 1, cello: 1, glockenspiel: 1, orchestral_harp: 1, french_horn: 1 };
+  /* suslarda çalabilecekler (motorun ateşkes kuralıyla aynı ruh) */
+  var SOLO_OK = {
+    voice_oohs: 1, choir_aahs: 1, timpani: 1, taiko_drum: 1, melodic_tom: 1,
+    woodblock: 1, orchestra_hit: 1, oboe: 1, tremolo_strings: 1, violin: 1, clarinet: 1, flute: 1
+  };
+  /* vurmalı ızgarası kilitli: ritm varyasyonu ve kayma bunlara dokunmaz */
+  var PERC_LOCK = { timpani: 1, taiko_drum: 1, melodic_tom: 1, woodblock: 1, orchestra_hit: 1, reverse_cymbal: 1 };
+
+  /* ==========================================================================
+     8 ARANJMAN PROFİLİ — her biri: orkestra renk paleti, giriş biçimi,
+     kadans biçimi, sıcak transpoze şeması, tempo karakteri, dinlenme stili
+     ========================================================================== */
+  var PROFILES = [
+    {
+      id: 'sinematik', name: 'Sinematik Yaylı Konser', arr: 0,
+      desc: 'sıcak yaylı gövde · violin lider · yumuşak parlaklık',
+      remap: null, drop: null,
+      famGain: { str: 1.08, brass: 0.92, perc: 0.95, wood: 1.0, choir: 1.0, bell: 0.9 },
+      master: 0.92, tempoK: 1.0, trans: [0, 2, -3, 2],
+      intro: 'yavasYukselis', cadence: 'plagal',
+      restStyle: ['soloEko', 'cimbalSwell', 'koroFisilti'],
+      echoInst: 'violin'
+    },
+    {
+      id: 'kahraman', name: 'Kahramanlık Marşı', arr: 2,
+      desc: 'bakır fanfarlar · taiko · zafere yürüyen marş',
+      remap: null, drop: null,
+      famGain: { str: 0.9, brass: 1.12, perc: 1.08, wood: 0.85, choir: 0.95, bell: 0.85 },
+      master: 0.9, tempoK: 1.04, trans: [0, 2, -2, 0],
+      intro: 'fanfar', cadence: 'zafer',
+      restStyle: ['kalpTimp', 'cimbalSwell', 'soloEko'],
+      echoInst: 'french_horn'
+    },
+    {
+      id: 'katedral', name: 'Katedral Korosu', arr: 3,
+      desc: 'koro + çan · uzun nefesli dualar · derinlik',
+      remap: null, drop: null,
+      famGain: { str: 0.95, brass: 0.85, perc: 0.8, wood: 0.95, choir: 1.18, bell: 1.05 },
+      master: 0.88, tempoK: 0.92, trans: [0, -3, 2, 0],
+      intro: 'koroNefes', cadence: 'sessizAmin',
+      restStyle: ['koroFisilti', 'soloEko', 'koroFisilti'],
+      echoInst: 'voice_oohs'
+    },
+    {
+      id: 'oda', name: 'Oda Topluluğu · Nefesliler', arr: 1,
+      desc: 'nefesli şeffaflığı · harp · zarif sololar',
+      remap: {
+        trumpet: 'flute', brass_section: 'clarinet', trombone: 'bassoon',
+        tuba: 'bassoon', french_horn: 'clarinet', string_ensemble_1: 'violin',
+        string_ensemble_2: 'viola', taiko_drum: 'woodblock', contrabass: 'cello'
+      }, drop: null,
+      famGain: { str: 1.0, brass: 0.8, perc: 0.7, wood: 1.15, choir: 0.9, bell: 1.0 },
+      master: 0.9, tempoK: 0.95, trans: [0, 3, -2, 2],
+      intro: 'harpDizisi', cadence: 'yalvarma',
+      restStyle: ['harpDamla', 'soloEko', 'harpDamla'],
+      echoInst: 'clarinet'
+    },
+    {
+      id: 'firtina', name: 'Fırtına Konseri', arr: 4,
+      desc: 'tremolo dalgalar · sert tümsekler · süratli çukurlar',
+      remap: null, drop: null,
+      famGain: { str: 1.1, brass: 0.95, perc: 1.1, wood: 0.9, choir: 0.85, bell: 0.8 },
+      master: 0.93, tempoK: 1.06, trans: [0, -2, 3, 0],
+      intro: 'timpRulo', cadence: 'hemiola',
+      restStyle: ['kalpTimp', 'bosDur', 'cimbalSwell'],
+      echoInst: 'violin'
+    },
+    {
+      id: 'agit', name: 'Ağıt & Umut', arr: 5,
+      desc: 'obua yalvarması · kısık derinlik · sonra yükselen umut',
+      remap: { trumpet: 'oboe', brass_section: 'voice_oohs' }, drop: null,
+      famGain: { str: 1.02, brass: 0.72, perc: 0.68, wood: 1.12, choir: 1.1, bell: 0.95 },
+      master: 0.87, tempoK: 0.88, trans: [0, -3, 3, 2],
+      intro: 'sessizNefes', cadence: 'yalvarma',
+      restStyle: ['soloEko', 'koroFisilti', 'bosDur'],
+      echoInst: 'oboe'
+    },
+    {
+      id: 'zafer', name: 'Zafer Alayı', arr: 2,
+      desc: 'alay geçişi · bakır–davul diyaloğu · parlak meydan',
+      remap: {
+        string_ensemble_2: 'brass_section', oboe: 'trumpet',
+        voice_oohs: 'choir_aahs', viola: 'trombone'
+      }, drop: null,
+      famGain: { str: 0.92, brass: 1.15, perc: 1.12, wood: 0.85, choir: 1.0, bell: 0.9 },
+      master: 0.92, tempoK: 1.02, trans: [0, -2, 2, 2],
+      intro: 'marş', cadence: 'zafer',
+      restStyle: ['kalpTimp', 'kalpTimp', 'cimbalSwell'],
+      echoInst: 'trumpet'
+    },
+    {
+      id: 'yildiz', name: 'Yıldız Tozu · Büyülü Final', arr: 3,
+      desc: 'çan + harp ışıltısı · gümüş tizler · masalsı final',
+      remap: {
+        viola: 'orchestral_harp', brass_section: 'french_horn',
+        trombone: 'bassoon', trumpet: 'flute', tuba: 'contrabass'
+      }, drop: null,
+      famGain: { str: 1.0, brass: 0.85, perc: 0.85, wood: 1.1, choir: 1.05, bell: 1.2 },
+      master: 0.9, tempoK: 0.97, trans: [0, 3, -2, 2],
+      intro: 'yildiz', cadence: 'parlak',
+      restStyle: ['harpDamla', 'soloEko', 'cimbalSwell'],
+      echoInst: 'glockenspiel'
+    }
+  ];
+  K.PROFILES = PROFILES;
+
+  /* 4 konser bölümü — kaynak pencereleri ve duygu hedefleri */
+  var MOVES = [
+    { key: 'giris', name: 'GİRİŞ', weight: 0.24, want: ['esit', 'ilerleme'], shape: 'rise' },
+    { key: 'tema', name: 'TEMA', weight: 0.27, want: ['baskin', 'karsi'], shape: 'high' },
+    { key: 'kopru', name: 'KÖPRÜ', weight: 0.22, want: ['gerileme', 'kusatma'], shape: 'valley' },
+    { key: 'final', name: 'FİNAL', weight: 0.27, want: ['karsi', 'zafer'], shape: 'peak' }
+  ];
+  K.MOVES = MOVES;
+
+  /* tempo yolculukları: tümsekler ve çukurlar (bpm örnekleri) */
+  var TEMPO = {
+    giris: [102, 110, 118, 124],
+    tema: [128, 136, 129, 138, 142],
+    kopru: [112, 104, 99, 107, 118, 127],
+    final: [132, 142, 150, 153, 138, 116]
+  };
+
+  /* A minör jest bankası (giriş / kadans malzemesi) */
+  var CH = {
+    Am: [57, 60, 64], E: [52, 56, 59], Dm: [50, 53, 57], F: [53, 57, 60], C: [48, 52, 55]
+  };
+
+  /* ==========================================================================
+     TEMPO HARİTASI — bölümler arası yumuşak, içi sürekli hız eğrisi.
+     Yalnızca POZİTİF aralıklar → zaman haritası KESİNLİKLE monoton
+     (faz geçiş körü: tersine kıvrılma, üst üste binme imkânsız).
+     ========================================================================== */
+  function bpmAtList(bpmList, x) {
+    var n = bpmList.length;
+    if (n === 1) return bpmList[0];
+    var f = clamp(x / (n - 1), 0, 1) * (n - 1);
+    var i = Math.floor(f), fr = f - i;
+    var a = bpmList[i], b = bpmList[Math.min(n - 1, i + 1)];
+    return a + (b - a) * fr;
+  }
+
+  /*__ORCHESTRA_LESSON_22__*/
+
+  /* ==========================================================================
+     AKILLI PENCERE SEÇİMİ — bölümün ruh haline göre kaynak ölçü aralığı
+     (GİRİŞ: baştan · TEMA: tema başlangıcı · KÖPRÜ: en derin çukur + tırmanış ·
+      FİNAL: kadansa bitişik — skorun kendi final kadansı korunur)
+     ========================================================================== */
+  function pickWindow(sc, spec, N, R) {
+    var E = sc.emotions || [];
+    var total = 46;
+    N = Math.max(8, Math.min(N, 38));
+    if (spec.key === 'giris') return 0;
+    if (spec.key === 'tema') return 8;
+    if (spec.key === 'final') return Math.max(0, total - N);
+    /* KÖPRÜ: en düşük ortalama dinamik + sonda tırmanış bonusu */
+    var best = 12, bestScore = Infinity;
+    for (var s = 10; s + N <= 46; s++) {
+      var sum = 0, cnt = 0;
+      for (var b = s; b < s + N; b++) {
+        if (E[b]) { sum += E[b].dyn * 0.7 + E[b].dens * 0.3; cnt++; }
+      }
+      var mean = cnt ? sum / cnt : 1;
+      /* tırmanış: son 3 ölçü − ilk 3 ölçü (köprü sonu baskıya doğru) */
+      var r1 = 0, r2 = 0;
+      for (var i = 0; i < 3; i++) { if (E[s + i]) r1 += E[s + i].dyn; if (E[s + N - 3 + i]) r2 += E[s + N - 3 + i].dyn; }
+      var climb = (r2 - r1) * 0.10;
+      var phaseBonus = 0;
+      for (var j = s; j < s + N; j++) {
+        if (E[j] && spec.want.indexOf(E[j].phase) >= 0) phaseBonus -= 0.02;
+      }
+      var sc2 = mean + climb + phaseBonus;
+      if (sc2 < bestScore) { bestScore = sc2; best = s; }
+    }
+    return best;
+  }
+
+  /* ==========================================================================
+     PENCERE DİLİMLEME — skor olayları yerel ölçü saatine alınır
+     ========================================================================== */
+  function sliceWindow(sc, s, N) {
+    var bar = sc.bar;
+    var winStart = s * bar, winEnd = (s + N) * bar;
+    var out = [];
+    var ev = sc.events;
+    for (var i = 0; i < ev.length; i++) {
+      var e = ev[i];
+      if (e.t < winStart - 1e-6 || e.t >= winEnd) continue;
+      out.push({
+        inst: e.inst, midi: e.midi, t: e.t - winStart, d: e.d, v: e.v,
+        px: e.px, pz: e.pz
+      });
+    }
+    return out;
+  }
+
+  /* ==========================================================================
+     SUSLAR + RİTMİK VARYASYONLAR (yerel saatte, vurmalı ızgarası kilitli)
+     ========================================================================== */
+  /*__ORCHESTRA_LESSON_23__*/
+
+  /* ==========================================================================
+     AKOR HÜCRESİ + SİRALAMA PERMÜTASYONLARI (rastgele sıra değişimleri)
+     ========================================================================== */
+  /*__ORCHESTRA_LESSON_24__*/
+
+  /* ==========================================================================
+     VARYA GEÇİŞİ — motif aynaları · rubato · süre titreşimi · duygu eğimi
+     (maksimum motif/durum/duygu örüntüsü; vurmalı ızgarası ve menzil korunur)
+     ========================================================================== */
+  function passVarya(ev, R, vy) {
+    var i, j, k;
+    /* (1) motif aynası: yönü tutarlı 4'lü dizilerde yön çevirme — menzil korunur
+       (ortalamaya yansıma, dört notayı da kendi [min,max] aralığında tutar) */
+    var byInst = {};
+    for (i = 0; i < ev.length; i++) {
+      var e0 = ev[i];
+      if (PERC_LOCK[e0.inst] || e0.d < 0.1) continue;
+      (byInst[e0.inst] || (byInst[e0.inst] = [])).push(e0);
+    }
+    for (k in byInst) {
+      var seq = byInst[k];
+      if (seq.length < 4) continue;
+      seq.sort(function (a, b) { return a.t - b.t; });
+      var idx = 0;
+      while (idx < seq.length - 3) {
+        var dir = Math.sign(seq[idx + 1].midi - seq[idx].midi);
+        var ok = dir !== 0 && Math.abs(seq[idx + 1].midi - seq[idx].midi) <= 5;
+        for (j = 1; ok && j < 3; j++) {
+          var dd = seq[idx + j + 1].midi - seq[idx + j].midi;
+          if (Math.sign(dd) !== dir || Math.abs(dd) > 5) ok = false;
+        }
+        if (ok && R() < vy.motifFlip) {
+          var mids = [seq[idx].midi, seq[idx + 1].midi, seq[idx + 2].midi, seq[idx + 3].midi];
+          var mean = (mids[0] + mids[1] + mids[2] + mids[3]) / 4;
+          for (j = 0; j < 4; j++) seq[idx + j].midi = Math.round(2 * mean - mids[j]);
+          idx += 4;
+        } else idx++;
+      }
+    }
+    /* (2) rubato + süre titreşimi (vurmalı ızgarası dokunulmaz) */
+    for (i = 0; i < ev.length; i++) {
+      var e = ev[i];
+      if (PERC_LOCK[e.inst]) continue;
+      e.t = +Math.max(0, e.t + (R() - 0.5) * 0.05 * vy.rubato).toFixed(4);
+      if (!LEAD_SET[e.inst]) e.d = +Math.max(0.05, e.d * (1 + (R() - 0.5) * 2 * vy.durJitter)).toFixed(4);
+    }
+    /* (3) duygu eğimi: konserin öne çıkan ailesi (enerji-nötr — toplam seviye korunur) */
+    var sum0 = 0;
+    for (i = 0; i < ev.length; i++) sum0 += ev[i].v;
+    for (i = 0; i < ev.length; i++) {
+      var e2 = ev[i];
+      var fam = FAM[e2.inst] || 'str';
+      if (fam === vy.tilt) e2.v = +clamp(e2.v * (1 + vy.tiltAmt), 0.05, 1.35).toFixed(3);
+      else if (fam !== 'perc') e2.v = +clamp(e2.v * (1 - vy.tiltAmt * 0.55), 0.05, 1.35).toFixed(3);
+    }
+    var sum1 = 0;
+    for (i = 0; i < ev.length; i++) sum1 += ev[i].v;
+    var renorm = sum1 > 0 ? clamp(sum0 / sum1, 0.92, 1.08) : 1;
+    if (Math.abs(renorm - 1) > 0.005) {
+      for (i = 0; i < ev.length; i++) {
+        ev[i].v = +clamp(ev[i].v * renorm, 0.05, 1.35).toFixed(3);
+      }
+    }
+    /* (4) etkinlik maskesi: rastgele alt pencerelerde yoğunluk kırılması
+       — hangi anda hangi aile çalar örüntüsü her konserde değişir */
+    var tMax = 0;
+    for (i = 0; i < ev.length; i++) if (ev[i].t > tMax) tMax = ev[i].t;
+    var wins = 8, wLen = Math.max(1, tMax / wins), mask = [];
+    for (var w = 0; w < wins; w++) mask.push(R() < 0.35 ? 1 : +(0.82 + R() * 0.42).toFixed(2));
+    var out = [];
+    for (i = 0; i < ev.length; i++) {
+      var e5 = ev[i];
+      var m = mask[Math.min(wins - 1, Math.floor(e5.t / wLen))];
+      if (m !== 1 && !LEAD_SET[e5.inst] && !PERC_LOCK[e5.inst]) {
+        if (m < 1 && R() < (1 - m) * 0.55) continue;                 // zayıf pencere: ince ayıklama
+        if (m > 1) e5.v = +clamp(e5.v * m, 0.05, 1.35).toFixed(3);   // güçlü pencere: takviye
+      }
+      out.push(e5);
+    }
+    return out;
+  }
+
+  /* ==========================================================================
+     ARANJMAN RENKLENDİRME — 8 profilin orkestra paleti (enstrüman dönüşümleri)
+     ========================================================================== */
+  function remapEvents(ev, profile, R) {
+    var out = [];
+    var drop = profile.drop || {};
+    for (var i = 0; i < ev.length; i++) {
+      var e = ev[i];
+      if (drop[e.inst]) continue;
+      if (profile.remap && profile.remap[e.inst]) e.inst = profile.remap[e.inst];
+      var fam = FAM[e.inst] || 'str';
+      var g = (profile.famGain && profile.famGain[fam] != null) ? profile.famGain[fam] : 1;
+      e.v = +clamp(e.v * g, 0.05, 1.35).toFixed(3);
+      out.push(e);
+    }
+    return out;
+  }
+
+  /* ==========================================================================
+     SICAK TRANSPOZE (yarım ton) — perdesiz vurmalara dokunulmaz
+     ========================================================================== */
+  /*__ORCHESTRA_LESSON_25__*/
+
+  /* ==========================================================================
+     FAZ GEÇİŞ KÖRÜ — kenar sönümleme + sınırda kesme (tıklama yok)
+     ========================================================================== */
+  function edgeTaper(ev, movStart, movEnd) {
+    var out = [];
+    for (var i = 0; i < ev.length; i++) {
+      var e = ev[i];
+      var t0 = movStart + e.t, t1 = t0 + e.d;
+      if (t1 > movEnd - 0.015) {
+        e.d = +(Math.max(0.03, movEnd - 0.015 - t0)).toFixed(4);
+        if (e.d <= 0.031 && t0 > movEnd - 0.02) continue;
+      }
+      var v = e.v;
+      if (e.t < 0.30) v *= 0.55 + 0.45 * (e.t / 0.30);            // yumuşak giriş
+      if (t1 > movEnd - 0.45) v *= clamp((movEnd - t1) / 0.45 + 0.35, 0.35, 1); // yumuşak çıkış
+      e.v = +clamp(v, 0.05, 1.35).toFixed(3);
+      e.t = +e.t.toFixed(4);
+      out.push(e);
+    }
+    return out;
+  }
+
+  /* ==========================================================================
+     GİRİŞ JESTLERİ — 8 aranjmanın kendi "giriş" karakteri
+     ========================================================================== */
+  /*__ORCHESTRA_LESSON_26__*/
+
+  /* ==========================================================================
+     KADANS JESTLERİ — 8 aranjmanın kendi "kadans" karakteri
+     ========================================================================== */
+  /*__ORCHESTRA_LESSON_27__*/
+
+  /* ==========================================================================
+     DİNLENME JESTLERİ — bölümler arası "aralar" (sıcak etkileşimler)
+     ========================================================================== */
+  function restGesture(style, t0, dur, R, echoInst) {
+    var ev = [];
+    function p(inst, midi, t, d, v, px, pz) {
+      ev.push({ inst: inst, midi: midi, t: +t.toFixed(4), d: +d.toFixed(4), v: +clamp(v, 0.05, 1.35).toFixed(3), px: px || 0, pz: pz || 0 });
+    }
+    if (style === 'soloEko') {
+      p(echoInst, pick(R, [69, 72, 74, 76]), t0 + dur * 0.18, dur * 0.42, 0.38, 0.15, -1.2);
+    } else if (style === 'kalpTimp') {
+      p('timpani', 45, t0 + dur * 0.25, 0.22, 0.5);
+      p('timpani', 45, t0 + dur * 0.55, 0.26, 0.62);
+    } else if (style === 'cimbalSwell') {
+      p('reverse_cymbal', 60, t0 + dur * 0.35, dur * 0.6, 0.5);
+    } else if (style === 'koroFisilti') {
+      p('voice_oohs', 64, t0 + dur * 0.2, dur * 0.5, 0.22, 0, -1.6);
+      p('voice_oohs', 57, t0 + dur * 0.45, dur * 0.45, 0.18, 0, -1.8);
+    } else if (style === 'harpDamla') {
+      p('orchestral_harp', 81, t0 + dur * 0.2, dur * 0.3, 0.35, -0.3, -0.5);
+      p('orchestral_harp', 76, t0 + dur * 0.5, dur * 0.35, 0.3, -0.25, -0.4);
+    } /* bosDur: tam dinlenme (kuyruğun yankısı konuşur) */
+    return ev;
+  }
+
+  /* ==========================================================================
+     KONTROLLÜ MASTERING — bölüm ses dengesi + yumuşak tavan (temiz çıktı)
+     ========================================================================== */
+  function balanceMovements(movs) {
+    var loud = movs.map(function (m) {
+      var s = 0;
+      m.events.forEach(function (e) { s += e.v * e.v; });
+      return Math.max(1, s) / Math.max(1, m.dur);
+    });
+    var sorted = loud.slice().sort(function (a, b) { return a - b; });
+    var med = sorted[Math.floor(sorted.length / 2)] || 1;
+    movs.forEach(function (m, i) {
+      var g = clamp(Math.sqrt(med / loud[i]), 0.82, 1.22);
+      m.events.forEach(function (e) { e.v = +clamp(e.v * g, 0.05, 1.35).toFixed(3); });
+      m.gain = +g.toFixed(3);
+    });
+    return movs;
+  }
+
+  /* ==========================================================================
+     ANA PLAN: KONSER ÜRETİMİ
+     ========================================================================== */
+  function buildOnce(opts) {
+    opts = opts || {};
+    var S = root.Score;
+    if (!S || !S.build) return null;
+
+    var seed = uniqueSeed((opts.seed != null ? opts.seed : Date.now()) >>> 0);
+    var R = rng(seed ^ 0x5EEDC0DE);
+    var vy = makeVarya(R);
+    var pIdx = opts.profile != null ? ((opts.profile % PROFILES.length) + PROFILES.length) % PROFILES.length
+      : Math.floor(R() * PROFILES.length);
+    var profile = PROFILES[pIdx];
+    /* Bileşke sayaç: aynı ton / tempo / aranjman üçlüsünü en az kullanılanlardan seç.
+       Manuel aranjman seçimi değiştirilmez; yalnız ton ve tempo ona göre seçilir. */
+    var counter = root.Sayac, tonicOffsets=[-5,-4,-3,-2,-1,0,1,2,3,4,5,6];
+    var tempoFactors=[0.96,0.98,1.00,1.02,1.04], candidates=[], minCost=Infinity;
+    tonicOffsets.forEach(function(offset){tempoFactors.forEach(function(factor){
+      var pair=pIdx+'|'+offset+'|'+factor.toFixed(2);
+      var cost=counter ? counter.get('bileske',pair)*10 + counter.get('tonik',String(offset))*0.15 +
+        counter.get('tempo_derece',factor.toFixed(2))*0.15 : 0;
+      if(cost<minCost-1e-9){minCost=cost;candidates=[{offset:offset,factor:factor,pair:pair}];}
+      else if(Math.abs(cost-minCost)<1e-9)candidates.push({offset:offset,factor:factor,pair:pair});
+    });});
+    var selected=candidates[Math.floor(R()*candidates.length)];
+    var tonicOffset=selected.offset, tempoFactor=selected.factor;
+    var names=['Do','Do♯','Re','Mi♭','Mi','Fa','Fa♯','Sol','Sol♯','La','Si♭','Si'];
+    var tonicName=names[((69+tonicOffset)%12+12)%12]+' minör';
+    if(counter){counter.mark('bileske',selected.pair);counter.mark('tonik',String(tonicOffset));
+      counter.mark('tempo_derece',tempoFactor.toFixed(2));counter.mark('konser_aranjman',String(pIdx));}
+    var targetSec = clamp(opts.targetSec || 222, 205, 242);   // 3:25 – 4:02
+
+    /* zaman bütçesi: 3 dinlenme + final yankı payı */
+    var rests = [0, 0, 0]; // Bölümler arasında zaman boşluğu yok; final yankısı ayrı korunur.
+    var restTotal = rests[0] + rests[1] + rests[2];
+    var endRing = 2.2;
+    var musicTarget = targetSec - restTotal - endRing;
+
+    var movs = [], allEv = [], cursor = 0, timeline = [];
+    var globalSeed = seed;
+    // Dört bölüm aynı eserin partisyonundan türetilir: ortak motif ve armoni.
+    var sharedScore = null, previousBpm = null;
+
+    for (var mi = 0; mi < MOVES.length; mi++) {
+      var spec = MOVES[mi];
+      var moveTarget = musicTarget * spec.weight;
+
+      /* --- tempo eğrisi (tümsekler/çukurlar) + VARYA tempo tat farkı --- */
+      var raw = (TEMPO[spec.key] || [120]).map(function (b) { return b * profile.tempoK * vy.tempoFeel; });
+      /* hedef süreye göre ölçüt sayısı */
+      var avgBpm = raw.reduce(function (a, b) { return a + b; }, 0) / raw.length;
+      var gDur = spec.key === 'giris' ? 1.6 : 0; // yeni bölümde ikinci bir konser girişi yok
+      var cDur = spec.key === 'final' ? 2.6 : 0; // yalnız gerçek finalde kapanış
+      var matTarget = Math.max(8, moveTarget - gDur - cDur);
+      var N = clamp(Math.round(matTarget * avgBpm / 240), 10, 38);
+
+      /* --- kaynak skor (motor aynen kullanılır) --- */
+      var genSeed = (globalSeed ^ 0x9E3779B9) >>> 0;
+      if (!sharedScore) sharedScore = S.build({ seed: genSeed, arr: profile.arr, tempo: Math.round(avgBpm) });
+      var sc = sharedScore;
+      var barSec = sc.bar;
+
+      /* --- akıllı pencere --- */
+      var s = pickWindow(sc, spec, N, R);
+      N = Math.min(N, 46 - s);
+
+      /* --- tempo listesi ve süreye oturtma (kesin süre) --- */
+      var bpmList = [];
+      for (var bi = 0; bi < N; bi++) bpmList.push(bpmAtList(raw, N > 1 ? bi / (N - 1) * (raw.length - 1) : 0));
+      var durEst = 0;
+      for (var bj = 0; bj < N; bj++) durEst += 240 / bpmList[bj];
+      var kFit = clamp(durEst / matTarget, 0.75, 1.35);
+      for (var bk = 0; bk < N; bk++) bpmList[bk] = +(bpmList[bk] * kFit * tempoFactor).toFixed(2);
+      // Bölümler arasında ani tempo sıçraması yerine kademeli yaklaşım.
+      if (previousBpm !== null && bpmList.length) bpmList[0] = Math.max(previousBpm - 3, Math.min(previousBpm + 3, bpmList[0]));
+      for (var sm=1;sm<bpmList.length;sm++) bpmList[sm] = Math.max(bpmList[sm-1]-3, Math.min(bpmList[sm-1]+3, bpmList[sm]));
+      previousBpm=bpmList[bpmList.length-1];
+
+      /* --- dilimle → suslar/ritm → permütasyon → renk --- */
+      var ev = sliceWindow(sc, s, N);
+      ev = applySusAndRhythm(ev, sc, s, N, R, profile, barSec);
+      // Armoni bağlamını bozan sabit iki saniyelik blok takası devre dışı.
+      ev = remapEvents(ev, profile, R);
+
+      /* --- FAZ GEÇİŞ KÖRÜ: zaman haritası (monoton) --- */
+      var matStart = cursor + gDur;
+      var map = makeTimeMap(barSec, s, N, bpmList, matStart);
+      for (var ei = 0; ei < ev.length; ei++) {
+        var e = ev[ei];
+        var baseT = s * barSec + e.t;
+        var ct = map.to(baseT);
+        var rate = map.rate(baseT);
+        e.t = +(ct - cursor).toFixed(4);           // bölüm içi yerel saat
+        e.d = +Math.max(0.05, e.d * rate).toFixed(4);
+        allEv.push(e);
+      }
+      var matEnd = map.pts[map.pts.length - 1].c - cursor;
+      var beatGrid = [];
+      for (var gb = 0; gb < N; gb++) for (var gq = 0; gq < 4; gq++) {
+        beatGrid.push(+map.to((s + gb + gq / 4) * barSec).toFixed(4));
+      }
+      // Giriş jesti ve kadans, ilk/son gerçek vuruştan uzatılır.
+      var firstStep = 60 / bpmList[0], lastStep = 60 / bpmList[bpmList.length - 1];
+      var introBeats = [];
+      for (var ib = matStart - firstStep; ib >= cursor + 0.02; ib -= firstStep) introBeats.unshift(+ib.toFixed(4));
+      beatGrid = introBeats.concat(beatGrid);
+      for (var ctBeat = cursor + matEnd; ctBeat < cursor + matEnd + cDur - 0.05; ctBeat += lastStep) beatGrid.push(+ctBeat.toFixed(4));
+
+      /* Yaylı örüntüleri kaynak ölçünün gerçek Romen akorundan seçilir.
+         Her ölçüde tohumlu permütasyon, kontrollü hız ve küçük ifade farkları. */
+      for (var sb = 0; sb < N; sb++) {
+        var sourceChord = sc.chordAt && sc.chordAt[s + sb];
+        if (!sourceChord || sourceChord.length < 3) continue;
+        var bt0 = map.to((s + sb) * barSec) - cursor;
+        var bt1 = map.to((s + sb + 1) * barSec) - cursor;
+        var width = bt1 - bt0;
+        if (!(width > 0.2)) continue;
+        var ord = [0, 1, 2];
+        for (var ss = 2; ss > 0; ss--) { var sw = Math.floor(R() * (ss + 1)); var h = ord[ss]; ord[ss] = ord[sw]; ord[sw] = h; }
+        var cnt = R() < 0.55 ? 4 : 6;
+        var texture = spec.key === 'kopru' ? 0.70 : 1;
+        for (var sj2 = 0; sj2 < cnt; sj2++) {
+          var instr = sj2 % 3 === 0 ? 'cello' : (sj2 % 3 === 1 ? 'viola' : 'violin');
+          var pitch = sourceChord[ord[(sj2 + (sb % 3)) % 3]] + (instr === 'violin' ? 12 : instr === 'cello' ? -12 : 0);
+          var step = width / cnt;
+          allEv.push({inst: instr, midi: pitch, t: +(bt0 + sj2 * step + R() * Math.min(0.012, step * 0.08)).toFixed(4),
+            d: +(step * (0.78 + R() * 0.14)).toFixed(4), v: +((0.19 + R() * 0.06) * texture).toFixed(3),
+            px: instr === 'violin' ? -0.26 : instr === 'viola' ? -0.12 : 0.16, pz: 0.2 });
+        }
+      }
+
+      /* --- giriş jesti (bu aranjmanın girişi) --- */
+      var gEv = mi === 0 ? introGesture(profile.intro, 0, 0.5, R) : [];
+      gEv.forEach(function (x) { allEv.push(x); });
+
+      /* --- kadans jesti (final bölümde BÜYÜK FİNAL) — yerel saatte matEnd'ten sonra --- */
+      var cEv = spec.key === 'final' ? cadenceGesture(profile.cadence, matEnd, 0.5, R, true) : [];
+      cEv.forEach(function (x) { allEv.push(x); });
+
+      var movDur = matEnd + cDur;
+
+      /* --- sıcak transpoze + kenar sönümleme --- */
+      var movEvents = allEv.splice(0, allEv.length);   // bu bölümün olayları
+      // Her bölüm aynı tonal merkezde kalır; bağımsız rastgele modülasyon yok.
+      var trans = tonicOffset;
+      var harmoni = [];
+      for (var hb = 0; hb < N; hb++) {
+        var chord = sc.chordAt && sc.chordAt[s + hb];
+        if (!chord || !chord.length) chord = [57, 60, 64];
+        harmoni.push({ start: +map.to((s + hb) * barSec).toFixed(4),
+          end: +map.to((s + hb + 1) * barSec).toFixed(4),
+          notes: chord.map(function(x){ return x + trans; }) });
+      }
+      movEvents = transpose(movEvents, trans);
+      movEvents = edgeTaper(movEvents, 0, movDur);
+      // Bölüm başlangıcında hafif tonik çello, giriş jesti gecikse de ses kesilmesin.
+      var openingChord = sc.chordAt && sc.chordAt[s];
+      var openingNote = openingChord && openingChord.length ? openingChord[0] - 12 + trans : 45 + trans;
+      movEvents.push({inst:'cello',midi:openingNote,t:0,d:Math.min(1.0,movDur),v:0.20,px:0.14,pz:0.3});
+      // Bağımsız perde aynalaması yerine kaynak partisyonun armonisi korunur.
+
+      /* duygu özeti */
+      var phaseSeen = {}, dynSum = 0, dynN = 0;
+      for (var q = s; q < s + N; q++) {
+        if (sc.emotions && sc.emotions[q]) {
+          phaseSeen[sc.emotions[q].phase] = 1;
+          dynSum += sc.emotions[q].dyn; dynN++;
+        }
+      }
+
+      var mov = {
+        idx: mi, key: spec.key, name: spec.name,
+        start: +cursor.toFixed(3), dur: +movDur.toFixed(3),
+        bars: N, window: [s, s + N - 1], seed: genSeed,
+        bpmFrom: Math.round(bpmList[0]), bpmTo: Math.round(bpmList[bpmList.length - 1]),
+        bpmPeak: Math.round(Math.max.apply(null, bpmList)),
+        bpmList: bpmList.map(function (b) { return Math.round(b); }),
+        beatGrid: beatGrid, harmonyGrid: harmoni,
+        trans: trans,
+        events: movEvents,
+        phases: Object.keys(phaseSeen),
+        dynAvg: dynN ? +(dynSum / dynN).toFixed(2) : 1,
+        scoreKimlik: sc.kimlik ? sc.kimlik.ozet || sc.kimlik.aranjman : ''
+      };
+      movs.push(mov);
+      timeline.push({ type: 'mov', name: spec.name, start: mov.start, dur: mov.dur, idx: mi });
+      cursor += mov.dur;
+
+      /* --- DİNLENME (aralar) --- */
+      if (mi < MOVES.length - 1) {
+        var rd = rests[mi];
+        var rStyle = profile.restStyle[mi % profile.restStyle.length];
+        timeline.push({ type: 'rest', name: 'dinlenme', start: +cursor.toFixed(3), dur: rd, style: rStyle });
+        var rEv = []; // Bölümler arası eklenmiş geçiş jesti yok.
+        /* notlar konsere GLOBAL saatte eklenecek — şimdilik kenarda tut */
+        mov.restEvents = rEv;
+        cursor += rd;
+      }
+    }
+
+    // Orijinal dinlenme jestleri ve bölüm giriş/kadans geçişleri korunur.
+
+    /* --- global saat: bölüm olaylarını kaydır, dinlenme notalarını ekle --- */
+    var out = [];
+    movs.forEach(function (m) {
+      m.events.forEach(function (e) {
+        e.t = +(m.start + e.t).toFixed(4);
+        out.push(e);
+      });
+      if (m.restEvents) {
+        /* dinlenme notaları: sonraki bölümün sıcak transpozesine uyumlanır */
+        var nextT = (movs[m.idx + 1] ? movs[m.idx + 1].trans : 0);
+        // Geçişte akora bağlanmamış tonal süsleri kaldır; ritmik geçiş devam eder.
+        var safeRests = m.restEvents.filter(function(e){ return NO_TRANS[e.inst] || e.inst === 'timpani'; });
+        var rEv2 = transpose(safeRests, nextT);
+        rEv2.forEach(function (e) {
+          e.t = +e.t.toFixed(4);
+          out.push(e);
+        });
+        delete m.restEvents;
+      }
+    });
+
+    /* --- kontrollü mastering: bölüm dengesi --- */
+    balanceMovements(movs);
+
+    /* --- final yankı payı --- */
+    timeline.push({ type: 'ring', name: 'yankı', start: +cursor.toFixed(3), dur: endRing });
+    var totalSec = +(cursor + endRing).toFixed(2);
+
+    out.sort(function (a, b) { return a.t - b.t; });
+
+    /* --- parmak izi: bu örüntünün benzersizliği kanıtlanır --- */
+    vy.fp = fingerprint(out);
+
+    /* --- sayım & doğrulama (faz geçiş körü) --- */
+    var finiteOK = out.every(function (e) {
+      return isFinite(e.t) && isFinite(e.midi) && isFinite(e.d) && isFinite(e.v) &&
+        e.t >= 0 && e.d > 0 && e.v > 0 && e.midi >= 14 && e.midi <= 118;
+    });
+
+    var plan = {
+      version: VERSION,
+      seed: seed,
+      profile: profile,
+      profileIdx: pIdx,
+      targetSec: targetSec,
+      tonicOffset: tonicOffset, tonicName: tonicName, tempoFactor: tempoFactor,
+      totalSec: totalSec,
+      events: out,
+      movements: movs,
+      timeline: timeline,
+      rests: rests,
+      endRing: endRing,
+      master: profile.master,
+      notes: out.length,
+      finiteOK: finiteOK,
+      varya: vy,
+      kimlik: {
+        konser: 'PROFESYONEL ORKESTRA KONSERİ',
+        aranjman: profile.name,
+        tonik: tonicName,
+        tempoSecimi: tempoFactor,
+        aranjmanId: profile.id,
+        aciklama: profile.desc,
+        sure: fmt(totalSec),
+        hedef: fmt(targetSec),
+        tempoHarita: movs.map(function (m) {
+          return m.name + ' ' + m.bpmFrom + '→' + m.bpmTo + ' BPM' +
+            (m.trans ? ' (' + (m.trans > 0 ? '+' : '') + m.trans + ' yarım ton)' : '');
+        }),
+        dinlenmeler: rests.map(function (r) { return r.toFixed(1) + ' sn'; }).join(' · '),
+        kadans: profile.cadence + (movs.length ? ' + büyük final' : ''),
+        giris: profile.intro,
+        mastering: 'kontrollü · ' + profile.master.toFixed(2) + ' kazanç',
+        fazGecis: 'ortak partisyon · ortak ton · yumuşak tempo',
+        varya: 'motif aynası ' + (vy.motifFlip * 100).toFixed(0) + '% · rubato ×' + vy.rubato +
+          ' · duygu öne çıkan ' + vy.tilt + ' · sahne ×' + vy.panScale +
+          ' · hücre ritmi ×' + vy.cellDens + ' · parmak izi ' + vy.fp
+      }
+    };
+    return plan;
+  };
+
+  /* ==========================================================================
+     GARANTİLİ TEKİL ÜRETİM — aynı parmak izi asla iki kez üretilmez
+     ========================================================================== */
+  K.build = function (opts) {
+    opts = opts || {};
+    var plan, tries = 0;
+    for (;;) {
+      plan = buildOnce(opts);
+      tries++;
+      if (!plan || !FP_LEDGER[plan.varya.fp] || tries >= 4) break;
+      opts = {
+        seed: (Math.imul(plan.seed, 1664525) + 1013904223) >>> 0,
+        profile: opts.profile,
+        targetSec: opts.targetSec
+      };
+    }
+    if (plan && plan.varya) FP_LEDGER[plan.varya.fp] = 1;
+    return plan;
+  };
+
+  /* planı insan dilinde özetle (UI) */
+  K.describe = function (plan) {
+    if (!plan) return '';
+    return plan.kimlik.aranjman + ' · ' + plan.tonicName + ' · tempo ×' + plan.tempoFactor.toFixed(2) + ' · ' + plan.kimlik.sure + ' · ' +
+      plan.notes + ' nota · ' + plan.kimlik.mastering;
+  };
+
+  K.VERSION = VERSION;
+  root.Konser = K;
+})(typeof window !== 'undefined' ? window : this);

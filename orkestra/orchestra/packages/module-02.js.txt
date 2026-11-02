@@ -1,0 +1,158 @@
+
+/* ==========================================================================
+   SAVAŞ DRAMATURJİSİ — cephe hattı, kıta/alay konumları, 3D pan
+   Her şarkı bir muharebe: eşit başlar, ilerler, geriler, baskın yer, kuşatılır,
+   karşı saldırıya geçer, kazanır. Denge sürekli değişir; her kıta uzayda
+   farklı bir noktada durur ve cephe kaydıkça yer değiştirir.
+   Ayrıca her şarkı BİR ÖNCEKİNİN ZITTI: ayna (pan ters), faz sırası döndürme,
+   ritmik kaydırma (1 onaltılık) ve vurgu ters çevirme.
+   ========================================================================== */
+(function (root) {
+  'use strict';
+
+  var B = {};
+
+  /* ---- kıtalar (alaylar): 3D konumlar ---- */
+  var REG = {
+    solKita:   { x: -0.68, y: 0.12, z: -0.22, fam: ['violin', 'viola', 'string_ensemble_1', 'string_ensemble_2'] },
+    sagKita:   { x: 0.66, y: 0.16, z: -0.18, fam: ['trumpet', 'trombone', 'brass_section'] },
+    merkez:    { x: 0.00, y: 0.06, z: -0.10, fam: ['cello', 'bassoon', 'clarinet'] },
+    basHat:    { x: 0.04, y: -0.04, z: -0.48, fam: ['contrabass', 'tuba', 'timpani'] },
+    oncu:      { x: 0.00, y: 0.22, z: 0.58, fam: ['trumpet', 'oboe', 'flute', 'piccolo'] },
+    yedek:     { x: 0.00, y: 0.28, z: -0.95, fam: ['choir_aahs', 'voice_oohs', 'french_horn'] },
+    vurma:     { x: 0.02, y: 0.00, z: -0.34, fam: ['timpani', 'taiko_drum', 'melodic_tom', 'woodblock', 'reverse_cymbal', 'tubular_bells', 'glockenspiel', 'orchestra_hit'] }
+  };
+
+  /* ---- faz sözlüğü: denge eğrisi, yoğunluk, dinamik, odak kıta ---- */
+  var PHASES = [
+    { id: 'esit', name: 'Eşit güçler', b: 0.00, dens: 0.74, dyn: 0.86, focus: 'solKita', perc: 'nobet' },
+    { id: 'ilerleme', name: 'İlerleme', b: 0.42, dens: 0.82, dyn: 0.98, focus: 'merkez', perc: 'yuruyus' },
+    { id: 'baskin', name: 'Baskın', b: 0.78, dens: 1.02, dyn: 1.16, focus: 'oncu', perc: 'baskin' },
+    { id: 'gerileme', name: 'Gerileme', b: -0.32, dens: 0.80, dyn: 0.94, focus: 'yedek', perc: 'geri' },
+    { id: 'kusatma', name: 'Kuşatma', b: -0.62, dens: 0.70, dyn: 0.84, focus: 'basHat', perc: 'kusatma' },
+    { id: 'karsi', name: 'Karşı saldırı', b: 0.52, dens: 1.10, dyn: 1.24, focus: 'sagKita', perc: 'karsi' },
+    { id: 'zafer', name: 'Zafer', b: 0.92, dens: 1.16, dyn: 1.30, focus: 'tutti', perc: 'zafer' }
+  ];
+
+  var PHASE_BY_ID = {};
+  PHASES.forEach(function (p) { PHASE_BY_ID[p.id] = p; });
+  B.PHASES = PHASES; B.PHASE_BY_ID = PHASE_BY_ID; B.REG = REG;
+
+  function familyOf(inst) {
+    for (var k in REG) {
+      if (REG[k].fam.indexOf(inst) >= 0) return k;
+    }
+    return 'merkez';
+  }
+  B.familyOf = familyOf;
+
+  /* ---- tohumlu üreteç ---- */
+  function rng(seed) {
+    var s = (seed >>> 0) || 1;
+    return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+  }
+
+  /* ---- plan: 46 ölçülük muharebe ---- */
+  B.plan = function (opts) {
+    opts = opts || {};
+    var bars = opts.bars || 46;
+    var R = rng(opts.seed || 1234);
+    var prev = opts.prev || null;          // önceki şarkının planı (zıtlık için)
+
+    /* 1) faz sırası: her şarkıda farklı sıra + öncekiyle zıt */
+    var order = ['esit', 'ilerleme', 'baskin', 'gerileme', 'kusatma', 'karsi', 'zafer'];
+    if (prev && prev.order) {
+      /* öncekinin aynası: zafer/kuşatma yer değiştirir, ilerleme/gerileme ters */
+      var mirror = { esit: 'esit', ilerleme: 'gerileme', baskin: 'kusatma', gerileme: 'ilerleme', kusatma: 'baskin', karsi: 'karsi', zafer: 'zafer' };
+      order = prev.order.map(function (id) { return mirror[id] || id; });
+      if (R() < 0.6) order = order.slice().reverse();
+      /* GARANTİ: sıra öncekiyle birebir aynı olamaz (karşı saldırı zorunlu) */
+      if (order.join('|') === prev.order.join('|')) {
+        var q0 = 1 + Math.floor(R() * 2), q1 = 4 + Math.floor(R() * 3);
+        var tq = order[q0]; order[q0] = order[q1]; order[q1] = tq;
+      }
+    } else {
+      /* ilk şarkı: kura ile 2 fazın yerini değiştir */
+      var a = 1 + Math.floor(R() * 3), b2 = 4 + Math.floor(R() * 3);
+      var tmp = order[a]; order[a] = order[b2]; order[b2] = tmp;
+    }
+
+    /* 2) her faza ölçü ayır (toplam tam 46) */
+    var weights = order.map(function (id) { return 2 + R() * 3; });
+    var sum = weights.reduce(function (p, c) { return p + c; }, 0);
+    var alloc = weights.map(function (w) { return Math.max(2, Math.round(w / sum * bars)); });
+    var diff = bars - alloc.reduce(function (p, c) { return p + c; }, 0);
+    var ii = 0;
+    while (diff !== 0) { alloc[ii % alloc.length] += (diff > 0 ? 1 : -1); diff += (diff > 0 ? -1 : 1); ii++; }
+
+    /* 3) ölçü ölçü eğri */
+    var map = [];
+    var bar = 0;
+    for (var i = 0; i < order.length; i++) {
+      var p = PHASE_BY_ID[order[i]] || PHASE_BY_ID['esit'];
+      var n = alloc[i];
+      var prevB = map.length ? map[map.length - 1].b : 0;
+      for (var j = 0; j < n; j++) {
+        var k = n > 1 ? j / (n - 1) : 1;
+        var ease = k * k * (3 - 2 * k);                       // smoothstep
+        var b = prevB + (p.b - prevB) * ease;
+        if (prev && prev.mirror) b = -b;                      // öncekiyle zıt denge
+        map.push({
+          bar: bar++,
+          phase: p.id, phaseName: p.name, focus: p.focus, perc: p.perc,
+          b: +b.toFixed(3), dens: p.dens, dyn: p.dyn,
+          /* ritmik kaydırma: önceki şarkıyla asenkron */
+          shift: (opts.shift || 0)
+        });
+      }
+    }
+
+    /* 4) kıta konumları: denge ile cephe kayar */
+    function regPos(fam, b) {
+      var r = REG[fam] || REG.merkez;
+      /* biz ilerledikçe (b>0) kıtalar sağa/öne, geriledikçe sola/arkaya */
+      var side = (r.x >= 0 ? 1 : -1);
+      return {
+        x: +(r.x + b * 0.30 * side).toFixed(3),
+        y: +(r.y + Math.max(0, b) * 0.10).toFixed(3),
+        z: +(r.z + b * 0.35).toFixed(3)
+      };
+    }
+
+    var plan = {
+      order: order, alloc: alloc, map: map, bars: bars,
+      mirror: !!(prev && prev.mirror) ? false : true,
+      seed: opts.seed, shift: opts.shift || 0,
+      regPos: regPos,
+      /* özet: kaç ölçü ilerleme, kaç ölçü gerileme */
+      stats: (function () {
+        var s = {};
+        map.forEach(function (m) { s[m.phase] = (s[m.phase] || 0) + 1; });
+        return s;
+      })()
+    };
+    return plan;
+  };
+
+  /* ---- pan yardımcıları ---- */
+  B.panOf = function (inst, barInfo, spread) {
+    var fam = familyOf(inst);
+    var p = barInfo && barInfo.posOf ? barInfo.posOf(fam) : (REG[fam] || REG.merkez);
+    var s = spread == null ? 1 : spread;
+    return {
+      x: Math.max(-1, Math.min(1, p.x * s)),
+      y: p.y,
+      z: Math.max(-1.2, Math.min(1.2, p.z))
+    };
+  };
+
+  /* ---- cephe görselleştirme verisi (arayüz) ---- */
+  B.frontOf = function (plan, bar) {
+    if (!plan || !plan.map.length) return { b: 0, phase: 'esit', name: 'Eşit güçler' };
+    var m = plan.map[Math.max(0, Math.min(plan.map.length - 1, bar))];
+    return { b: m.b, phase: m.phase, name: m.phaseName, focus: m.focus };
+  };
+
+  root.Battle = B;
+})(typeof window !== 'undefined' ? window : this);
+

@@ -1,0 +1,80 @@
+
+/* klavye görselleştirme + enstrüman listesi */
+(function(){
+  var keys = document.getElementById('keys');
+  var ctx = keys.getContext('2d');
+  var W = keys.width, H = keys.height;
+  var WHITE = [0,2,4,5,7,9,11];
+  function isWhite(m){ return WHITE.indexOf(m % 12) >= 0; }
+  var whites = [], blacks = [];
+  for (var m = 21; m <= 108; m++){ (isWhite(m)?whites:blacks).push(m); }
+  var wW = W / whites.length;
+  var active = {};
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    /* beyazlar */
+    whites.forEach(function(m,i){
+      var x = i*wW, on = active[m];
+      var g = ctx.createLinearGradient(0,0,0,H);
+      g.addColorStop(0, on ? '#f7e3b4' : '#e9edf5');
+      g.addColorStop(1, on ? '#d6b26e' : '#c3c9d6');
+      ctx.fillStyle = g; ctx.fillRect(x+0.6, 0, wW-1.2, H);
+      ctx.fillStyle = 'rgba(0,0,0,.10)'; ctx.fillRect(x, 0, 0.8, H);
+    });
+    /* siyahlar */
+    blacks.forEach(function(m){
+      var wi = whites.filter(function(w){ return w < m; }).length - 1;
+      var x = (wi+1)*wW - wW*0.32;
+      var on = active[m];
+      var g = ctx.createLinearGradient(0,0,0,H*0.62);
+      g.addColorStop(0, on ? '#4a3a1c' : '#1b1f28');
+      g.addColorStop(1, on ? '#d6b26e' : '#0a0c11');
+      ctx.fillStyle = g; ctx.fillRect(x, 0, wW*0.64, H*0.62);
+    });
+  }
+  draw();
+  setInterval(function(){
+    var log = window.Orchestra ? window.Orchestra.lastPlayed() : {};
+    var now = window.Orchestra ? window.Orchestra.now() : 0;
+    var any = false;
+    active = {};
+    var st = window.Player && window.Player.state;
+    if (st && st.score && st.playing){
+      var el = now - st.startAt;
+      var t0 = el - 0.22, t1 = el + 0.06;
+      st.score.events.forEach(function(e){
+        if (e.t >= t0 && e.t <= t1){ active[e.midi] = 1; any = true; }
+      });
+    }
+    draw();
+    /* enstrüman listesi ışıkları */
+    var outs = document.querySelectorAll('.inst');
+    for (var i=0;i<outs.length;i++){
+      var k = outs[i].getAttribute('data-inst');
+      outs[i].classList.toggle('hot', (now - (log[k] || -9)) < 0.45);
+    }
+  }, 70);
+
+  /* enstrüman listesi */
+  var NAMES = {
+    violin:'1. Keman', viola:'Viyola', cello:'Çello', contrabass:'Kontrbas',
+    pizzicato_strings:'Pizzicato', tremolo_strings:'Tremolo', string_ensemble_1:'Yaylı Topluluk',
+    french_horn:'Korno (F)', trumpet:'Trompet (B♭)', trombone:'Trombon', tuba:'Tuba',
+    brass_section:'Bakır Topluluk', timpani:'Timpali', taiko_drum:'Orkestral Davul',
+    woodblock:'Tahta Blok', glockenspiel:'Glockenspiel', tubular_bells:'Borusal Çan',
+    orchestra_hit:'Orkestra Çarpması', orchestral_harp:'Arp', flute:'Flüt', oboe:'Obua',
+    clarinet:'Klarnet', bassoon:'Fagot', choir_aahs:'Koro (aah)', reverse_cymbal:'Zil Kabarması',
+    voice_oohs:'Koro (ooh)', string_ensemble_2:'Yaylı Topluluk II', melodic_tom:'Melodik Tom'
+  };
+  window.addEventListener('load', function(){
+    var host = document.getElementById('instList');
+    if (!host) return;
+    var html = '';
+    Object.keys(NAMES).forEach(function(k){
+      html += '<div class="inst" data-inst="'+k+'"><i></i>'+NAMES[k]+'</div>';
+    });
+    host.innerHTML = html;
+  });
+
+  window.addEventListener('load', function(){ window.Player.boot(); });
+})();

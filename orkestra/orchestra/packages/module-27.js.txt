@@ -1,0 +1,17 @@
+
+/* Akor-nota granülleri: kısa notalardan oluşturulmuş sınırlı arp cümleleri.
+   Bu, ses örneğini granüler sentezle parçalamak değil, MIDI nota düzeyinde işlemdir. */
+(function(root){
+ 'use strict';
+ var patterns=[[0,1,2,1],[0,2,1,2],[2,1,0,1],[1,2,0,2],[0,1,2,0,1],[2,0,1,2,1]];
+ function rng(seed){var x=(seed>>>0)||1;return function(){x=(Math.imul(x,1664525)+1013904223)>>>0;return x/4294967296;};}
+ function warmPitch(pc,around){
+  var best=69,d=99;
+  for(var n=57;n<=81;n++)if(((n%12)+12)%12===pc && Math.abs(n-around)<d){best=n;d=Math.abs(n-around);}
+  return best;
+ }
+ /*__ORCHESTRA_LESSON_42__*/
+ function boot(){if(!root.Konser||!root.Konser.build)return;var prev=root.Konser.build;
+  root.Konser.build=function(opts){return harpSolos(prev(opts));};}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})(window);

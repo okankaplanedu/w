@@ -1,0 +1,378 @@
+
+/* ==========================================================================
+   KONSER ÇALICI + PANEL — final profesyonel orkestra konser üreteci arayüzü
+   --------------------------------------------------------------------------
+   · Konsere özel zamanlayıcı (orijinal çalıcı AYNEN korunur, çakışmaz)
+   · 4 bölüm + dinlenme şeridi, canlı BPM, konser planı tablosu
+   · Kontrollü mastering kazancı (profil bazlı) — temiz, yormayan çıkış
+   ========================================================================== */
+(function (root) {
+  'use strict';
+
+  var A = root.Orchestra, K = root.Konser, P = root.Player;
+  var state = {
+    playing: false, plan: null, nextIdx: 0, startAt: 0, timer: null,
+    lookAhead: 0.9, notesPlayed: 0, profileIdx: 0, seed: (Date.now() ^ 0x5EED) >>> 0,
+    targetSec: 222, autoTimer: null
+  };
+
+  function cancelAuto() {
+    if (state.autoTimer !== null) { clearTimeout(state.autoTimer); state.autoTimer = null; }
+  }
+
+  function $(s) { return document.querySelector(s); }
+  function el(id) { return document.getElementById(id); }
+
+  function flash(msg) {
+    var f = el('loopFlash');
+    if (!f) return;
+    f.textContent = msg;
+    f.classList.add('show');
+    setTimeout(function () { f.classList.remove('show'); }, 1500);
+  }
+
+  /* ---------------- plan üret ---------------- */
+  /*__ORCHESTRA_LESSON_28__*/
+
+  /* ---------------- zamanlayıcı ---------------- */
+  function schedule() {
+    if (!state.playing || !state.plan) return;
+    var plan = state.plan, ev = plan.events;
+    var horizon = A.now() + state.lookAhead;
+    while (state.nextIdx < ev.length) {
+      var e = ev[state.nextIdx];
+      if (!isFinite(e.t) || !isFinite(e.midi) || !isFinite(e.d) || !isFinite(e.v)) { state.nextIdx++; continue; }
+      var at = state.startAt + e.t;
+      if (at > horizon) break;
+      if (at < A.now() - 0.15) { state.nextIdx++; continue; }   // geç kalanı yak (faz güvenliği)
+      /* zengin ses seçenekleri: 3D sahne (px/pz) + spektral kontur (cut) +
+         kazanç (amp) + sis (wet) — renk ayrımı katmanı tarafından doldurulur */
+      var o = null;
+      if (e.px != null || e.cut != null || e.amp != null || e.wet != null) {
+        o = { px: e.px != null ? e.px : 0, pz: e.pz != null ? e.pz : 0 };
+        if (isFinite(e.cut)) o.cut = e.cut;
+        if (isFinite(e.amp)) o.amp = e.amp;
+        if (isFinite(e.wet)) o.wet = e.wet;
+        if (e.bridgeAttack) o.bridgeAttack = true;
+        if (e.harpGrain) o.harpGrain = true;
+      }
+      A.note(e.inst, e.midi, at, e.d, e.v, o);
+      state.notesPlayed++;
+      state.nextIdx++;
+    }
+    var elapsed = A.now() - state.startAt;
+    /* UI */
+    var ck = el('kClock'); if (ck) ck.textContent = K.fmt(Math.min(elapsed, plan.totalSec));
+    var mv = moveAt(plan, elapsed);
+    var mn = el('kMove'); if (mn) mn.textContent = mv ? mv.item.name : (elapsed >= plan.totalSec ? 'bitti' : 'dinlenme');
+    var kn = el('kNow');
+    if (kn) {
+      if (mv && mv.item.type === 'mov') {
+        var m = plan.movements[mv.idx];
+        kn.textContent = m.name + ' · ' + m.window[0] + '–' + m.window[1] + '. ölçü · ' +
+          (m.trans >= 0 ? '+' : '') + m.trans + ' yarım ton';
+      } else if (mv && mv.item.type === 'rest') {
+        kn.textContent = 'BÖLÜM ARASI · doğal yankı';
+      } else {
+        kn.textContent = 'final yankısı';
+      }
+    }
+    var bp = el('kBpm');
+    if (bp) bp.textContent = plan && mv ? String(bpmAt(plan, elapsed)) : '—';
+    drawTimeline(elapsed);
+    /* bitti mi? */
+    if (state.nextIdx >= ev.length && elapsed > plan.totalSec + 0.3) {
+      stop();
+      flash('KONSER TAMAMLANDI · YENİ KONSER HAZIRLANIYOR');
+      try {
+        // Mevcut besteleme, orkestrasyon ve denge motorları aynen kullanılır.
+        var oldSeed = state.seed >>> 0;
+        var fresh = new Uint32Array(1);
+        if (window.crypto && window.crypto.getRandomValues) window.crypto.getRandomValues(fresh);
+        else fresh[0] = (Math.random() * 4294967296) >>> 0;
+        state.seed = fresh[0] === oldSeed ? (oldSeed + 1) >>> 0 : fresh[0];
+        if (K.PROFILES.length > 1) {
+          var choices=K.PROFILES.map(function(_,i){return i;}).filter(function(i){return i!==state.profileIdx;});
+          state.profileIdx = root.Sayac ? root.Sayac.pick(Math.random,'otomatik_aranjman',choices,function(i){return String(i);}) : choices[Math.floor(Math.random()*choices.length)];
+        }
+        renderProfiles();
+        state.plan = null;
+        buildPlan(false);
+        if (!state.plan) throw new Error('Yeni konser planı üretilemedi');
+        var kn2 = el('kNow'); if (kn2) kn2.textContent = 'yeni konser hazır · 5 saniye sonra otomatik başlayacak';
+        var btn = el('kPlayBtn'); if (btn) btn.textContent = 'OTOMATİĞİ İPTAL ET';
+        state.autoTimer = setTimeout(function () {
+          state.autoTimer = null;
+          start();
+          if (!state.playing) {
+            var label = el('kNow'); if (label) label.textContent = 'otomatik başlatılamadı · KONSERİ ÇAL düğmesine basın';
+            var button = el('kPlayBtn'); if (button) button.textContent = 'KONSERİ ÇAL';
+          }
+        }, 5000);
+      } catch (err) {
+        console.error('Otomatik konser:', err);
+        var notice = el('kNow'); if (notice) notice.textContent = 'yeni konser hazırlanamadı · yeniden deneyin';
+        flash('YENİ KONSER HAZIRLANAMADI');
+      }
+    }
+  }
+
+  /*__ORCHESTRA_LESSON_29__*/
+
+  /*__ORCHESTRA_LESSON_30__*/
+
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+
+  /* ---------------- zaman çizelgesi çizimi ---------------- */
+  function drawTimeline(elapsed) {
+    var cv = el('kTimeline');
+    if (!cv || !state.plan) return;
+    var ctx = cv.getContext('2d');
+    var W = cv.width, H = cv.height;
+    var plan = state.plan, total = plan.totalSec;
+    ctx.clearRect(0, 0, W, H);
+    /* zemin */
+    ctx.fillStyle = '#06070c';
+    ctx.fillRect(0, 0, W, H);
+    /* hareket blokları */
+    plan.timeline.forEach(function (it) {
+      var x = (it.start / total) * W, w = Math.max(2, (it.dur / total) * W);
+      if (it.type === 'mov') {
+        var g = ctx.createLinearGradient(0, 6, 0, H - 6);
+        g.addColorStop(0, 'rgba(214,178,110,.85)');
+        g.addColorStop(1, 'rgba(150,116,62,.75)');
+        ctx.fillStyle = g;
+        roundRect(ctx, x + 1, 10, w - 2, H - 34, 7);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(10,12,18,.92)';
+        ctx.font = 'bold 15px ui-monospace,monospace';
+        ctx.textAlign = 'center';
+        if (w > 60) ctx.fillText(it.name, x + w / 2, H / 2 - 2);
+      } else if (it.type === 'rest') {
+        ctx.fillStyle = 'rgba(127,216,200,.16)';
+        roundRect(ctx, x + 1, 18, w - 2, H - 50, 5);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(127,216,200,.4)';
+        ctx.stroke();
+        ctx.fillStyle = '#7fd8c8';
+        ctx.font = '11px ui-monospace,monospace';
+        if (w > 34) ctx.fillText('ara', x + w / 2, H - 20);
+      } else {
+        ctx.fillStyle = 'rgba(255,255,255,.05)';
+        roundRect(ctx, x + 1, 18, w - 2, H - 50, 5);
+        ctx.fill();
+      }
+    });
+    /* BPM eğrisi (tümsekler / çukurlar) */
+    ctx.beginPath();
+    var started = false;
+    plan.movements.forEach(function (m) {
+      for (var i = 0; i < m.bpmList.length; i++) {
+        var tt = m.start + (i / Math.max(1, m.bpmList.length - 1)) * m.dur;
+        var x2 = (tt / total) * W;
+        var lo = 88, hi = 160;
+        var y2 = H - 22 - ((m.bpmList[i] - lo) / (hi - lo)) * (H - 46);
+        if (!started) { ctx.moveTo(x2, y2); started = true; }
+        else ctx.lineTo(x2, y2);
+      }
+    });
+    ctx.strokeStyle = 'rgba(242,215,154,.85)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    /* ilerleme dolgusu */
+    var px = clamp(elapsed / total, 0, 1) * W;
+    ctx.fillStyle = 'rgba(255,255,255,.09)';
+    ctx.fillRect(0, 0, px, H);
+    /* oynatma başı */
+    ctx.fillStyle = '#f2d79a';
+    ctx.fillRect(px - 1.5, 0, 3, H);
+    ctx.beginPath();
+    ctx.arc(px, 8, 5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function roundRect(ctx, x, y, w, h, r) {
+    if (w < 2 * r) r = w / 2;
+    if (h < 2 * r) r = h / 2;
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  /* ---------------- plan tablosu ---------------- */
+  function renderPlan(plan) {
+    var host = el('kPlan');
+    if (!host) return;
+    var rows = plan.movements.map(function (m) {
+      return '<div class="kp-row">' +
+        '<b class="kp-tag">' + m.name + '</b>' +
+        '<span>' + m.window[0] + '–' + m.window[1] + '. ölçü (' + m.bars + ')</span>' +
+        '<span>' + m.bpmFrom + '→' + m.bpmPeak + '→' + m.bpmTo + ' BPM</span>' +
+        '<span>' + (m.trans >= 0 ? '+' : '') + m.trans + ' yarım ton</span>' +
+        '<span>' + m.phases.join(', ') + '</span>' +
+        '<span>' + m.events.length + ' nota · yoğunluk ' + m.dynAvg + '</span>' +
+        '</div>';
+    });
+    var restRow = '<div class="kp-row kp-rest"><b class="kp-tag">KESİNTİSİZ BÖLÜMLER</b>' +
+      '<span>' + plan.rests.map(function (r) { return r.toFixed(1) + ' sn'; }).join(' · ') +
+      ' · sonunda ' + plan.endRing.toFixed(1) + ' sn yankı</span>' +
+      '<span>' + plan.kimlik.giris + ' → ' + plan.kimlik.kadans + '</span></div>';
+    var head = '<div class="kp-row kp-head"><b class="kp-tag">' + plan.kimlik.aranjman + '</b>' +
+      '<span>' + plan.kimlik.sure + ' · ' + plan.notes + ' nota · ' + plan.version + '</span>' +
+      '<span>' + plan.kimlik.mastering + ' · ' + plan.kimlik.fazGecis + '</span></div>';
+    host.innerHTML = head + rows.join('') + restRow;
+  }
+
+  /* ---------------- profil rozetleri ---------------- */
+  function renderProfiles() {
+    var host = el('kProfiles');
+    if (!host || !K) return;
+    var html = '';
+    K.PROFILES.forEach(function (p, i) {
+      html += '<span class="k-pill' + (i === state.profileIdx ? ' on' : '') + '" data-i="' + i + '" title="' + p.desc + '">' +
+        (i + 1) + ' · ' + p.name + '</span>';
+    });
+    host.innerHTML = html;
+    Array.prototype.forEach.call(host.querySelectorAll('.k-pill'), function (n) {
+      n.addEventListener('click', function () {
+        state.profileIdx = +n.getAttribute('data-i');
+        renderProfiles();
+        buildPlan(false);
+        flash('ARANJMAN: ' + K.PROFILES[state.profileIdx].name.toUpperCase());
+      });
+    });
+  }
+
+  /* ---------------- kontrol ---------------- */
+  function start() {
+    if (!state.plan) buildPlan(false);
+    if (!state.plan) return;
+    A.init();
+    A.resume();
+    if (!A.isReady()) { flash('orkestra henüz yükleniyor…'); return; }
+    /* klasik mod çalıyorsa durdur (çakışma yok) */
+    if (P && P.state && P.state.playing) P.stop();
+    if (state.timer) clearInterval(state.timer);
+    state.playing = true;
+    state.nextIdx = 0;
+    state.notesPlayed = 0;
+    state.startAt = A.now() + 0.55;
+    /* kontrollü mastering kazancı (Player.stop geri yüklemesinden sonra) */
+    var vs = el('vol');
+    var ms = (state.plan.denge && state.plan.denge.masterScale) ? state.plan.denge.masterScale : 1;
+    A.setVolume(Math.min(0.70, (vs ? +vs.value : 0.50) * state.plan.master * ms));
+    A.fadeIn(0.9);
+    state.timer = setInterval(schedule, 90);
+    schedule();
+    var b = el('kPlayBtn'); if (b) b.textContent = 'KONSERİ DURDUR';
+    document.body.classList.add('playing');
+    flash('KONSER BAŞLIYOR · ' + state.plan.kimlik.aranjman.toUpperCase());
+  }
+
+  function stop() {
+    cancelAuto();
+    state.playing = false;
+    if (state.timer) { clearInterval(state.timer); state.timer = null; }
+    if (A) { A.fadeOut(0.5); }
+
+    var b = el('kPlayBtn'); if (b) b.textContent = 'KONSERİ ÇAL';
+    document.body.classList.remove('playing');
+    drawTimeline(state.plan ? Math.min(A.now() - state.startAt, state.plan.totalSec) : 0);
+  }
+
+  /* ---------------- açılış ---------------- */
+  function bootK() {
+    if (!K) return;
+    renderProfiles();
+    var kp = el('kPlayBtn');
+    // Bekleme sırasında iptal, mevcut oynat/durdur işleyicisinden önce yapılır.
+    if (kp) kp.addEventListener('click', function (e) {
+      if (state.autoTimer !== null) {
+        e.stopImmediatePropagation(); cancelAuto();
+        kp.textContent = 'KONSERİ ÇAL';
+        var now = el('kNow'); if (now) now.textContent = 'otomatik devam iptal edildi · yeni konser hazır';
+      }
+    }, true);
+    // Kullanıcının elle yaptığı seçim bekleyen otomatik başlatmaya üstün gelir.
+    document.addEventListener('click', function (e) {
+      if (state.autoTimer === null || !e.target.closest) return;
+      if (e.target.closest('#kNewBtn, #kSeedBtn, #kLenSeg, #kProfiles, #playBtn')) {
+        cancelAuto();
+        if (kp) kp.textContent = 'KONSERİ ÇAL';
+      }
+    }, true);
+    document.addEventListener('keydown', function (e) {
+      if (state.autoTimer !== null && (e.key === 'k' || e.key === 'K' || e.code === 'Space')) {
+        cancelAuto(); if (kp) kp.textContent = 'KONSERİ ÇAL';
+      }
+    }, true);
+    if (kp) kp.addEventListener('click', function () {
+      if (state.playing) stop();
+      else {
+        /* kullanıcı etkileşimli başlatma */
+        state.plan = state.plan || K.build({ seed: state.seed, profile: state.profileIdx, targetSec: state.targetSec });
+        if (!state.plan) { buildPlan(false); }
+        start();
+      }
+    });
+    var kn = el('kNewBtn');
+    if (kn) kn.addEventListener('click', function () {
+      state.seed = (Math.random() * 4294967295) >>> 0;
+      buildPlan(state.playing);
+      if (!state.playing) flash('YENİ KONSER HAZIR');
+    });
+    var ks = el('kSeedBtn');
+    if (ks) ks.addEventListener('click', function () {
+      state.seed = (Date.now() ^ (Math.random() * 4294967295)) >>> 0;
+      var options=K.PROFILES.map(function(_,i){return i;});
+      state.profileIdx = root.Sayac ? root.Sayac.pick(Math.random,'otomatik_aranjman',options,function(i){return String(i);}) : Math.floor(Math.random()*K.PROFILES.length);
+      renderProfiles();
+      buildPlan(state.playing);
+      flash('RASTGELE TOHUM · ' + K.PROFILES[state.profileIdx].name.toUpperCase());
+    });
+    /* süre seçici */
+    var seg = el('kLenSeg');
+    if (seg) {
+      Array.prototype.forEach.call(seg.querySelectorAll('b[data-len]'), function (n) {
+        n.addEventListener('click', function () {
+          Array.prototype.forEach.call(seg.querySelectorAll('b'), function (x) { x.classList.remove('on'); });
+          n.classList.add('on');
+          state.targetSec = +n.getAttribute('data-len');
+          buildPlan(state.playing);
+        });
+      });
+    }
+    /* klasik çal butonuna basılırsa konseri durdur (çift çalma engeli) */
+    var pb = el('playBtn');
+    if (pb) pb.addEventListener('click', function () {
+      if (state.playing) stop();
+    }, true);
+    /* boşluk tuşu: klasik modla çakışmasın diye konser açıkken konseri yönetir */
+    document.addEventListener('keydown', function (e) {
+      if (e.code === 'Space' && state.playing) {
+        /* klasik toggle da dinliyor; iki kez tetiklenmesin diye yalnızca durdur */
+        if (P && P.state && P.state.playing) return;
+      }
+      if (e.key === 'k' || e.key === 'K') {
+        if (state.playing) stop(); else start();
+      }
+    });
+    /* ilk planı hazırla (çalmadan) */
+    setTimeout(function () { buildPlan(false); }, 400);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootK);
+  } else {
+    setTimeout(bootK, 1);
+  }
+
+  root.KonserPlayer = {
+    state: state, start: start, stop: stop,
+    build: buildPlan
+  };
+})(typeof window !== 'undefined' ? window : this);

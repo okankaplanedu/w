@@ -1,0 +1,110 @@
+
+/* ==========================================================================
+   KUVVETLER — iki ordu, ordu kıtaları, birlikler, cephe gerisi
+   · Her kompozisyonda ordular, kıtaların yeri/ağırlığı ve "renk" paleti değişir
+   · Cephe gerisi aileler: endişe (obua/klarinet/tremolo) ve dua (koro) —
+     uzakta, kısık, yankılı (pz büyük) çalarlar
+   ========================================================================== */
+(function (root) {
+  'use strict';
+
+  var F = {};
+
+  function rng(seed) {
+    var s = seed >>> 0;
+    return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+  }
+  function pick(R, a) { return a[Math.floor(R() * a.length) % a.length]; }
+  function shuffle(R, a) {
+    var b = a.slice();
+    for (var i = b.length - 1; i > 0; i--) {
+      var j = Math.floor(R() * (i + 1)); var t = b[i]; b[i] = b[j]; b[j] = t;
+    }
+    return b;
+  }
+
+  /* --- ordu adları ve renk kimlikleri (Kızıl Ordu tarzı güçlü, kararlı) --- */
+  var ARMY_NAMES = [
+    { id: 'kizil',  name: 'Kızıl Ordu',       mark: 'K', hue: '#c0392b' },
+    { id: 'celik',  name: 'Çelik Ordu',       mark: 'Ç', hue: '#2c6fa8' },
+    { id: 'safak',  name: 'Şafak Ordusu',     mark: 'Ş', hue: '#c9a227' },
+    { id: 'demir',  name: 'Demir Ordu',       mark: 'D', hue: '#7b6a5a' },
+    { id: 'firtina', name: 'Fırtına Ordusu',  mark: 'F', hue: '#4a6b5c' },
+    { id: 'kartal', name: 'Kartal Ordusu',    mark: 'Ka', hue: '#8a5aa8' }
+  ];
+
+  /* --- kıtalar (corps): her biri farklı doku, farklı pan --- */
+  var CORPS = [
+    { id: 'oncu',    name: 'Öncü Kıta',      pan: 0.42,  push: 1.00, tex: 'staccato', fam: 'str' },
+    { id: 'merkez',  name: 'Merkez Kıta',    pan: 0.00,  push: 1.00, tex: 'tutti',    fam: 'brass' },
+    { id: 'solkanat', name: 'Sol Kanat',     pan: -0.80, push: 0.85, tex: 'yastik',   fam: 'str' },
+    { id: 'sagkanat', name: 'Sağ Kanat',     pan: 0.80,  push: 0.85, tex: 'yastik',   fam: 'str' },
+    { id: 'topcu',   name: 'Topçu Kıta',     pan: -0.30, push: 0.95, tex: 'vurus',    fam: 'perc' },
+    { id: 'suvarı',  name: 'Süvari Kıta',    pan: 0.55,  push: 0.90, tex: 'kosu',     fam: 'brass' },
+    { id: 'gerisi',  name: 'Cephe Gerisi',   pan: 0.10,  push: 0.55, tex: 'dua',      fam: 'choir' }
+  ];
+
+  /* --- renk paleti: her şarkıda ailelerin ağırlığı farklı ("farklı renkli") --- */
+  /*__ORCHESTRA_LESSON_09__*/
+
+  var COLORS = {
+    str: 'Yaylı Kızıl', brass: 'Bakır Tungu', perc: 'Davul Tokmağı',
+    wood: 'Tahta Nefes', choir: 'Koro Sesi', bell: 'Çan Işığı'
+  };
+
+  /* --- kompozisyon kuvvet planı --- */
+  F.plan = function (opts) {
+    opts = opts || {};
+    var bars = opts.bars || 46;
+    var R = rng((opts.seed || 1) ^ 0x5B1F);
+    var two = shuffle(R, ARMY_NAMES).slice(0, 2);
+    var pal = palette(R);
+    /* kıtaların cephedeki ağırlığı: her şarkıda farklı */
+    var corps = shuffle(R, CORPS).map(function (c) {
+      return {
+        id: c.id, name: c.name, pan: c.pan, tex: c.tex, fam: c.fam,
+        weight: 0.45 + R() * 0.95,
+        far: c.id === 'gerisi' ? 1 : 0
+      };
+    });
+    /* kıta ağırlıkları ölçü ölçü dalgalanır (statik değil) */
+    function weigh(b) {
+      var out = {};
+      corps.forEach(function (c, i) {
+        var ph = (i * 1.7) + b * (0.11 + (i % 3) * 0.05);
+        out[c.id] = Math.max(0.10, c.weight * (0.55 + 0.75 * (0.5 + 0.5 * Math.sin(ph))));
+      });
+      return out;
+    }
+    /* --- cephe gerisi: endişe ve dua anları (rastgele zamanlarda) --- */
+    var worry = [], prayer = [];
+    var nb = Math.max(2, Math.floor(bars / 11));
+    for (var i = 0; i < nb; i++) {
+      worry.push(Math.floor(R() * bars));
+      prayer.push(Math.floor(R() * bars));
+    }
+    function isWorry(b) { return worry.indexOf(b) >= 0; }
+    function isPrayer(b) { return prayer.indexOf(b) >= 0; }
+
+    return {
+      armies: two,
+      palette: pal,
+      colorName: COLORS[pal.hi] + ' ' + (pal.hiW >= 1.55 ? 'baskın' : pal.hiW >= 1.42 ? 'güçlü' : 'belirgin') +
+                 ' · ' + COLORS[pal.lo] + ' ' + (pal.loW <= 0.45 ? 'suskun' : 'geride'),
+      corps: corps,
+      weigh: weigh,
+      worryBars: worry,
+      prayerBars: prayer,
+      isWorry: isWorry,
+      isPrayer: isPrayer,
+      /* iki ordunun aynı anda duyulması: sağ/sol blok karşıtlığı */
+      sidePan: function (side) { return side === 0 ? -0.62 : 0.62; }
+    };
+  };
+
+  F.ARMY_NAMES = ARMY_NAMES;
+  F.CORPS = CORPS;
+  F.COLORS = COLORS;
+  root.Forces = F;
+})(typeof window !== 'undefined' ? window : this);
+

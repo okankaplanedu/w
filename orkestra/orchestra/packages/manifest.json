@@ -1,0 +1,310 @@
+{
+  "modules": [
+    {
+      "template": "packages/module-01.js.txt",
+      "functions": [
+        {
+          "marker": "/*__ORCHESTRA_LESSON_01__*/",
+          "file": "exercises/01-buildMatrix.js"
+        },
+        {
+          "marker": "/*__ORCHESTRA_LESSON_02__*/",
+          "file": "exercises/02-fibDur.js"
+        },
+        {
+          "marker": "/*__ORCHESTRA_LESSON_03__*/",
+          "file": "exercises/03-genMotif.js"
+        },
+        {
+          "marker": "/*__ORCHESTRA_LESSON_04__*/",
+          "file": "exercises/04-fibRhythm.js"
+        },
+        {
+          "marker": "/*__ORCHESTRA_LESSON_05__*/",
+          "file": "exercises/05-mutate.js"
+        },
+        {
+          "marker": "/*__ORCHESTRA_LESSON_06__*/",
+          "file": "exercises/06-invert.js"
+        },
+        {
+          "marker": "/*__ORCHESTRA_LESSON_07__*/",
+          "file": "exercises/07-passingChord.js"
+        }
+      ]
+    },
+    {
+      "template": "packages/module-02.js.txt",
+      "functions": []
+    },
+    {
+      "template": "packages/module-03.js.txt",
+      "functions": [
+        {
+          "marker": "/*__ORCHESTRA_LESSON_08__*/",
+          "file": "exercises/08-timpPitches.js"
+        }
+      ]
+    },
+    {
+      "template": "packages/module-04.js.txt",
+      "functions": []
+    },
+    {
+      "template": "packages/module-05.js.txt",
+      "functions": []
+    },
+    {
+      "template": "packages/module-06.js.txt",
+      "functions": []
+    },
+    {
+      "template": "packages/module-07.js.txt",
+      "functions": [
+        {
+          "marker": "/*__ORCHESTRA_LESSON_09__*/",
+          "file": "exercises/09-palette.js"
+        }
+      ]
+    },
+    {
+      "template": "packages/module-08.js.txt",
+      "functions": []
+    },
+    {
+      "template": "packages/module-09.js.txt",
+      "functions": [
+        {
+          "marker": "/*__ORCHESTRA_LESSON_10__*/",
+          "file": "exercises/10-shape.js"
+        }
+      ]
+    },
+    {
+      "template": "packages/module-10.js.txt",
+      "functions": [
+        {
+          "marker": "/*__ORCHESTRA_LESSON_11__*/",
+          "file": "exercises/11-nearest.js"
+        },
+        {
+          "marker": "/*__ORCHESTRA_LESSON_12__*/",
+          "file": "exercises/12-masterMonitor.js"
+        },
+        {
+          "marker": "/*__ORCHESTRA_LESSON_13__*/",
+          "file": "exercises/13-makeIR.js"
+        }
+      ]
+    },
+    {
+      "template": "packages/module-11.js.txt",
+      "functions": [
+        {
+          "marker": "/*__ORCHESTRA_LESSON_14__*/",
+          "file": "exercises/14-makeProgression.js"
+        },
+        {
+          "marker": "/*__ORCHESTRA_LESSON_15__*/",
+          "file": "exercises/15-selectProgression.js"
+        },
+        {
+          "marker": "/*__ORCHESTRA_LESSON_16__*/",
+          "file": "exercises/16-nearestChordPitch.js"
+        },
+        {
+          "marker": "/*__ORCHESTRA_LESSON_17__*/",
+          "file": "exercises/17-windLine.js"
+        },
+        {
+          "marker": "/*__ORCHESTRA_LESSON_18__*/",
+          "file": "exercises/18-choirVoicing.js"
+        }
+      ]
+    },
+    {
+      "template": "packages/module-12.js.txt",
+      "functions": [
+        {
+          "marker": "/*__ORCHESTRA_LESSON_19__*/",
+          "file": "exercises/19-schedule.js"
+        }
+      ]
+    },
+    {
+      "template": "packages/module-13.js.txt",
+      "functions": []
+    },
+    {
+      "template": "packages/module-14.js.txt",
+      "functions": [
+        {
+          "marker": "/*__ORCHESTRA_LESSON_20__*/",
+          "file": "exercises/20-uniqueSeed.js"
+        },
+        {
+          "marker": "/*__ORCHESTRA_LESSON_21__*/",
+          "file": "exercises/21-makeVarya.js"
+        },
+        {
+          "marker": "/*__ORCHESTRA_LESSON_22__*/",
+          "file": "exercises/22-makeTimeMap.js"
+        },
+        {
+          "marker": "/*__ORCHESTRA_LESSON_23__*/",
+          "file": "exercises/23-applySusAndRhythm.js"
+        },
+        {
+          "marker": "/*__ORCHESTRA_LESSON_24__*/",
+          "file": "exercises/24-permuteCells.js"
+        },
+        {
+          "marker": "/*__ORCHESTRA_LESSON_25__*/",
+          "file": "exercises/25-transpose.js"
+        },
+        {
+          "marker": "/*__ORCHESTRA_LESSON_26__*/",
+          "file": "exercises/26-introGesture.js"
+        },
+        {
+          "marker": "/*__ORCHESTRA_LESSON_27__*/",
+          "file": "exercises/27-cadenceGesture.js"
+        }
+      ]
+    },
+    {
+      "template": "packages/module-15.js.txt",
+      "functions": [
+        {
+          "marker": "/*__ORCHESTRA_LESSON_28__*/",
+          "file": "exercises/28-buildPlan.js"
+        },
+        {
+          "marker": "/*__ORCHESTRA_LESSON_29__*/",
+          "file": "exercises/29-moveAt.js"
+        },
+        {
+          "marker": "/*__ORCHESTRA_LESSON_30__*/",
+          "file": "exercises/30-bpmAt.js"
+        }
+      ]
+    },
+    {
+      "template": "packages/module-16.js.txt",
+      "functions": [
+        {
+          "marker": "/*__ORCHESTRA_LESSON_31__*/",
+          "file": "exercises/31-passStereo.js"
+        },
+        {
+          "marker": "/*__ORCHESTRA_LESSON_32__*/",
+          "file": "exercises/32-passBreath.js"
+        }
+      ]
+    },
+    {
+      "template": "packages/module-17.js.txt",
+      "functions": [
+        {
+          "marker": "/*__ORCHESTRA_LESSON_33__*/",
+          "file": "exercises/33-passStage.js"
+        },
+        {
+          "marker": "/*__ORCHESTRA_LESSON_34__*/",
+          "file": "exercises/34-passVoicing.js"
+        }
+      ]
+    },
+    {
+      "template": "packages/module-18.js.txt",
+      "functions": [
+        {
+          "marker": "/*__ORCHESTRA_LESSON_35__*/",
+          "file": "exercises/35-voiceBudget.js"
+        },
+        {
+          "marker": "/*__ORCHESTRA_LESSON_36__*/",
+          "file": "exercises/36-densityControl.js"
+        }
+      ]
+    },
+    {
+      "template": "packages/module-19.js.txt",
+      "functions": [
+        {
+          "marker": "/*__ORCHESTRA_LESSON_37__*/",
+          "file": "exercises/37-contourSeq.js"
+        },
+        {
+          "marker": "/*__ORCHESTRA_LESSON_38__*/",
+          "file": "exercises/38-addContourLines.js"
+        }
+      ]
+    },
+    {
+      "template": "packages/module-20.js.txt",
+      "functions": []
+    },
+    {
+      "template": "packages/module-21.js.txt",
+      "functions": []
+    },
+    {
+      "template": "packages/module-22.js.txt",
+      "functions": []
+    },
+    {
+      "template": "packages/module-23.js.txt",
+      "functions": []
+    },
+    {
+      "template": "packages/module-24.js.txt",
+      "functions": [
+        {
+          "marker": "/*__ORCHESTRA_LESSON_39__*/",
+          "file": "exercises/39-transitions.js"
+        }
+      ]
+    },
+    {
+      "template": "packages/module-25.js.txt",
+      "functions": [
+        {
+          "marker": "/*__ORCHESTRA_LESSON_40__*/",
+          "file": "exercises/40-windPhrases.js"
+        }
+      ]
+    },
+    {
+      "template": "packages/module-26.js.txt",
+      "functions": [
+        {
+          "marker": "/*__ORCHESTRA_LESSON_41__*/",
+          "file": "exercises/41-chordTone.js"
+        }
+      ]
+    },
+    {
+      "template": "packages/module-27.js.txt",
+      "functions": [
+        {
+          "marker": "/*__ORCHESTRA_LESSON_42__*/",
+          "file": "exercises/42-harpSolos.js"
+        }
+      ]
+    },
+    {
+      "template": "packages/module-28.js.txt",
+      "functions": [
+        {
+          "marker": "/*__ORCHESTRA_LESSON_43__*/",
+          "file": "exercises/43-countPhrases.js"
+        }
+      ]
+    },
+    {
+      "template": "packages/module-29.js.txt",
+      "functions": []
+    }
+  ]
+}

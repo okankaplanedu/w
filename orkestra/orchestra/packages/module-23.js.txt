@@ -1,0 +1,65 @@
+
+(function(root){
+ 'use strict';
+ var armies=['Şafak Ordusu','Demir Ordu','Kızıl Ordu','Kartal Ordusu','Ay Ordusu','Kuzey Ordusu','Gümüş Ordu','Güneş Ordusu'];
+ var corps=['Öncü','Sol Kanat','Sağ Kanat','Muhafız'];
+ var unitNames=['Birinci','İkinci','Üçüncü','Dördüncü'];
+ var scenePool=[
+  {name:'Arkada kalanlar',text:'Cephe gerisinde bekleyenler, ayrılığın sessiz izini taşır. Adımlar, geride kalanların anılarıyla birleşir.'},
+  {name:'Hayaller ve anılar',text:'Birliklerin yürüyüşüne evlerin ışığı, eski günlerin hatırası ve dönüş hayali eşlik eder.'},
+  {name:'Ağıt ve umut',text:'Kayıpların ağıdı duyulur; uzaktan gelen davul, geride kalanların umudunu canlı tutar.'},
+  {name:'Sevinç ve kavuşma',text:'Kısa bir sevinç dalgası cepheden geriye ulaşır; iki ordunun ritimleri yeniden karşılaşır.'},
+  {name:'Kızgınlık ve direnç',text:'Gerginlik yükselir; karşılıklı yürüyüşler güçlenirken geride bekleyenlerin kaygısı sürer.'},
+  {name:'Göğüs göğüse',text:'Cephedeki iki tarafın adımları sırayla yaklaşır; davullar çatışmanın gerilimini taşır.'},
+  {name:'Yalvarış',text:'Cephe gerisinden yükselen bir yakarış, ağır ritmin arasında nefes alır.'},
+  {name:'Dönüş hayali',text:'Yürüyüşün altında bir dönüş düşüncesi sürer; anılar ve umut finale doğru birleşir.'}
+ ];
+ function generator(seed){var x=(seed^0x6b8b4567)>>>0;return function(){x=(Math.imul(x,1664525)+1013904223)>>>0;return x/4294967296;};}
+ function model(plan){
+  if(!plan || !plan.movements || !plan.events)return plan;
+  var R=generator(plan.seed>>>0), names=armies.slice();
+  for(var k=names.length-1;k>0;k--){var z=Math.floor(R()*(k+1));var tmp=names[k];names[k]=names[z];names[z]=tmp;}
+  var groups=names.slice(0,2).map(function(name,side){return {name:name,side:side,corps:corps.map(function(c){return {name:c,units:unitNames.map(function(u){return {name:u,people:Array.from({length:10},function(_,n){return n+1;})};})};})};});
+  // Duygular dönüşümlü kullanılır; cümlelerin süresi bölüm sınırlarına bağlıdır.
+  var middle=scenePool.slice(0,7);
+  for(var i=middle.length-1;i>0;i--){var j=Math.floor(R()*(i+1));var v=middle[i];middle[i]=middle[j];middle[j]=v;}
+  var scenes=[];
+  plan.movements.forEach(function(m,idx){
+    for(var part=0;part<2;part++){
+      var ix=idx*2+part, item=ix===7?scenePool[7]:middle[ix];
+      scenes.push({start:m.start+part*m.dur/2,end:m.start+(part+1)*m.dur/2,
+       section:m.name,name:item.name,text:item.text,army:groups[(ix+Math.floor((plan.seed>>>0)%2))%2].name});
+    }
+  });
+  plan.story={armies:groups, scenes:scenes, totalPeople:320};
+  plan.events.forEach(function(e){
+    if(!e.armyDrum) return;
+    var scene=null;
+    for(var k=0;k<scenes.length;k++)if(e.t>=scenes[k].start && e.t<scenes[k].end){scene=scenes[k];break;}
+    if(!scene)return;
+    var active=scene.army===groups[0].name?'A':'B';
+    // İki ordu sırayla öne çıkar; nota zamanları ve perdeleri değiştirilmez.
+    e.v=+Math.min(0.55,e.v*(e.armyDrum===active?1.18:0.82)).toFixed(3);
+  });
+  return plan;
+ }
+ function boot(){
+  if(!root.Konser || !root.Konser.build)return;
+  var old=root.Konser.build;root.Konser.build=function(opts){return model(old(opts));};
+  var lastPlan=null,lastScene=-2;
+  setInterval(function(){
+    var kp=root.KonserPlayer, state=kp&&kp.state, p=state&&state.plan;
+    if(!p || !p.story)return;
+    var el=function(id){return document.getElementById(id);};
+    if(p!==lastPlan){lastPlan=p;lastScene=-2;var names=el('storyArmies');if(names)names.textContent=p.story.armies[0].name+'  //  '+p.story.armies[1].name;}
+    var t=state.playing && root.Orchestra ? Math.max(0,root.Orchestra.now()-state.startAt) : 0;
+    var index=0;
+    for(var i=0;i<p.story.scenes.length;i++){if(t>=p.story.scenes[i].start)index=i;else break;}
+    if(index!==lastScene){lastScene=index;var x=p.story.scenes[index];
+      var title=el('storyTitle'),text=el('storyText'),moment=el('storyMoment');
+      if(title)title.textContent=x.name;if(text)text.textContent=x.text;if(moment)moment.textContent=x.section+' · '+x.army;
+    }
+  },500);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})(window);

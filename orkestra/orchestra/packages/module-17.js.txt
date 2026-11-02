@@ -1,0 +1,412 @@
+
+/* ==========================================================================
+   RENK AYRIMI & 3D BERRAKLIK MOTORU · KITA KONSOLU — v5
+   --------------------------------------------------------------------------
+   SORUN (kurul eleştirisi): "seslerin kontrolsüz karışımı · boğukluklar ·
+   dumanlı aşılmazlık" — kıtalar sahne gezdikçe, çoğalan sesler aynı bandı
+   paylaşınca renkler çamur gibi iç içe geçiyor.
+
+   ÇÖZÜM (renk boyama metaforu — ordu kıta/birlik ayrımları):
+   Her birlik bir BOYA RENK'tir: kendi spektral KONTURU (cut), kendi 3D şeridi
+   (px azimut / pz derinlik), kendi kuru-ıslak oranı (wet) ile tanımlanır.
+   Karışınca bile konturlar korunur — tıpkı keskin konturlu renk alanları.
+
+     · KITA SAHNESİ: 7 birlik = 7 sabit profesyonel şerit (keskin konturlar)
+       (savaş cephesi görselde yaşar; seste SAHNE KONTROLLÜ kalır)
+     · SOLO AYRIM ÖRÜNTÜLERİ: solo spot ritmi + spektral oyma (carve):
+       eşlik edenler solo bandında kısılır/karartılır/sisi çekilir → duman dağılır
+     · ÇAMUR ÇÖZÜCÜ: aynı anda aynı bandı paylaşan 3+ ses inceltilir;
+       akor seslerine kademe (kök–üçlü–beşli) hiyerarşisi verilir
+     · PROFESYONEL 3D PAN: eşit-güç azimut + derinlik (uzak = kısık + ıslak),
+       baslar merkezde, solo önde, yedek birlikler uzakta
+     · MASTERING: lider varlık kazanç sahnelemesi + yumuşak tepe uyumu
+       (kontrol: opts.cut / opts.amp / opts.wet / opts.px / opts.pz)
+   ========================================================================== */
+(function (root) {
+  'use strict';
+
+  var MIX = {};
+  MIX.VERSION = '5.0-RENK';
+  MIX.sep = 'keskin';          // 'keskin' | 'dogal'
+  MIX.lastStats = null;
+
+  function rng(seed) {
+    var s = (seed >>> 0) || 1;
+    return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+  }
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+
+  /* ==========================================================================
+     BİRLİK RENK PALETİ — 7 kıta/birlik, 7 boya rengi, 7 spektral kontur
+     px = azimut şeridi (keskin) · pz = derinlik (|pz|: uzaklık) ·
+     cut = spektral kontur (lowpass çarpanı) · wet = sis oranı · amp = yerel kazanç
+     ========================================================================== */
+  var UNITS = [
+    {
+      id: 'oncu', name: 'ÖNCÜ BİRLİK', color: '#f2d79a', paint: 'sarı ışık',
+      px: 0.24, pz: 0.12, cut: 1.24, wet: 0.95, amp: 1.06,
+      insts: { trumpet: 1, oboe: 1, flute: 1 }
+    },
+    {
+      id: 'solKita', name: 'SOL KITA', color: '#e2607a', paint: 'kırmızı sıcak',
+      px: -0.46, pz: 0.32, cut: 1.06, wet: 1.0, amp: 1.0,
+      insts: { violin: 1, viola: 1, string_ensemble_1: 1, string_ensemble_2: 1, tremolo_strings: 1 }
+    },
+    {
+      id: 'sagKita', name: 'SAĞ KITA', color: '#8fb6e0', paint: 'mavi çelik',
+      px: 0.46, pz: 0.38, cut: 1.12, wet: 0.95, amp: 1.0,
+      insts: { trombone: 1, brass_section: 1 }
+    },
+    {
+      id: 'merkez', name: 'MERKEZ', color: '#7fd8c8', paint: 'yeşil kadife',
+      px: -0.06, pz: 0.22, cut: 0.90, wet: 0.85, amp: 1.0,
+      insts: { cello: 1, bassoon: 1, clarinet: 1, orchestral_harp: 1 }
+    },
+    {
+      id: 'basHat', name: 'BAS HAT', color: '#b48ce0', paint: 'mor gölge',
+      px: 0.0, pz: 0.18, cut: 0.72, wet: 0.70, amp: 1.05,
+      insts: { contrabass: 1, tuba: 1, timpani: 1 }
+    },
+    {
+      id: 'yedek', name: 'YEDEK BİRLİK', color: '#eef1f7', paint: 'beyaz sis',
+      px: -0.28, pz: 1.25, cut: 0.80, wet: 1.35, amp: 0.92,
+      insts: { french_horn: 1, choir_aahs: 1, voice_oohs: 1 }
+    },
+    {
+      id: 'vurma', name: 'VURMA KOLU', color: '#c9a227', paint: 'siyah kontur',
+      px: 0.10, pz: 0.26, cut: 1.08, wet: 0.85, amp: 1.04,
+      insts: {
+        taiko_drum: 1, melodic_tom: 1, woodblock: 1, orchestra_hit: 1,
+        reverse_cymbal: 1, tubular_bells: 1, glockenspiel: 1
+      }
+    }
+  ];
+  MIX.UNITS = UNITS;
+
+  var UNIT_BY_INST = {};
+  UNITS.forEach(function (u) {
+    for (var k in u.insts) UNIT_BY_INST[k] = u;
+  });
+  MIX.unitOf = function (inst) { return UNIT_BY_INST[inst] || UNITS[1]; };
+
+  /* ---- palet giysisi: geç eklenen olaylar da birlik şeridini ve konturu alır ---- */
+  MIX.dress = function (e) {
+    var u = MIX.unitOf(e.inst);
+    if (e.unit == null) e.unit = u.id;
+    if (!isFinite(e.cut)) e.cut = +clamp(u.cut, 0.55, 1.5).toFixed(3);
+    if (!isFinite(e.wet)) e.wet = +clamp(u.wet, 0.55, 1.6).toFixed(3);
+    if (!isFinite(e.amp)) e.amp = +clamp(u.amp, 0.4, 1.6).toFixed(3);
+    if (!isFinite(e.px)) e.px = +u.px.toFixed(3);
+    if (!isFinite(e.pz)) e.pz = +u.pz.toFixed(3);
+    return e;
+  };
+
+  var SOLO_INST = { violin: 1, trumpet: 1, oboe: 1, flute: 1, clarinet: 1, cello: 1, glockenspiel: 1, french_horn: 1, orchestral_harp: 1 };
+  var CHORDISH = { french_horn: 1, brass_section: 1, string_ensemble_1: 1, string_ensemble_2: 1, choir_aahs: 1, voice_oohs: 1 };
+
+  /* ==========================================================================
+     1) KITA SAHNESİ — keskin şerit yerleşimi (kontrollü 3D pan)
+     ========================================================================== */
+  /*__ORCHESTRA_LESSON_33__*/
+
+  /* ==========================================================================
+     2) ÇAMUR ÇÖZÜCÜ — aynı bandı paylaşan yoğun yığınları incelt
+     ========================================================================== */
+  function passThin(ev, stats) {
+    var bins = {};
+    for (var i = 0; i < ev.length; i++) {
+      var e = ev[i];
+      var k = Math.round(e.t * 20);                       // 50 ms eşzamanlılık
+      (bins[k] || (bins[k] = [])).push(e);
+    }
+    for (var k2 in bins) {
+      var g = bins[k2];
+      if (g.length < 3) continue;
+      g.sort(function (a, b) { return a.midi - b.midi; });
+      /* bant kümeleri: |Δmidi| ≤ 12 olanlar maskeyi paylaşır */
+      var cl = [], used = [];
+      for (var a = 0; a < g.length; a++) {
+        if (used[a]) continue;
+        var grp = [g[a]]; used[a] = 1;
+        for (var b = a + 1; b < g.length; b++) {
+          if (!used[b] && Math.abs(g[b].midi - g[a].midi) <= 12) { grp.push(g[b]); used[b] = 1; }
+        }
+        cl.push(grp);
+      }
+      cl.forEach(function (grp) {
+        if (grp.length < 3) return;
+        grp.sort(function (x, y) { return y.v * (y.amp || 1) - x.v * (x.amp || 1); });
+        var keep = 2;
+        for (var j = 0; j < grp.length; j++) {
+          if (j < keep) continue;
+          grp[j].amp = +clamp((grp[j].amp || 1) * 0.62, 0.4, 1.6).toFixed(3);
+          stats.thinned++;
+        }
+      });
+    }
+  }
+
+  /* ==========================================================================
+     3) AKOR KADEMELEME — kök–üçlü–beşli hiyerarşisi (ses ayrımı netleşsin)
+     ========================================================================== */
+  /*__ORCHESTRA_LESSON_34__*/
+
+  /* ==========================================================================
+     4) SOLO AYRIM ÖRÜNTÜLERİ — spektral oyma (carve) + solo spot ritmi
+     ========================================================================== */
+  function passSoloCarve(ev, R, stats) {
+    /* 4a) carve: solonun bandındaki eşlik kısılır · karartılır · sisi çekilir */
+    var bins = {};
+    for (var i = 0; i < ev.length; i++) {
+      var e = ev[i];
+      var k = Math.round(e.t * 4);
+      (bins[k] || (bins[k] = [])).push(e);
+    }
+    var keys = Object.keys(bins).map(Number).sort(function (a, b) { return a - b; });
+    keys.forEach(function (k) {
+      var leads = (bins[k] || []).filter(function (e) { return SOLO_INST[e.inst] && e.v > 0.32; });
+      if (!leads.length) return;
+      var neigh = (bins[k] || []).concat(bins[k + 1] || [], bins[k - 1] || []);
+      leads.forEach(function (ld) {
+        for (var j = 0; j < neigh.length; j++) {
+          var e2 = neigh[j];
+          if (e2 === ld || SOLO_INST[e2.inst]) continue;
+          if (Math.abs(e2.midi - ld.midi) > 16) continue;
+          if ((e2._c || 0) >= 2) continue;
+          e2._c = (e2._c || 0) + 1;
+          e2.amp = +clamp((e2.amp || 1) * 0.80, 0.4, 1.6).toFixed(3);
+          e2.cut = +clamp((e2.cut || 1) * 0.72, 0.55, 1.5).toFixed(3);
+          e2.wet = +clamp((e2.wet || 1) * 0.88, 0.55, 1.6).toFixed(3);
+          stats.carved++;
+        }
+      });
+    });
+    /* 4b) solo spot ritmi: 7.2 sn'lik pencerede ilk 2.2 sn SOLO ön planda */
+    var W = 7.2, SPOT = 2.2;
+    for (var i2 = 0; i2 < ev.length; i2++) {
+      var e3 = ev[i2];
+      var inSpot = (e3.t % W) < SPOT;
+      if (inSpot) {
+        if (SOLO_INST[e3.inst]) {
+          e3.amp = +clamp((e3.amp || 1) * 1.10, 0.4, 1.6).toFixed(3);
+          e3.pz = +clamp((e3.pz || 0.3) * 0.55, 0.05, 2.2).toFixed(3);   // solo öne
+          e3.wet = +clamp((e3.wet || 1) * 1.08, 0.55, 1.6).toFixed(3);
+          stats.spot++;
+        } else {
+          e3.amp = +clamp((e3.amp || 1) * 0.92, 0.4, 1.6).toFixed(3);
+          e3.wet = +clamp((e3.wet || 1) * 0.86, 0.55, 1.6).toFixed(3);  // duman kısılır
+        }
+      }
+    }
+  }
+
+  /* ==========================================================================
+     5) LİDER VARLIK SAHNELEMESİ (mastering) — solo her zaman duyulur
+     ========================================================================== */
+  function passLeadPresence(ev, stats) {
+    var W = 1.6;
+    var win = {};
+    for (var i = 0; i < ev.length; i++) {
+      var e = ev[i];
+      var k = Math.floor(e.t / W);
+      var w = win[k] || (win[k] = { lead: 0, ens: 0, leadEv: [], ensEv: [] });
+      var loud = e.v * (e.amp || 1);
+      if (SOLO_INST[e.inst]) { w.lead += loud; w.leadEv.push(e); }
+      else { w.ens += loud; w.ensEv.push(e); }
+    }
+    for (var k2 in win) {
+      var w2 = win[k2];
+      if (!w2.leadEv.length || !w2.ensEv.length) continue;
+      if (w2.lead >= w2.ens * 0.9) continue;
+      w2.leadEv.forEach(function (e4) {
+        e4.amp = +clamp((e4.amp || 1) * 1.08, 0.4, 1.6).toFixed(3);
+        stats.boosted++;
+      });
+    }
+  }
+
+  /* ---- son karışım sanitizasyonu (kod uzmanı: sayısal bütünlük) ---- */
+  function passMixSanitize(ev) {
+    for (var i = 0; i < ev.length; i++) {
+      var e = ev[i];
+      e.px = +clamp(isFinite(e.px) ? e.px : 0, -0.95, 0.95).toFixed(3);
+      e.pz = +clamp(isFinite(e.pz) ? e.pz : 0.3, 0.05, 2.2).toFixed(3);
+      e.cut = +clamp(isFinite(e.cut) ? e.cut : 1, 0.55, 1.5).toFixed(3);
+      e.wet = +clamp(isFinite(e.wet) ? e.wet : 1, 0.55, 1.6).toFixed(3);
+      e.amp = +clamp(isFinite(e.amp) ? e.amp : 1, 0.4, 1.6).toFixed(3);
+      if (e._c != null) delete e._c;
+    }
+  }
+
+  /* ==========================================================================
+     İŞLEME — plan üzerindeki tüm geçişler (deterministik)
+     ========================================================================== */
+  MIX.process = function (plan) {
+    if (!plan || !plan.events || !plan.events.length) return plan;
+    try {
+      var R = rng((plan.seed ^ 0xC01A) >>> 0);
+      var stats = { staged: 0, thinned: 0, voiced: 0, carved: 0, spot: 0, boosted: 0 };
+      var ev = plan.events;
+      passStage(ev, R, stats, plan.varya);
+      passThin(ev, stats);
+      passVoicing(ev, stats);
+      passSoloCarve(ev, R, stats);
+      passLeadPresence(ev, stats);
+      passMixSanitize(ev);
+      /* savunma: giysisiz hiçbir olay kalmasın */
+      for (var z = 0; z < ev.length; z++) if (ev[z].unit == null) MIX.dress(ev[z]);
+      stats.sep = MIX.sep;
+      MIX.lastStats = stats;
+      plan.mix = stats;
+      if (plan.kimlik) {
+        plan.kimlik.renkAyrimi = 'kita paleti · ' + MIX.sep;
+        plan.kimlik.camurCozulen = stats.thinned + stats.carved;
+      }
+      MIX.renderConsole(plan);
+    } catch (err) {
+      if (root.console && console.warn) console.warn('renk ayrımı katmanı:', err);
+    }
+    return plan;
+  };
+
+  /* ==========================================================================
+     KITA KONSOLU PANELİ — renk paleti, 3D sahne, canlı seviyeler
+     ========================================================================== */
+  function el(id) { return document.getElementById(id); }
+
+  MIX.renderConsole = function (plan) {
+    var host = el('mxUnits');
+    if (!host) return;
+    var stats = plan.mix || MIX.lastStats || {};
+    /* birlik başına enerji payı */
+    var share = {};
+    var tot = 0;
+    (plan.events || []).forEach(function (e) {
+      var u = e.unit || MIX.unitOf(e.inst).id;
+      var l = e.v * (e.amp || 1);
+      share[u] = (share[u] || 0) + l; tot += l;
+    });
+    var html = '';
+    UNITS.forEach(function (u) {
+      var pct = tot ? Math.round(100 * (share[u.id] || 0) / tot) : 0;
+      html += '<div class="mx-row">' +
+        '<i class="mx-dot" style="background:' + u.color + '"></i>' +
+        '<b style="color:' + u.color + '">' + u.name + '</b>' +
+        '<span class="mx-paint">' + u.paint + '</span>' +
+        '<span class="mx-bar"><em style="width:' + Math.max(3, pct) + '%;background:' + u.color + '"></em></span>' +
+        '<span class="mx-num">' + pct + '%</span>' +
+        '<span class="mx-num">px ' + (u.px >= 0 ? '+' : '') + u.px.toFixed(2) + '</span>' +
+        '<span class="mx-num">derinlik ' + u.pz.toFixed(2) + '</span>' +
+        '<span class="mx-num">kontur ×' + u.cut.toFixed(2) + '</span>' +
+        '<span class="mx-num">sis ×' + u.wet.toFixed(2) + '</span>' +
+        '</div>';
+    });
+    host.innerHTML = html;
+    var st = el('mxStats');
+    if (st) {
+      st.textContent = 'çözümlenen çamur: ' + ((stats.thinned || 0) + (stats.carved || 0)) +
+        ' olay · solo oyma ' + (stats.carved || 0) + ' · akor kademe ' + (stats.voiced || 0) +
+        ' · solo spot ' + (stats.spot || 0) + ' · lider kazanç ' + (stats.boosted || 0);
+    }
+    drawStage(plan);
+  };
+
+  function drawStage(plan) {
+    var cv = el('mxStage');
+    if (!cv) return;
+    var ctx = cv.getContext('2d');
+    var W = cv.width, H = cv.height;
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#06070c';
+    ctx.fillRect(0, 0, W, H);
+    /* sahne yayı */
+    ctx.strokeStyle = 'rgba(214,178,110,.35)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(W / 2, H * 1.28, H * 1.05, Math.PI * 1.28, Math.PI * 1.72);
+    ctx.stroke();
+    /* dinleyici */
+    ctx.fillStyle = 'rgba(127,216,200,.75)';
+    ctx.font = '11px ui-monospace,monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('▼ DİNLEYİCİ · KULAK / SALON', W / 2, H - 8);
+    /* birlikler: px → x, pz → y (yakın = alt, uzak = üst) */
+    UNITS.forEach(function (u) {
+      var x = W / 2 + u.px * (W * 0.40);
+      var y = H * 0.62 - Math.min(u.pz, 1.6) / 1.6 * (H * 0.42);
+      /* keskin kontur kaması */
+      ctx.beginPath();
+      ctx.moveTo(W / 2, H * 0.86);
+      ctx.lineTo(x - 26, y);
+      ctx.lineTo(x + 26, y);
+      ctx.closePath();
+      ctx.fillStyle = u.color + '22';
+      ctx.fill();
+      ctx.strokeStyle = u.color + '66';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+      /* birlik noktası */
+      ctx.beginPath();
+      ctx.arc(x, y, 7, 0, Math.PI * 2);
+      ctx.fillStyle = u.color;
+      ctx.fill();
+      ctx.fillStyle = '#eef1f7';
+      ctx.font = '9px ui-monospace,monospace';
+      ctx.fillText(u.name, x, y - 12);
+      ctx.fillStyle = '#8a93a6';
+      ctx.fillText('×' + u.cut.toFixed(2), x, y + 18);
+    });
+  }
+  MIX.drawStage = drawStage;
+
+  /* ---- mod rozetleri: KESKİN / DOĞAL ayrım ---- */
+  function bootMIX() {
+    var host = el('mxSep');
+    if (host) {
+      var opts = [
+        { id: 'keskin', name: 'KESKİN AYRIM' },
+        { id: 'dogal', name: 'DOĞAL KARIŞIM' }
+      ];
+      host.innerHTML = opts.map(function (o) {
+        return '<span class="k-pill' + (o.id === MIX.sep ? ' on' : '') + '" data-s="' + o.id + '">' + o.name + '</span>';
+      }).join('');
+      Array.prototype.forEach.call(host.querySelectorAll('.k-pill'), function (n) {
+        n.addEventListener('click', function () {
+          MIX.sep = n.getAttribute('data-s');
+          Array.prototype.forEach.call(host.querySelectorAll('.k-pill'), function (x) {
+            x.classList.toggle('on', x.getAttribute('data-s') === MIX.sep);
+          });
+          if (root.KonserPlayer && root.KonserPlayer.build) root.KonserPlayer.build(false);
+          var f = el('loopFlash');
+          if (f) {
+            f.textContent = 'AYRIM: ' + MIX.sep.toUpperCase();
+            f.classList.add('show');
+            setTimeout(function () { f.classList.remove('show'); }, 1300);
+          }
+        });
+      });
+    }
+    /* --- KATMAN SARMALAYICI: karışım → QA sırası (QA panoları son halde ölçer) --- */
+    try {
+      if (root.KonserQA && root.KonserQA._originalBuild) {
+        var inner = root.KonserQA._originalBuild;
+        root.KonserQA._originalBuild = function (opts) {
+          return MIX.process(inner(opts));
+        };
+      } else if (root.Konser && root.Konser.build) {
+        var inner2 = root.Konser.build;
+        root.Konser.build = function (opts) {
+          return MIX.process(inner2(opts));
+        };
+      }
+    } catch (e2) { }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootMIX);
+  } else {
+    setTimeout(bootMIX, 1);
+  }
+
+  root.KonserMix = MIX;
+})(typeof window !== 'undefined' ? window : this);

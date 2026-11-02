@@ -1,0 +1,9 @@
+
+(function(root){
+ 'use strict';
+ var lead={violin:1,viola:1,cello:1,trumpet:1,french_horn:1,oboe:1,flute:1,clarinet:1,bassoon:1};
+ /*__ORCHESTRA_LESSON_43__*/
+ function boot(){if(!root.Konser || !root.Konser.build)return;var prev=root.Konser.build;
+  root.Konser.build=function(opts){return countPhrases(prev(opts));};}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})(window);

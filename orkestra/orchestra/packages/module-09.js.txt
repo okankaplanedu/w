@@ -1,0 +1,151 @@
+
+/* ==========================================================================
+   JESTLER — sinematik ifade katmanı
+   · HELİZ PAN: zamanla dönen 3D stereo (aile bazlı açılar, yavaş dönüş)
+   · YÜKSELİŞ / DÜŞÜŞ: tümsek ve çukurlar (katman yoğunluğu + pan)
+   · ÇIĞLIK: tiz keman/trompet patlaması (FF, ölçek içi)
+   · GALEYAN: yaylı+bakır hızlı tırmanış
+   · YALVARMA: solo obua/keman, uzak, kısık, uzun (pz negatif)
+   ========================================================================== */
+(function (root) {
+  'use strict';
+
+  var J = {};
+  function rng(seed) {
+    var s = seed >>> 0;
+    return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+  }
+  function pick(R, a) { return a[Math.floor(R() * a.length) % a.length]; }
+  var SCALE = [9, 11, 0, 2, 4, 5, 7, 8];
+  function snap(m) {
+    var pc = ((m % 12) + 12) % 12;
+    if (SCALE.indexOf(pc) >= 0) return m;
+    for (var d = 1; d <= 3; d++) {
+      if (SCALE.indexOf(((m + d) % 12 + 12) % 12) >= 0) return m + d;
+      if (SCALE.indexOf(((m - d) % 12 + 12) % 12) >= 0) return m - d;
+    }
+    return m;
+  }
+
+  /* ---- heliz pan: açı → -1..1, yavaş dönüş ---- */
+  J.helixPan = function (t, fam, seed) {
+    var R = rng(seed || 1);
+    var base = { str: 0.0, brass: 2.1, perc: 4.2, wood: 5.4, choir: 3.1, bell: 1.2 };
+    var a = (base[fam] || 0) + t * 0.42;                  // saniyede ~0.067 tur
+    return Math.max(-1, Math.min(1, Math.sin(a) * 0.82));
+  };
+  /* ---- heliz derinlik: pan ile 90° faz farkı → dairesel dönüş hissi ---- */
+  J.helixZ = function (t, fam, seed) {
+    var base = { str: 0.9, brass: 2.9, perc: 5.0, wood: 6.2, choir: 3.9, bell: 2.0 };
+    var a = (base[fam] || 0) + t * 0.42;
+    return Math.cos(a) * 0.55;
+  };
+
+  /* ---- jest planı: besteye özgü rastgele yerleşim ---- */
+  J.plan = function (opts) {
+    opts = opts || {};
+    var bars = opts.bars || 46;
+    var R = rng((opts.seed || 3) ^ 0x51ED);
+    var rises = [], falls = [], screams = [], rallies = [], begs = [];
+    var n = 3 + Math.floor(R() * 3);
+    for (var i = 0; i < n; i++) {
+      var b = 2 + Math.floor(R() * (bars - 6));
+      var kind = pick(R, ['rise', 'fall', 'rise2', 'fall2']);
+      var len = 1 + Math.floor(R() * 2);
+      (kind === 'rise' || kind === 'rise2' ? rises : falls).push({ start: b, len: len, amp: 0.5 + R() * 0.5 });
+    }
+    var ns = 2 + Math.floor(R() * 3);
+    for (var s = 0; s < ns; s++) screams.push({ start: 3 + Math.floor(R() * (bars - 6)), amp: 0.6 + R() * 0.4 });
+    var nr = 2 + Math.floor(R() * 3);
+    for (var r = 0; r < nr; r++) rallies.push({ start: 4 + Math.floor(R() * (bars - 8)), len: 1 + Math.floor(R() * 2) });
+    var nb = 2 + Math.floor(R() * 2);
+    for (var g = 0; g < nb; g++) begs.push({ start: 4 + Math.floor(R() * (bars - 8)), len: 1 + Math.floor(R() * 2) });
+    return { rises: rises, falls: falls, screams: screams, rallies: rallies, begs: begs, seed: opts.seed };
+  };
+
+  /* ---- uygula ----
+     ev: olay dizisi (mutasyona uğrar), chordAt: ölçü→akor, push: nota ekleme   */
+  J.apply = function (o) {
+    var ev = o.events, plan = o.plan, bar = o.bar, beat = o.beat;
+    var R = o.R || rng(5), push = o.push, chordAt = o.chordAt || {}, tempo = o.tempo || 140;
+    var pal = o.palette || { str: 1, brass: 1, perc: 1, wood: 1, choir: 1, bell: 1 };
+    var dyn = o.dyn || 1;
+    var FAM = {
+      violin: 'str', viola: 'str', cello: 'str', contrabass: 'str', pizzicato_strings: 'str',
+      tremolo_strings: 'str', string_ensemble_1: 'str', string_ensemble_2: 'str',
+      french_horn: 'brass', trumpet: 'brass', trombone: 'brass', tuba: 'brass', brass_section: 'brass',
+      timpani: 'perc', taiko_drum: 'perc', melodic_tom: 'perc', woodblock: 'perc',
+      orchestra_hit: 'perc', reverse_cymbal: 'perc',
+      glockenspiel: 'bell', tubular_bells: 'bell',
+      flute: 'wood', oboe: 'wood', clarinet: 'wood', bassoon: 'wood', orchestral_harp: 'wood',
+      choir_aahs: 'choir', voice_oohs: 'choir'
+    };
+    var info = { rises: 0, falls: 0, screams: 0, rallies: 0, begs: 0, helix: 0 };
+
+    /* ---------- 1) HELİZ PAN: her olaya dönen 3B konum ---------- */
+    if (o.helix !== false) {
+      ev.forEach(function (e) {
+        if (e.px == null) return;                       // konumlanmamış olanlara dokunma
+        var fam = FAM[e.inst] || 'str';
+        var hp = J.helixPan(e.t, fam, 1), hz = J.helixZ(e.t, fam, 1);
+        /* sabit kıtasal konum ile helizi karıştır (düzen korunur, dönüş hissedilir) */
+        e.px = Math.max(-1, Math.min(1, e.px * 0.45 + hp * 0.55));
+        e.pz = Math.max(-1.6, Math.min(1.6, (e.pz || 0) * 0.5 + hz * 0.5));
+        info.helix++;
+      });
+    }
+
+    /* ---------- 2) YÜKSELİŞ / DÜŞÜŞ: tümsek ve çukurlar ---------- */
+    /*__ORCHESTRA_LESSON_10__*/
+    shape(plan.rises, true);
+    shape(plan.falls, false);
+
+    /* ---------- 3) ÇIĞLIK: tiz patlama (FF, ölçek içi) ---------- */
+    plan.screams.forEach(function (s) {
+      var t = s.start * bar + Math.floor(R() * 4) * beat;
+      var ch = chordAt[s.start] || o.chord || [57, 60, 64];
+      var hi = snap(ch[2] + 24);
+      push('violin', hi, t, beat * 1.1, 0.85 * s.amp * pal.str);
+      push('violin', snap(hi - 3), t + beat * 0.06, beat * 0.9, 0.62 * s.amp * pal.str);
+      push('trumpet', snap(ch[2] + 12), t, beat * 0.8, 0.78 * s.amp * pal.brass);
+      push('glockenspiel', snap(hi + 12), t, beat * 0.5, 0.34 * s.amp * pal.bell);
+      push('reverse_cymbal', 60, Math.max(0, t - bar * 0.45), bar * 0.45, 0.5 * s.amp);
+      push('timpani', ch[0] - 12, t, 0.3, 0.55 * s.amp * dyn);
+      info.screams++;
+    });
+
+    /* ---------- 4) GALEYAN: yaylı+bakır hızlı tırmanış, tutti çözülür ---------- */
+    plan.rallies.forEach(function (r) {
+      var t0 = r.start * bar, ch = chordAt[r.start] || o.chord || [57, 60, 64];
+      for (var i = 0; i < 10; i++) {
+        var tt = t0 + i * beat * 0.5;
+        var mm = snap(ch[i % 3] + (i > 4 ? 12 : 0));
+        push('viola', mm, tt, beat * 0.42, (0.30 + i * 0.035) * pal.str);
+        push('trumpet', snap(mm + 12), tt + beat * 0.02, beat * 0.38, (0.26 + i * 0.035) * pal.brass);
+      }
+      var te = t0 + r.len * bar;
+      push('orchestra_hit', 57, te, bar * 0.6, 0.85 * dyn);
+      push('taiko_drum', ch[0] - 24, te, 0.2, 0.95 * dyn);
+      info.rallies++;
+    });
+
+    /* ---------- 5) YALVARMA: solo, uzak, kısık, uzun ---------- */
+    plan.begs.forEach(function (b) {
+      var t0 = b.start * bar, ch = chordAt[b.start] || o.chord || [57, 60, 64];
+      var lead = pick(R, ['oboe', 'violin', 'clarinet']);
+      for (var i = 0; i < 4; i++) {
+        var mm = snap(ch[i % 3] + 12 + (i === 3 ? 2 : 0));
+        push(lead, mm, t0 + i * beat * 1.4, beat * 1.3, 0.34 - i * 0.03, { px: 0.10, pz: -2.6 - R() });
+      }
+      /* cevap: koro fısıltısı */
+      push('voice_oohs', snap(ch[1] + 12), t0 + beat * 2.5, beat * 2.2, 0.22, { px: -0.14, pz: -3.0 });
+      info.begs++;
+    });
+
+    return info;
+  };
+
+  J.snap = snap;
+  root.Jest = J;
+})(typeof window !== 'undefined' ? window : this);
+

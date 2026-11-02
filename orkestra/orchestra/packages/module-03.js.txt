@@ -1,0 +1,88 @@
+
+/* ==========================================================================
+   VURMALI MOTORU — akora akortlu, 16'lık ızgarada, uyumsuzluk yok
+   Kurallar:
+     · timpali YALNIZCA akorun kökü/beşlisi (gerçek timpani akordu gibi)
+     · taiko/tom sabit perdede (melodik değil) → akorla çakışmaz
+     · her vuruş 16'lık ızgaranın tam üstünde; "insan" kayması en fazla ±4 ms
+     · faz başına ayrı ritmik hücre: nöbet, yürüyüş, baskın, geri çekilme,
+       kuşatma (ters vurgu), karşı saldırı (senkop), zafer (tutti vuruş)
+   ========================================================================== */
+(function (root) {
+  'use strict';
+
+  var D = {};
+
+  /* 16 adımlık hücreler — 1 = vuruş, 0 = sessiz; değer = aksan */
+  var CELLS = {
+    nobet:    [1.0, 0, 0, 0, 0, 0, .45, 0, .72, 0, 0, 0, 0, .30, 0, 0],
+    yuruyus:  [1.0, 0, .32, 0, .78, 0, .34, 0, .92, 0, .36, 0, .70, 0, .40, .22],
+    baskin:   [1.0, .42, .30, .55, .95, .40, .50, .68, 1.0, .44, .34, .60, .88, .46, .55, .74],
+    geri:     [.86, 0, 0, .28, 0, 0, .40, 0, .70, 0, 0, .24, 0, 0, .34, 0],
+    kusatma:  [.40, 0, .52, 0, .34, 0, .58, 0, .44, 0, .60, 0, .30, 0, .64, 0],   // ters vurgu (zayıf vuruşlar güçlü)
+    karsi:    [1.0, 0, .30, .74, 0, .46, .30, 0, .90, .30, 0, .78, .40, 0, .52, .66],
+    zafer:    [1.0, .55, .48, .62, .98, .58, .52, .70, 1.0, .55, .48, .62, .96, .60, .56, .80]
+  };
+  D.CELLS = CELLS;
+
+  /* akort: timpani için akorun kökü (düşük oktav) ve beşlisi */
+  /*__ORCHESTRA_LESSON_08__*/
+  D.timpPitches = timpPitches;
+
+  /* ritmik hücreyi çal: 16'lık ızgara, akora akortlu */
+  D.play = function (o) {
+    /* o: { push(inst, midi, t, dur, vel), barStart, beat, cell, chord, dyn, dens, R } */
+    var cell = CELLS[o.cell] || CELLS.nobet;
+    var beat = o.beat;
+    var step = beat * 0.25;
+    var dyn = o.dyn == null ? 1 : o.dyn;
+    var dens = o.dens == null ? 1 : o.dens;
+    var R = o.R || function () { return 0.5; };
+    var tp = timpPitches(o.chord);
+    var push = o.push;
+    var t0 = o.barStart;
+    var toms = [40, 43, 40, 45];                       // sabit, melodik olmayan
+
+    for (var i = 0; i < 16; i++) {
+      var a = cell[i];
+      if (!a) continue;
+      if (dens < 0.7 && (i % 4 !== 0) && R() < 0.55) continue;     // seyrek faz: süslemeler atılır
+      var t = t0 + i * step + (R() - 0.5) * 0.008;                // en fazla ±4 ms
+      var v = Math.min(1.3, a * dyn * (0.92 + R() * 0.16));
+
+      if (i % 8 === 0) {
+        push('timpani', R() < 0.72 ? tp[0] : tp[1], t, step * 2.2, v * 0.95);
+      } else if (i % 4 === 0) {
+        push('timpani', R() < 0.5 ? tp[1] : tp[0], t, step * 1.6, v * 0.55);
+        push('taiko_drum', 40, t, 0.10, v * 0.50);
+      } else if (i % 2 === 0) {
+        push('taiko_drum', 40, t, 0.09, v * 0.42);
+      } else {
+        push('melodic_tom', toms[(i + (o.seedBar || 0)) % toms.length], t, 0.07, v * 0.30);
+      }
+      /* askeri trampet / tahta blok: yalnızca yüksek yoğunluklu fazlarda */
+      if (dens > 0.9 && (i === 3 || i === 11) && R() < 0.7) {
+        push('woodblock', 72, t, 0.05, v * 0.22);
+      }
+    }
+    /* faz geçişlerinde zil kabarması */
+    if (o.cymbal) push('reverse_cymbal', 60, t0, beat * 3.4, 0.5 * dyn);
+    return true;
+  };
+
+  /* kıta/alay vuruşları: uzaktan yaklaşan/kaybolan 3D perküsyon */
+  D.regiment = function (o) {
+    /* o: { push, barStart, beat, R, side, dist, dyn } */
+    var push = o.push, R = o.R || function () { return 0.5; };
+    var n = 3 + Math.floor(R() * 3);
+    for (var i = 0; i < n; i++) {
+      var t = o.barStart + i * o.beat * (0.5 + R() * 0.5);
+      push('taiko_drum', 40, t, 0.12, (0.28 + R() * 0.34) * (o.dyn || 1),
+        { px: (o.side || 0) * (0.55 + R() * 0.35), pz: (o.dist || 0) });
+    }
+    return n;
+  };
+
+  root.Drums = D;
+})(typeof window !== 'undefined' ? window : this);
+

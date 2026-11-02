@@ -1,0 +1,315 @@
+
+/* ==========================================================================
+   SES DENGE MOTORU (SDM) v1 · SIKIŞMASIZ MASTERING · PROBLEMSİZ ORKESTRA
+   --------------------------------------------------------------------------
+   Linkteki ses denge algoritması (bölüm dengeleme + aile hedef payları +
+   tepe/tiz/nefes kontrolü) orkestraya GÖMÜLÜR ve şu şekilde geliştirilir:
+
+     · PENCERELİ DİNAMİK DENGE: 2 sn'lik pencerelerde aile enerjileri
+       (str/brass/perc/wood/choir/bell) hedef paylara oturtulur.
+       Uygulama: planlı kazanç sahnelemesi (fader otomasyonu) —
+       SIKIŞTIRICI YOK · pump yok · dinamikler korunur (crest muhafaza)
+     · BANT DENGESİ: alçak-orta kalabalıkta boğulma önleme (hafif kademe)
+     · SES BÜTÇESİ: aynı anda aşırı nota yükü → ses tavanı korunur
+       (motorun yumuşak ses çalma hırsızlığı asla tetiklenmez)
+     · PROBLEMSİZLİK: sonlu/sıralı doğrulama, sayısızlık koruması,
+       sayfa kapanışında temizlik, ses bağlamı yeniden sürdürme
+   ========================================================================== */
+(function (root) {
+  'use strict';
+
+  var SDM = {};
+  SDM.VERSION = '1.0-SDM';
+
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+
+  /* linkteki hedefler (algoritma sürekliliği) */
+  SDM.TARGET = { str: 0.38, brass: 0.22, perc: 0.15, wood: 0.12, choir: 0.08, bell: 0.05 };
+
+  var FAMT = {
+    violin: 'str', viola: 'str', cello: 'str', contrabass: 'str', pizzicato_strings: 'str',
+    tremolo_strings: 'str', string_ensemble_1: 'str', string_ensemble_2: 'str',
+    french_horn: 'brass', trumpet: 'brass', trombone: 'brass', tuba: 'brass', brass_section: 'brass',
+    timpani: 'perc', taiko_drum: 'perc', melodic_tom: 'perc', woodblock: 'perc',
+    orchestra_hit: 'perc', reverse_cymbal: 'perc',
+    glockenspiel: 'bell', tubular_bells: 'bell',
+    flute: 'wood', oboe: 'wood', clarinet: 'wood', bassoon: 'wood', orchestral_harp: 'wood',
+    choir_aahs: 'choir', voice_oohs: 'choir'
+  };
+  var SOLO = { violin: 1, trumpet: 1, oboe: 1, flute: 1, clarinet: 1, cello: 1, glockenspiel: 1, french_horn: 1, orchestral_harp: 1 };
+  var PERC = { timpani: 1, taiko_drum: 1, melodic_tom: 1, woodblock: 1, orchestra_hit: 1, reverse_cymbal: 1 };
+
+  function famOf(inst) { return FAMT[inst] || 'str'; }
+
+  function shareDev(ev, T) {
+    var s = {}, tot = 0;
+    for (var i = 0; i < ev.length; i++) {
+      var f = famOf(ev[i].inst);
+      s[f] = (s[f] || 0) + ev[i].v * (ev[i].amp || 1);
+      tot += ev[i].v * (ev[i].amp || 1);
+    }
+    var dev = 0;
+    for (var k in T) {
+      var sh = tot ? (s[k] || 0) / tot : 0;
+      dev += Math.abs(sh - T[k]);
+    }
+    return dev;
+  }
+
+  /* ==========================================================================
+     PENCERELİ DİNAMİK DENGE — sıkışmasız fader otomasyonu
+     ========================================================================== */
+  function windowBalance(ev, T, stats) {
+    var W = 2.0;
+    var byWin = {};
+    var i, e, k, f;
+    for (i = 0; i < ev.length; i++) {
+      e = ev[i];
+      k = Math.floor(e.t / W);
+      f = famOf(e.inst);
+      var w = byWin[k] || (byWin[k] = { sum: {}, ev: {} });
+      w.sum[f] = (w.sum[f] || 0) + e.v * (e.amp || 1);
+      (w.ev[f] || (w.ev[f] = [])).push(e);
+    }
+    var prevG = {};
+    var keys = Object.keys(byWin).map(Number).sort(function (a, b) { return a - b; });
+    keys.forEach(function (k2) {
+      var w2 = byWin[k2];
+      var tot = 0, f2;
+      for (f2 in w2.sum) tot += w2.sum[f2];
+      if (!(tot > 0)) return;
+      for (f2 in T) {
+        var share = (w2.sum[f2] || 0) / tot;
+        var gRaw = share > 0.004 ? Math.pow(T[f2] / share, 0.6) : 1;
+        /* SIKIŞMASIZ: düzeltmeler asimetrik ve yumuşak — dinamik korunur */
+        var g = clamp(gRaw, 0.82, 1.15);
+        /* zaman yumuşatma: pencereler arası ani sıçrama yok (pump yok) */
+        var gp = prevG[f2] != null ? prevG[f2] : 1;
+        g = 0.35 * gp + 0.65 * g;
+        prevG[f2] = g;
+        if (Math.abs(g - 1) < 0.012) continue;
+        var list = w2.ev[f2] || [];
+        for (var j = 0; j < list.length; j++) {
+          list[j].amp = +clamp((list[j].amp || 1) * g, 0.45, 1.55).toFixed(3);
+        }
+        if (g < 1) stats.trims++; else stats.boosts++;
+        stats.corrected++;
+      }
+    });
+  }
+
+  /* ==========================================================================
+     BANT DENGESİ — alçak-orta kalabalıkta boğulma önleme
+     ========================================================================== */
+  function bandBalance(ev, stats) {
+    var W = 2.0;
+    var byWin = {};
+    for (var i = 0; i < ev.length; i++) {
+      var e = ev[i];
+      if (e.midi < 36 || e.midi > 67 || SOLO[e.inst] || PERC[e.inst]) continue;
+      var k = Math.floor(e.t / W);
+      (byWin[k] || (byWin[k] = [])).push(e);
+    }
+    for (var k2 in byWin) {
+      var list = byWin[k2];
+      if (list.length <= 24) continue;
+      list.sort(function (a, b) { return a.v * (a.amp || 1) - b.v * (b.amp || 1); });
+      var n = Math.ceil(list.length * 0.4);
+      for (var j = 0; j < n; j++) {
+        list[j].amp = +clamp((list[j].amp || 1) * 0.93, 0.45, 1.55).toFixed(3);
+        list[j].cut = +clamp((list[j].cut || 1) * 0.95, 0.55, 1.5).toFixed(3);
+        stats.bandTrims++;
+      }
+    }
+  }
+
+  /* ==========================================================================
+     SES BÜTÇESİ — aynı anda aşırı yükü incelt (ses tavanı hırsızlığı önlenir)
+     ========================================================================== */
+  /*__ORCHESTRA_LESSON_35__*/
+
+  /* ==========================================================================
+     SES SEVİYESİ HEDEFİ — "sesler çok yüksek" → yumuşak geri çekme (sıkışmasız)
+     ========================================================================== */
+  function levelTarget(ev, stats) {
+    var sum = 0, n = 0;
+    for (var i = 0; i < ev.length; i++) {
+      sum += ev[i].v * (ev[i].amp || 1);
+      n++;
+    }
+    if (!n) return;
+    var mean = sum / n;
+    /* hedef ortalama nota şiddeti: 0.34 — altında bırak, asla yukarı itme */
+    var scale = mean > 0.34 ? clamp(0.34 / mean, 0.78, 1) : 1;
+    if (scale < 0.995) {
+      for (var j = 0; j < ev.length; j++) {
+        ev[j].v = +clamp(ev[j].v * scale, 0.05, 1.2).toFixed(3);
+      }
+      stats.levelScale = +scale.toFixed(3);
+      stats.levelTrimmed = n;
+    } else {
+      stats.levelScale = 1;
+    }
+  }
+
+  /* ==========================================================================
+     YOĞUNLUK KONTROLÜ — boğucu yığınları incelt (ses tavanı da korunur)
+     ========================================================================== */
+  /*__ORCHESTRA_LESSON_36__*/
+
+  /* ==========================================================================
+     PROBLEMSİZLİK SAĞLIK DENETİMİ
+     ========================================================================== */
+  SDM.health = function (plan) {
+    if (!plan || !plan.events) return null;
+    var ev = plan.events;
+    var finite = true, sorted = true, ranges = true;
+    for (var i = 0; i < ev.length; i++) {
+      var e = ev[i];
+      if (!isFinite(e.t) || !isFinite(e.midi) || !isFinite(e.d) || !isFinite(e.v) ||
+        !isFinite(e.amp || 1) || !isFinite(e.cut || 1) || !isFinite(e.wet || 1)) { finite = false; break; }
+      if (i > 0 && ev[i - 1].t > e.t + 1e-6) { sorted = false; break; }
+      if (e.midi < 14 || e.midi > 118 || e.v <= 0 || e.v > 1.36 ||
+        (e.amp != null && (e.amp < 0.44 || e.amp > 1.56)) ||
+        (e.cut != null && (e.cut < 0.54 || e.cut > 1.51))) { ranges = false; break; }
+    }
+    var masterOK = (plan.master == null) || plan.master <= 0.94;
+    var budgetOK = !(plan.denge && plan.denge.budgetTrims > plan.events.length * 0.2);
+    return {
+      finite: finite, sorted: sorted, ranges: ranges,
+      masterOK: masterOK, budgetOK: budgetOK,
+      compressor: false,          // SIKIŞTIRICI YOK: planlı kazanç sahnelemesi
+      timers: true, cleanup: true,
+      ok: finite && sorted && ranges && masterOK && budgetOK
+    };
+  };
+
+  /* ==========================================================================
+     ANA DENGE GEÇİŞİ
+     ========================================================================== */
+  SDM.balance = function (plan) {
+    if (!plan || !plan.events || !plan.events.length) return plan;
+    try {
+      var T = SDM.TARGET;
+      var stats = {
+        windows: 0, corrected: 0, trims: 0, boosts: 0,
+        bandTrims: 0, budgetTrims: 0, compressor: false,
+        densityDrops: 0, levelScale: 1
+      };
+      stats.devBefore = +shareDev(plan.events, T).toFixed(4);
+      plan.events = densityControl(plan.events, stats);       // önce yığın incelt
+      var ev = plan.events;
+      levelTarget(ev, stats);                                  // seviye hedefi (yalnız kısma)
+      windowBalance(ev, T, stats);
+      bandBalance(ev, stats);
+      voiceBudget(ev, stats);
+      /* son koridor (sayısal bütünlük) — sıkışmasız: yumuşak tavanlar */
+      for (var i = 0; i < ev.length; i++) {
+        var e = ev[i];
+        if (e._drop != null) delete e._drop;
+        e.amp = +clamp(isFinite(e.amp) ? e.amp : 1, 0.45, 1.35).toFixed(3);
+        e.v = +clamp(isFinite(e.v) ? e.v : 0.5, 0.05, 1.2).toFixed(3);
+        if (e.cut != null) e.cut = +clamp(e.cut, 0.55, 1.5).toFixed(3);
+      }
+      plan.notes = plan.events.length;
+      stats.devAfter = +shareDev(ev, T).toFixed(4);
+      stats.masterScale = 0.86;                                // ana çıkışta yumuşak geri çekme
+      plan.denge = stats;
+      if (plan.kimlik) {
+        plan.kimlik.sesDenge = 'pencereli dinamik · sıkıştırıcı yok';
+        plan.kimlik.dengeDuzelme = ((stats.devBefore - stats.devAfter) * 100).toFixed(1) + '%';
+      }
+      SDM.render(plan);
+    } catch (err) {
+      if (root.console && console.warn) console.warn('ses denge motoru:', err);
+    }
+    return plan;
+  };
+
+  /* ==========================================================================
+     SES DENGE PANELİ — hedef vs gerçek aile payları + sağlamlık
+     ========================================================================== */
+  function el(id) { return document.getElementById(id); }
+
+  SDM.render = function (plan) {
+    var host = el('sdFam');
+    if (!host || !plan) return;
+    var ev = plan.events, T = SDM.TARGET;
+    var s = {}, tot = 0;
+    for (var i = 0; i < ev.length; i++) {
+      var f = famOf(ev[i].inst);
+      var l = ev[i].v * (ev[i].amp || 1);
+      s[f] = (s[f] || 0) + l; tot += l;
+    }
+    var NAMES = { str: 'YAYLILAR', brass: 'BAKIRLAR', perc: 'VURMALI', wood: 'NEFESLİLER', choir: 'KORO', bell: 'ÇANLAR' };
+    var html = '';
+    for (var k in T) {
+      var act = tot ? (s[k] || 0) / tot : 0;
+      var pctT = Math.round(T[k] * 100), pctA = Math.round(act * 100);
+      var d = pctA - pctT;
+      html += '<div class="sd-row">' +
+        '<b>' + (NAMES[k] || k) + '</b>' +
+        '<span class="sd-bar"><em class="t" style="width:' + pctT + '%"></em><em class="a" style="width:' + pctA + '%"></em></span>' +
+        '<span class="sd-num">hedef %' + pctT + '</span>' +
+        '<span class="sd-num">gerçek %' + pctA + '</span>' +
+        '<span class="sd-num" style="color:' + (Math.abs(d) <= 3 ? '#7fd8c8' : '#e08fb0') + '">' + (d >= 0 ? '+' : '') + d + '</span>' +
+        '</div>';
+    }
+    host.innerHTML = html;
+    var st = el('sdStats');
+    var H = SDM.health(plan);
+    if (st && plan.denge) {
+      st.textContent = 'denge düzeltmesi ' + (plan.denge.corrected || 0) + ' pencere-aile · kısma ' + (plan.denge.trims || 0) +
+        ' · yükseltme ' + (plan.denge.boosts || 0) + ' · bant ' + (plan.denge.bandTrims || 0) +
+        ' · yoğunluk inceltme ' + (plan.denge.densityDrops || 0) + ' · seviye ×' + (plan.denge.levelScale || 1) +
+        ' · sapma ' + plan.denge.devBefore + ' → ' + plan.denge.devAfter;
+    }
+    var hl = el('sdHealth');
+    if (hl && H) {
+      hl.textContent = (H.ok ? 'PROBLEMSİZ' : 'KONTROL') +
+        ' · sonlu ' + (H.finite ? '✓' : '✗') + ' · sıralı ' + (H.sorted ? '✓' : '✗') +
+        ' · aralık ' + (H.ranges ? '✓' : '✗') + ' · ses tavanı ' + (H.budgetOK ? '✓' : '✗') +
+        ' · ÇIKIŞ: dinamik kontrol + limiter';
+      hl.style.color = H.ok ? '#7fd8c8' : '#e08fb0';
+    }
+  };
+
+  /* ==========================================================================
+     KATMAN ZİNCİRİ + SAYFA SAĞLAMIĞI
+     Zincir: skor → renk ayrımı (mix) → SES DENGE → QA denetim
+     ========================================================================== */
+  function bootSDM() {
+    try {
+      if (root.KonserQA && root.KonserQA._originalBuild) {
+        var inner = root.KonserQA._originalBuild;
+        root.KonserQA._originalBuild = function (opts) {
+          return SDM.balance(inner(opts));
+        };
+      } else if (root.Konser && root.Konser.build) {
+        var inner2 = root.Konser.build;
+        root.Konser.build = function (opts) {
+          return SDM.balance(inner2(opts));
+        };
+      }
+    } catch (e) { }
+    /* problemsizlik: sayfa kapanışı / gizlilik */
+    try {
+      window.addEventListener('pagehide', function () {
+        try { if (root.KonserPlayer && root.KonserPlayer.stop) root.KonserPlayer.stop(); } catch (e2) { }
+      });
+      document.addEventListener('visibilitychange', function () {
+        try {
+          if (!document.hidden && root.Orchestra && root.Orchestra.resume) root.Orchestra.resume();
+        } catch (e3) { }
+      });
+    } catch (e4) { }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootSDM);
+  } else {
+    setTimeout(bootSDM, 1);
+  }
+
+  root.SesDenge = SDM;
+})(typeof window !== 'undefined' ? window : this);

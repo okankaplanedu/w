@@ -1,0 +1,21 @@
+
+(function(){
+ function id(x){return document.getElementById(x)}
+ var open=id('tm-open'), panel=id('tm-panel');
+ open.onclick=function(){panel.hidden=!panel.hidden;open.setAttribute('aria-expanded',String(!panel.hidden));};
+ function apply(){
+  var o={}; ['low','mid','high'].forEach(function(k){o[k]=+id('tm-'+k).value;id('tm-'+k+'-v').textContent=o[k];});
+  o.drum=+id('tm-drum').value;id('tm-drum-v').textContent=o.drum.toFixed(2);
+  o.vibrato=+id('tm-vibrato').value;id('tm-vibrato-v').textContent=o.vibrato.toFixed(2);
+  o.haze=+id('tm-haze').value;id('tm-haze-v').textContent=o.haze.toFixed(2);
+  o.softness=+id('tm-softness').value;id('tm-softness-v').textContent=o.softness.toFixed(2);
+  o.dynamic=id('tm-dynamic').checked;o.economy=id('tm-economy').checked;o.battle=id('tm-battle').checked;
+  if(window.Orchestra && Orchestra.toneMaster) Orchestra.toneMaster.configure(o);
+ }
+ panel.addEventListener('input',apply);
+ id('tm-reset').onclick=function(){['low','mid','high'].forEach(function(k){id('tm-'+k).value=0});id('tm-drum').value=0.90;id('tm-vibrato').value=0.34;id('tm-haze').value=0.48;id('tm-softness').value=0.82;id('tm-dynamic').checked=true;id('tm-economy').checked=true;id('tm-battle').checked=true;apply();};
+ setInterval(function(){if(panel.hidden || !window.Orchestra || !Orchestra.toneMaster)return;
+ var m=Orchestra.toneMaster.stats(); function db(x){return x>0.00001?(20*Math.log10(x)).toFixed(1):'−∞'}
+ id('tm-meter').textContent='Tepe: '+db(m.peak)+' dBFS   RMS: '+db(m.rms)+' dBFS\nDinamik kazanç: '+(m.autoGain*100).toFixed(0)+'%   Limit: '+m.reduction.toFixed(1)+' dB   Tiz: '+m.treble.toFixed(1)+' dB\nSesler: '+m.voices+' / '+m.max+'   Ses bağlamı: '+m.state;
+ },500);apply();
+})();

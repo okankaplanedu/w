@@ -1,0 +1,253 @@
+
+/* ==========================================================================
+   ÜRETİM MODELİ —  Song = F(M, R, H, T) + ΔS
+   M  modal/melodik çerçeve : Markov zinciri ile motif türetimi
+   R  ritmik matris         : sabit ana vuruşlar + stokastik hayalet vuruşlar
+   H  armoni                : yürüyüş + çevrim (inversion) + geçiş akoru
+   T  tını                  : sabit enstrüman sınıfı, değişken velocity/filtre katmanı
+   ΔS çeşitlilik            : Fibonacci/altın oran süreleri, tabu geçmiş kuyruğu,
+                              olasılıksal mutasyon oranı p ∈ [0.05, 0.20]
+   ========================================================================== */
+(function (root) {
+  'use strict';
+
+  var M = {};
+
+  /* ---------- 0) kısıtlı rastgelelik: tohumlu üreteç ---------- */
+  function rng(seed) {
+    var s = (seed >>> 0) || 1;
+    return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+  }
+  M.rng = rng;
+
+  /* ---------- 1) M: Markov zinciri (La minör, derece tabanlı) ----------
+     Durumlar: ölçek dereceleri 0..7 (La=B0). Geçiş matrisi türün kimliğini korur:
+     küçük sıçramalar ağır, büyük sıçramalar seyrek; tonik ve beşliye dönüş güçlü. */
+  var SCALE = [0, 2, 3, 5, 7, 8, 10, 11];      // La minör (harmonik) derece→yarım ton
+  /*__ORCHESTRA_LESSON_01__*/
+  M.buildMatrix = buildMatrix;
+
+  function nextState(row, R) {
+    var x = R(), acc = 0;
+    for (var j = 0; j < row.length; j++) { acc += row[j]; if (x <= acc) return j; }
+    return row.length - 1;
+  }
+
+  /* ---------- 2) ΔS: Fibonacci / altın oran süreleri ---------- */
+  var FIB = [1, 1, 2, 3, 5, 8, 13];
+  var PHI = (1 + Math.sqrt(5)) / 2;
+  /*__ORCHESTRA_LESSON_02__*/
+  M.fibDur = fibDur;
+  M.PHI = PHI;
+  M.FIB = FIB;
+
+  /* ---------- 3) M: motif üretimi (Markov + Fibonacci süre) ---------- */
+  /*__ORCHESTRA_LESSON_03__*/
+  M.genMotif = genMotif;
+
+  /* ---------- 3b) MARKOV-3 (üçlü bağlam) + FIBONACCI/φ ritmi ----------
+     Bağlam = son iki derece (d_{n-2}, d_{n-1}) → 8×8 = 64 bağlam, her biri 8 hedef.
+     Görülmemiş bağlamda Markov-2 → Markov-1'e düşer (hiç tıkanmaz).            */
+  var M3 = null;
+  function buildMatrix3(push, seed) {
+    var R = rng((seed || 0xC0FFEE) ^ Math.floor((push == null ? 0.12 : push) * 9973));
+    var m2 = buildMatrix(push);
+    var m3 = [];
+    for (var a = 0; a < 8; a++) {
+      for (var b = 0; b < 8; b++) {
+        var row = m2[b].slice();
+        /* ikili bağlamın kimliği: küçük sıçramalar güçlensin, tekrarlar seyrelsin */
+        for (var j = 0; j < 8; j++) {
+          var dist = Math.abs(j - b);
+          if (dist === 0) row[j] *= 0.45;               // aynı dereceyi tekrarlamayı seyrelt
+          if (Math.abs(j - a) <= 1) row[j] *= 1.35;     // bağlama yakın dereceler
+          /* φ eğilimi: beşli (4) ve tonik (0) her bağlamda hafif avantaj */
+          if (j === 4) row[j] *= 1.18;
+          if (j === 0) row[j] *= 1.10;
+          row[j] = Math.max(0.01, row[j] * (0.85 + R() * 0.3));
+        }
+        var sum = row.reduce(function (x, y) { return x + y; }, 0);
+        m3.push(row.map(function (w) { return w / sum; }));
+      }
+    }
+    return m3;
+  }
+  M.buildMatrix3 = buildMatrix3;
+
+  function nextState3(m3, a, b, R) {
+    if (!m3) return 0;
+    var row = m3[a * 8 + b];
+    if (!row) return 0;
+    var x = R(), acc = 0;
+    for (var j = 0; j < 8; j++) { acc += row[j]; if (x <= acc) return j; }
+    return 7;
+  }
+  M.nextState3 = nextState3;
+
+  /* Fibonacci / altın oran ritmi: vuruşlar φ oranında bölünür (0.618 eşik) */
+  /*__ORCHESTRA_LESSON_04__*/
+  M.fibRhythm = fibRhythm;
+
+  /* altın oran permütasyonu: sıra rastgele ama düşük ayrışmalı (her eserde farklı) */
+  function randOrder(R, n, stepSeed) {
+    var idx = [], used = {}, cur = Math.floor(R() * n), step = 1 + Math.floor(R() * Math.max(1, n - 1));
+    if (stepSeed) step = 1 + (stepSeed % Math.max(1, n - 1));
+    for (var k = 0; k < n; k++) {
+      while (used[cur]) cur = (cur + 1) % n;
+      idx.push(cur); used[cur] = 1;
+      cur = (cur + step) % n;
+      if (R() < 0.22) step = 1 + Math.floor(R() * Math.max(1, n - 1));   // sıra atlaması
+    }
+    return idx;
+  }
+  M.randOrder = randOrder;
+
+  /* ---------- 3c) Markov-3 + φ ritmiyle TAM EZGİ üretimi ---------- */
+  function genPhrase3(opts) {
+    opts = opts || {};
+    var R = rng(opts.seed || 99);
+    var m3 = opts.m3 || buildMatrix3(opts.push, opts.seed);
+    var bars = opts.bars || 4;
+    var root = opts.root == null ? 57 : opts.root;
+    var out = [];
+    var a = opts.a != null ? opts.a : 0, b = opts.b != null ? opts.b : 2;
+    for (var bar = 0; bar < bars; bar++) {
+      var rh = fibRhythm(R, 4, opts.detail == null ? 0.6 : opts.detail);
+      for (var i = 0; i < rh.length; i++) {
+        var deg = b;
+        var midi = root + SCALE[deg] + (R() < 0.18 ? 12 : 0);
+        out.push([midi, +rh[i].d.toFixed(2), +rh[i].t.toFixed(2)]);
+        a = b; b = nextState3(m3, a, b, R);
+      }
+      /* cümle sonu: beşli ya da tonik (kadans eğilimi) */
+      if (bar % 2 === 1) { b = R() < 0.5 ? 0 : 4; }
+    }
+    return out;
+  }
+  M.genPhrase3 = genPhrase3;
+
+  /* ---------- 4) ΔS: mutasyon (p ∈ [0.05, 0.20]) ---------- */
+  /*__ORCHESTRA_LESSON_05__*/
+  M.mutate = mutate;
+
+  /* ---------- 5) R: ritmik matris (ana vuruş sabit, hayalet vuruş stokastik) ---------- */
+  function rhythmMatrix(R, style, ghostRate) {
+    /* 16 adım (16'lık) — 0 ve 8 (ya da 0,4,8,12) sabit aksan */
+    var accents = new Array(16).fill(0);
+    accents[0] = 1; accents[8] = 0.9;
+    if (style === 'askeri' || style === 'firtina') { accents[4] = 0.85; accents[12] = 0.8; }
+    if (style === 'taiko') { accents[2] = 0.7; accents[6] = 0.75; accents[10] = 0.7; accents[14] = 0.75; }
+    if (style === 'timpani') { accents[4] = 0.6; accents[12] = 0.6; }
+    var g = ghostRate == null ? 0.22 : ghostRate;
+    for (var i = 1; i < 16; i++) {
+      if (accents[i] === 0 && R() < g) accents[i] = 0.25 + R() * 0.35;    // hayalet
+    }
+    return accents;
+  }
+  M.rhythmMatrix = rhythmMatrix;
+
+  /* ---------- 6) H: çevrim + geçiş akoru ---------- */
+  var INV = [[0, 4, 7], [4, 7, 12], [7, 12, 16]];          // kök, 1., 2. çevrim
+  /*__ORCHESTRA_LESSON_06__*/
+  M.invert = invert;
+
+  /*__ORCHESTRA_LESSON_07__*/
+  M.passingChord = passingChord;
+
+  /* ---------- 7) ΔS: tabu geçmiş kuyruğu + benzerlik cezası ---------- */
+  var HISTORY = [];       // son N şarkının imzası
+  var HIST_MAX = 24;
+
+  /* imza: M (motif dereceleri) + R (vuruş deseni) + H (yürüyüş/çevrim) + T (velocity katmanı) */
+  function signature(song) {
+    var m = [], r = [], h = [], t = [];
+    (song.motif || []).forEach(function (n) { m.push(n.deg); });
+    (song.rhythm || []).forEach(function (a) { r.push(+a.toFixed(2)); });
+    (song.prog || []).forEach(function (c) { h.push(c.idx != null ? c.idx : 0); });
+    t.push(+(song.layers && song.layers.vel || 0).toFixed(3));
+    t.push(+(song.layers && song.layers.cut || 0).toFixed(3));
+    return { m: m, r: r, h: h, t: t, arr: song.arrId || '' };
+  }
+  M.signature = signature;
+
+  function cos(a, b) {
+    var n = Math.min(a.length, b.length), d1 = 0, d2 = 0, dot = 0;
+    for (var i = 0; i < n; i++) { d1 += a[i] * a[i]; d2 += b[i] * b[i]; dot += a[i] * b[i]; }
+    if (!d1 || !d2) return 0;
+    /* uzunluk farkı da cezalandırılır */
+    var lenPen = Math.min(a.length, b.length) / Math.max(a.length, b.length);
+    return (dot / (Math.sqrt(d1) * Math.sqrt(d2))) * lenPen;
+  }
+
+  function similarity(s1, s2) {
+    return 0.34 * cos(s1.m, s2.m) + 0.26 * cos(s1.r, s2.r) +
+      0.22 * cos(s1.h, s2.h) + 0.10 * cos(s1.t, s2.t) +
+      0.08 * (s1.arr === s2.arr ? 1 : 0);
+  }
+  M.similarity = similarity;
+
+  /* tabu: geçmişe en yüksek benzerlik (ceza fonksiyonu) */
+  function tabooScore(sig) {
+    var worst = 0;
+    for (var i = 0; i < HISTORY.length; i++) {
+      var s = similarity(sig, HISTORY[i]);
+      if (s > worst) worst = s;
+    }
+    return worst;
+  }
+  M.tabooScore = tabooScore;
+
+  function remember(sig) {
+    HISTORY.push(sig);
+    if (HISTORY.length > HIST_MAX) HISTORY.shift();
+    /* kalıcı hafıza (sayfa yenilense de tekrar etmesin) */
+    try {
+      var arr = JSON.parse(root.localStorage.getItem('oksl.orc.hist.v1') || '[]');
+      arr.push(sig);
+      while (arr.length > HIST_MAX) arr.shift();
+      root.localStorage.setItem('oksl.orc.hist.v1', JSON.stringify(arr));
+    } catch (e) { }
+  }
+  M.remember = remember;
+
+  function loadHistory() {
+    try {
+      var arr = JSON.parse(root.localStorage.getItem('oksl.orc.hist.v1') || '[]');
+      if (arr && arr.length) HISTORY = arr.slice(-HIST_MAX);
+    } catch (e) { }
+    return HISTORY.length;
+  }
+  M.loadHistory = loadHistory;
+  M.historySize = function () { return HISTORY.length; };
+  M.history = function () { return HISTORY.slice(); };
+
+  /* ---------- 8) kısıtlı arama: benzerlik eşiğinin altına in ---------- */
+  M.generate = function (tryFn, opts) {
+    opts = opts || {};
+    var threshold = opts.threshold == null ? 0.62 : opts.threshold;
+    var attempts = opts.attempts || 12;
+    var best = null, bestScore = 2;
+    for (var i = 0; i < attempts; i++) {
+      var cand = tryFn(i);
+      var sig = signature(cand);
+      var sc = tabooScore(sig) + (cand.arrRepeat ? 0.25 : 0);
+      if (sc < bestScore) { bestScore = sc; best = { song: cand, sig: sig, score: sc }; }
+      if (sc < threshold) break;
+    }
+    var R = rng((best.sig.m[0] || 1) * 7919 + Date.now());
+    if (bestScore >= threshold && best) {
+      /* hâlâ benzer → zorunlu mutasyon (ΔS) */
+      best.song.motif = mutate(best.song.motif, 0.20, Math.floor(R() * 1e9));
+      best.sig = signature(best.song);
+      best.score = tabooScore(best.sig);
+      best.mutated = true;
+    }
+    remember(best.sig);
+    best.threshold = threshold;
+    best.history = HISTORY.length;
+    return best;
+  };
+
+  root.Model = M;
+})(typeof window !== 'undefined' ? window : this);
+

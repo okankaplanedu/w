@@ -1,0 +1,14 @@
+
+/* Nefesli cümleler: nota haritasına, akora ve ses tavanına bağlı küçük çeşitleme. */
+(function(root){
+ 'use strict';
+ var winds={flute:1,oboe:1,clarinet:1,bassoon:1,trumpet:1,french_horn:1,trombone:1};
+ function nearestChord(n,chord){
+  var best=n,dist=99;
+  chord.forEach(function(base){for(var k=-3;k<=3;k++){var x=base+12*k,d=Math.abs(x-n);if(x>=40&&x<=96&&d<dist){dist=d;best=x;}}});
+  return best;
+ }
+ /*__ORCHESTRA_LESSON_40__*/
+ function boot(){if(!root.Konser||!root.Konser.build)return;var prev=root.Konser.build;root.Konser.build=function(opts){return windPhrases(prev(opts));};}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})(window);

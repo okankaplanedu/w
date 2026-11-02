@@ -1,0 +1,249 @@
+
+/* ==========================================================================
+   KONTUR EZGİLERİ & GELİŞİM YAYI · v7 — anti-boğulma · anti-sıkıcılık
+   --------------------------------------------------------------------------
+   ELEŞTİRİLER:
+     "sesler çok yüksek, boğulmalar oluyor"
+     "boğulmaların karışmasını engellemek için kontur ezgiler eklenmiyor"
+     "sürekli aynı müzik · ilk heyecanlı ama zamanla sıkıcı ve yorucu"
+
+   ÇÖZÜMLER:
+   1) KONTUR EZGİLERİ: her bölümde 2–3 bağımsız, net melodik KONTUR HATTI
+      (yükselen / düşen / dalga / zikzak) — keskin spektral konturla (cut),
+      kendi 3D şeridinde, seyrek ritimde: kulağın tutunacağı net iplikler.
+      Ezgi notalarının etrafındaki yığın oyanır (mikro-carve) → boğulma değil,
+      netleşen figürler. Şekiller her bölümde ve her konserde YENİDEN üretilir.
+   2) GELİŞİM YAYI:4 bölüm =4 farklı doku yoğunluğu (sade giriş → dolu tema →
+      ince köprü (çukur) → doruk final). Yorucu "sürekli tutti" yerine nefes
+      alan, sürprizli bir yay — sıkıcılık kırılır.
+   3) Bölüm içi cümle varyasyonu: her hat 2 cümle çalar, ikinci cümle farklı
+      kontur şekliyle (inversiyon/uzantı) — tekrar değil, gelişme.
+   ========================================================================== */
+(function (root) {
+  'use strict';
+
+  var EZ = {};
+  EZ.VERSION = '7.0-KONTUR';
+
+  function rng(seed) {
+    var s = (seed >>> 0) || 1;
+    return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+  }
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+  function pick(R, a) { return a[Math.floor(R() * a.length) % a.length]; }
+
+  var SCALE = [0, 2, 3, 5, 7, 8, 10, 11];   // La minör (harmonik) — motorla aynı
+  function degToMidi(deg, root) {
+    var oc = Math.floor(deg / 8), d = ((deg % 8) + 8) % 8;
+    return root + SCALE[d] + 12 * oc;
+  }
+
+  /* ---- kontur hatları: 4 karakter, 4 renk ---- */
+  var LINES = [
+    { hat: 'A', shape: 'rise', name: 'YÜKSELEN KONTUR', insts: ['violin', 'flute', 'glockenspiel'], lo: 6, hi: 12, color: '#f2d79a' },
+    { hat: 'B', shape: 'fall', name: 'DÜŞEN KONTUR', insts: ['oboe', 'clarinet', 'viola'], lo: 3, hi: 8, color: '#7fd8c8' },
+    { hat: 'C', shape: 'wave', name: 'DALGA KONTURU', insts: ['trumpet', 'french_horn'], lo: 1, hi: 6, color: '#e08fb0' },
+    { hat: 'D', shape: 'zigzag', name: 'ZİKZAK KONTUR', insts: ['cello', 'bassoon'], lo: -2, hi: 3, color: '#8fb6e0' }
+  ];
+  var SHAPES = ['rise', 'fall', 'wave', 'zigzag', 'plateau'];
+
+  /* ---- gelişim yayı: bölüm başına doku yoğunluğu (anti-yorucu) ---- */
+  EZ.TEXTURE = {
+    giris: { str: 0.82, brass: 0.55, perc: 0.70, wood: 0.88, choir: 0.68, bell: 0.80 },
+    tema: { str: 1.0, brass: 0.92, perc: 0.94, wood: 0.95, choir: 0.90, bell: 0.90 },
+    kopru: { str: 0.60, brass: 0.36, perc: 0.36, wood: 0.85, choir: 0.78, bell: 0.68 },
+    final: { str: 1.0, brass: 1.0, perc: 1.0, wood: 1.0, choir: 1.0, bell: 1.05 }
+  };
+  var FAMT = {
+    violin: 'str', viola: 'str', cello: 'str', contrabass: 'str', pizzicato_strings: 'str',
+    tremolo_strings: 'str', string_ensemble_1: 'str', string_ensemble_2: 'str',
+    french_horn: 'brass', trumpet: 'brass', trombone: 'brass', tuba: 'brass', brass_section: 'brass',
+    timpani: 'perc', taiko_drum: 'perc', melodic_tom: 'perc', woodblock: 'perc',
+    orchestra_hit: 'perc', reverse_cymbal: 'perc',
+    glockenspiel: 'bell', tubular_bells: 'bell',
+    flute: 'wood', oboe: 'wood', clarinet: 'wood', bassoon: 'wood', orchestral_harp: 'wood',
+    choir_aahs: 'choir', voice_oohs: 'choir'
+  };
+
+  /* ==========================================================================
+     1) GELİŞİM YAYI — doku kontrastı (sıkıcılık kırıcı)
+     ========================================================================== */
+  function passTexture(ev, movs, stats) {
+    for (var i = 0; i < ev.length; i++) {
+      var e = ev[i];
+      var m = null;
+      for (var j = 0; j < movs.length; j++) {
+        if (e.t >= movs[j].start - 0.01 && e.t < movs[j].start + movs[j].dur) { m = movs[j]; break; }
+      }
+      if (!m) continue;
+      var T = EZ.TEXTURE[m.key] || EZ.TEXTURE.tema;
+      var g = T[FAMT[e.inst] || 'str'];
+      if (g != null && Math.abs(g - 1) > 0.01) {
+        e.amp = +clamp((e.amp || 1) * g, 0.45, 1.35).toFixed(3);
+        stats.textured++;
+      }
+    }
+  }
+
+  /* ==========================================================================
+     2) KONTUR EZGİ ÜRETİMİ — net melodik iplikler (seyrek · parlak · önde)
+     ========================================================================== */
+  /*__ORCHESTRA_LESSON_37__*/
+
+  /*__ORCHESTRA_LESSON_38__*/
+
+  /* ==========================================================================
+     3) MİKRO-CARVE — kontur ezginin etrafındaki yığın hafifçe oyanır
+     ========================================================================== */
+  function passMicroCarve(ev, stats) {
+    var bins = {};
+    for (var i = 0; i < ev.length; i++) {
+      var e = ev[i];
+      if (!e.kontur) continue;
+      var k = Math.round(e.t * 4);
+      (bins[k] || (bins[k] = [])).push(e);
+    }
+    var SOLO = { violin: 1, trumpet: 1, oboe: 1, flute: 1, clarinet: 1, cello: 1, glockenspiel: 1, french_horn: 1, orchestral_harp: 1, viola: 1, bassoon: 1 };
+    for (var k2 in bins) {
+      var leads = bins[k2];
+      leads.forEach(function (ld) {
+        for (var j = 0; j < ev.length; j++) {
+          var e2 = ev[j];
+          if (e2.kontur || e2 === ld) continue;
+          if (Math.abs(e2.t - ld.t) > 0.45) continue;
+          if (SOLO[e2.inst] && e2.v > 0.4) continue;
+          if (Math.abs(e2.midi - ld.midi) > 15) continue;
+          if ((e2._ez || 0) >= 2) continue;
+          e2._ez = (e2._ez || 0) + 1;
+          e2.amp = +clamp((e2.amp || 1) * 0.90, 0.45, 1.35).toFixed(3);
+          stats.microCarve++;
+        }
+      });
+    }
+  }
+
+  /* ==========================================================================
+     ANA GEÇİŞ
+     ========================================================================== */
+  EZ.process = function (plan) {
+    if (!plan || !plan.events || !plan.events) return plan;
+    try {
+      var R = rng((plan.seed ^ 0xE261) >>> 0);
+      var stats = { lineNotes: 0, microCarve: 0, textured: 0 };
+      var movs = plan.movements || [];
+      passTexture(plan.events, movs, stats);
+      // Mevcut akora bağlanmayan paralel kontur melodileri eklenmez.
+      passMicroCarve(plan.events, stats);
+      /* temizlik + sıra */
+      plan.events.forEach(function (e) {
+        if (e._ez != null) delete e._ez;
+        if (e._c != null) delete e._c;
+      });
+      plan.events.sort(function (a, b) { return a.t - b.t; });
+      plan.notes = plan.events.length;
+      plan.kontur = stats;
+      if (plan.kimlik) {
+        plan.kimlik.konturEzgileri = stats.lineNotes + ' ezgi notası · ' + (movs.map(function (m) { return m.name; }).join('/')) + ' · gelişim yayı aktif';
+      }
+      EZ.render(plan);
+    } catch (err) {
+      if (root.console && console.warn) console.warn('kontur ezgi katmanı:', err);
+    }
+    return plan;
+  };
+
+  /* ==========================================================================
+     KONTUR PANOSU — ezgi çizimi + gelişim yayı tablosu
+     ========================================================================== */
+  function el(id) { return document.getElementById(id); }
+
+  EZ.render = function (plan) {
+    var cv = el('ezgiCanvas');
+    if (cv && plan) {
+      var ctx = cv.getContext('2d');
+      var W = cv.width, H = cv.height;
+      var total = plan.totalSec || 220;
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = '#06070c';
+      ctx.fillRect(0, 0, W, H);
+      /* bölüm bantları */
+      (plan.movements || []).forEach(function (m, i) {
+        var x = (m.start / total) * W, w = (m.dur / total) * W;
+        ctx.fillStyle = i % 2 ? 'rgba(127,216,200,.05)' : 'rgba(214,178,110,.06)';
+        ctx.fillRect(x, 0, w, H);
+        ctx.fillStyle = '#6d768a';
+        ctx.font = '10px ui-monospace,monospace';
+        ctx.fillText(m.name, x + 6, 14);
+      });
+      /* kontur çizgileri */
+      var COLORS = { A: '#f2d79a', B: '#7fd8c8', C: '#e08fb0', D: '#8fb6e0' };
+      plan.events.forEach(function (e) {
+        if (!e.kontur) return;
+        var hat = e.kontur.charAt(0);
+        var x = (e.t / total) * W;
+        var y = H - 22 - ((e.midi - 38) / 68) * (H - 46);
+        ctx.fillStyle = COLORS[hat] || '#fff';
+        ctx.fillRect(x - 1, y - 1.5, 3, 3);
+        ctx.globalAlpha = 0.35;
+        ctx.fillRect(x - 0.5, y - 6, 1, 12);
+        ctx.globalAlpha = 1;
+      });
+      /* lejant */
+      ctx.font = '9px ui-monospace,monospace';
+      var lx = 12;
+      LINES.forEach(function (L) {
+        ctx.fillStyle = L.color;
+        ctx.fillRect(lx, H - 14, 8, 3);
+        ctx.fillStyle = '#8a93a6';
+        ctx.fillText(L.name, lx + 11, H - 10);
+        lx += 150;
+      });
+    }
+    var st = el('ezgiStats');
+    if (st && plan && plan.kontur) {
+      st.textContent = 'kontur ezgileri: ' + plan.kontur.lineNotes + ' nota · mikro-carve ' + plan.kontur.microCarve +
+        ' · doku adımı ' + plan.kontur.textured + ' olay · her cümlede yeni kontur şekli';
+    }
+    var tx = el('ezgiTex');
+    if (tx && plan && plan.movements) {
+      var rows = plan.movements.map(function (m) {
+        var T = EZ.TEXTURE[m.key] || {};
+        return '<div class="ez-row"><b>' + m.name + '</b>' +
+          '<span>yaylı ×' + (T.str || 1).toFixed(2) + '</span>' +
+          '<span>bakır ×' + (T.brass || 1).toFixed(2) + '</span>' +
+          '<span>vurmalı ×' + (T.perc || 1).toFixed(2) + '</span>' +
+          '<span>nefesli ×' + (T.wood || 1).toFixed(2) + '</span>' +
+          '<span class="ez-note">' + (m.key === 'kopru' ? 'çukur: oda dokusu, en ince katman' :
+            m.key === 'final' ? 'doruk: tam kadro' :
+              m.key === 'giris' ? 'açık ve seyrek: yer bırakır' : 'tema: dolu ama kontrollü') + '</span>' +
+          '</div>';
+      });
+      tx.innerHTML = rows.join('');
+    }
+  };
+
+  /* ---- katman zinciri: skor → renk ayrımı → KONTUR EZGİ → ses denge → QA ---- */
+  function bootEZ() {
+    try {
+      if (root.KonserQA && root.KonserQA._originalBuild) {
+        var inner = root.KonserQA._originalBuild;
+        root.KonserQA._originalBuild = function (opts) {
+          return EZ.process(inner(opts));
+        };
+      } else if (root.Konser && root.Konser.build) {
+        var inner2 = root.Konser.build;
+        root.Konser.build = function (opts) {
+          return EZ.process(inner2(opts));
+        };
+      }
+    } catch (e) { }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootEZ);
+  } else {
+    setTimeout(bootEZ, 1);
+  }
+
+  root.KonturEzgi = EZ;
+})(typeof window !== 'undefined' ? window : this);

@@ -1,0 +1,52 @@
+
+/* ==========================================================================
+   FİNAL UI · 16:9 ÖLÇEK + TAM EKRAN — görünüm katmanı
+   1920×1080 tasarım; herhangi bir ekrana orantılı sığar (kırpma/bozulma yok)
+   ========================================================================== */
+(function (root) {
+  'use strict';
+  var DW = 1920, DH = 1080;
+
+  function fit() {
+    var el = document.getElementById('screen');
+    if (!el) return;
+    var s = Math.min(window.innerWidth / DW, window.innerHeight / DH);
+    el.style.transform = 'scale(' + s + ')';
+    el.style.left = Math.round((window.innerWidth - DW * s) / 2) + 'px';
+    el.style.top = Math.round((window.innerHeight - DH * s) / 2) + 'px';
+  }
+
+  function bootUI() {
+    fit();
+    window.addEventListener('resize', fit);
+    window.addEventListener('orientationchange', fit);
+    try {
+      var fs = document.getElementById('fsBtn');
+      if (fs) fs.addEventListener('click', function () {
+        try {
+          if (!document.fullscreenElement) {
+            (document.documentElement.requestFullscreen ||
+              document.documentElement.webkitRequestFullscreen ||
+              function () { }).call(document.documentElement);
+          } else {
+            (document.exitFullscreen || document.webkitExitFullscreen || function () { }).call(document);
+          }
+        } catch (e) { }
+        setTimeout(fit, 120);
+      });
+      document.addEventListener('fullscreenchange', function () { setTimeout(fit, 60); });
+    } catch (e2) { }
+    /* güvenli duruş: sayfa gizlenirse zamanlayıcılar zaten durur; dönüşte sığdır */
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden) setTimeout(fit, 60);
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootUI);
+  } else {
+    setTimeout(bootUI, 0);
+  }
+
+  root.FinalUI = { fit: fit, DESIGN: { w: DW, h: DH } };
+})(typeof window !== 'undefined' ? window : this);

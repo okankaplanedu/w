@@ -1,0 +1,68 @@
+
+/* ==========================================================================
+   FİBONACCİ / ALTIN ORAN (φ) ZAMAN KAFESİ
+   · Bölüm uzunlukları φ oranına yakın bölünür (46 → 18 · 11 · 7 · 4 · 3 · 2 · 1)
+   · Cümleler Fibonacci vuruşlarında başlar (0.618, 1.618, 2.618 …)
+   · Crescendo eğrileri φ^t ile büyür, decrescendo φ^-t ile söner
+   · Altın kesit anları (0.618 × uzunluk) doruk noktası olarak işaretlenir
+   ========================================================================== */
+(function (root) {
+  'use strict';
+
+  var F = {};
+  var PHI = (1 + Math.sqrt(5)) / 2;          // 1.6180339887
+  var IPHI = 1 / PHI;                        // 0.6180339887
+  var FIB = [1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89];
+
+  F.PHI = PHI; F.IPHI = IPHI; F.FIB = FIB;
+
+  /* φ tabanlı bölümleme: ağırlıklar 1 : 1/φ : 1/φ² : 1/φ³ … (kadansla azalan) */
+  F.split = function (total) {
+    var w = [], acc = 0;
+    for (var i = 0; i < 4; i++) { var v = Math.pow(IPHI, i); w.push(v); acc += v; }
+    var out = w.map(function (v) { return Math.max(1, Math.round(total * v / acc)); });
+    var diff = total - out.reduce(function (a, b) { return a + b; }, 0);
+    var ii = 0;
+    while (diff !== 0) { out[ii % out.length] += diff > 0 ? 1 : -1; diff += diff > 0 ? -1 : 1; ii++; }
+    return out;
+  };
+
+  /* Fibonacci cümle başlangıçları (vuruş cinsinden) */
+  F.onsets = function (beats) {
+    var out = [];
+    for (var i = 2; i < FIB.length; i++) {
+      var t = FIB[i] * IPHI;                 // 0.618, 1.0, 1.618, 3.09 …
+      if (t < beats - 1e-6) out.push(+t.toFixed(3));
+    }
+    if (out.indexOf(0) < 0) out.unshift(0);
+    /* altın kesit vurgusu */
+    var g = +(beats * IPHI).toFixed(3);
+    if (out.indexOf(g) < 0) out.push(g);
+    return out.sort(function (a, b) { return a - b; });
+  };
+
+  /* crescendo / decrescendo eğrisi: 0→1 arası, φ ile hızlanan */
+  F.curve = function (x, up) {
+    x = Math.max(0, Math.min(1, x));
+    var e = Math.pow(x, IPHI);               // φ^-1 üssü → öne yüklenmiş büyüme
+    return up ? e : 1 - e;
+  };
+
+  /* altın kesit anı (ölçü) */
+  F.goldenBar = function (bars) { return Math.max(1, Math.round(bars * IPHI)); };
+
+  /* ritmik ızgara: φ bölmeleriyle vuruş noktaları (16'lık tabana oturur) */
+  F.grid = function (beats, detail) {
+    var out = [0], t = 0, guard = 0;
+    var d = detail == null ? 0.5 : detail;
+    while (t < beats - 1e-6 && guard++ < 48) {
+      var step = (FIB[2 + Math.floor(Math.random() * 3)] / 16) * (d > 0.5 ? 1 : 2);
+      t += step;
+      if (t < beats) out.push(+t.toFixed(3));
+    }
+    return out;
+  };
+
+  root.Fib = F;
+})(typeof window !== 'undefined' ? window : this);
+

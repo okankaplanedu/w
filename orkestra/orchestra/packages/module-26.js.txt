@@ -1,0 +1,62 @@
+
+/* Akor içi legato/arpej: ritmik hücreleri kontrollü olarak çeşitlendirir.
+   Motifin diğer partileri, davullar, bölüm zamanları ve ortak partisyon korunur. */
+(function(root){
+ 'use strict';
+ var suitable={viola:1,cello:1,pizzicato_strings:1,string_ensemble_1:1,string_ensemble_2:1,
+   clarinet:1,oboe:1,flute:1,bassoon:1,french_horn:1};
+ function random(seed){var n=(seed>>>0)||1;return function(){n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};}
+ /*__ORCHESTRA_LESSON_41__*/
+ function apply(plan){
+  if(!plan || !plan.events || !plan.movements)return plan;
+  var R=random((plan.seed^0xb4a1d893)>>>0), groups={}, removed=new Set(), groupsUsed=0, changed=0, rests=0;
+  plan.events.forEach(function(e){
+    if(!suitable[e.inst] || e.transitionCounter || e.windPhrase || !isFinite(e.t) || !isFinite(e.d) || e.d>0.9)return;
+    var m=null,mi=-1;
+    for(var i=0;i<plan.movements.length;i++){var x=plan.movements[i];if(e.t>=x.start && e.t<x.start+x.dur){m=x;mi=i;break;}}
+    if(!m)return;
+    var hs=m.harmonyGrid||[],h=null,hi=-1;
+    for(var j=0;j<hs.length;j++)if(e.t>=hs[j].start && e.t<hs[j].end){h=hs[j];hi=j;break;}
+    if(!h || !h.notes || h.notes.length<3)return;
+    // Yalnız zaten akor sesi olan notalar dönüştürülür; kromatik solo korunur.
+    var pc=((e.midi%12)+12)%12;
+    if(!h.notes.some(function(n){return ((n%12)+12)%12===pc;}))return;
+    var key=mi+':'+hi+':'+e.inst;
+    if(!groups[key])groups[key]={h:h,notes:[]};groups[key].notes.push(e);
+  });
+  Object.keys(groups).forEach(function(k){
+    var g=groups[k],list=g.notes.sort(function(a,b){return a.t-b.t;});
+    if(list.length<3 || R()>0.70)return;
+    var order=g.h.notes.slice();
+    for(var i=order.length-1;i>0;i--){var j=Math.floor(R()*(i+1)),v=order[i];order[i]=order[j];order[j]=v;}
+    var offset=Math.floor(R()*order.length),last=null,groupRests=0,previousT=null,sameSlot=0;
+    for(var q=0;q<list.length;q++){
+      var e=list[q],next=list[q+1];
+      var originalT=e.t;
+      sameSlot=previousT!==null && Math.abs(originalT-previousT)<0.012 ? sameSlot+1 : 0;
+      previousT=originalT;
+      // Aynı anda yığılan akor seslerini kısa ve sınırlı arpej yayılımına dönüştür.
+      if(sameSlot>0 && sameSlot<=3 && originalT+sameSlot*0.045<g.h.end-0.12)
+        e.t=+(originalT+sameSlot*0.045).toFixed(4);
+      // En az üç nota korunur; küçük suslar melodinin cümlesine nefes verir.
+      if(q>0 && q<list.length-1 && list.length-groupRests>3 && R()<0.08){removed.add(e);rests++;groupRests++;continue;}
+      var target=e.midi, pitch=chordTone(target, [order[(q+offset)%order.length]],last);
+      if(Math.abs(pitch-target)<=6){if(e.midi!==pitch)changed++;e.midi=pitch;last=pitch;}
+      if(next && next.t>e.t){
+        var gap=next.t-e.t;
+        // Kısa notalarda yumuşak bağlılık; sonraki akora taşmaz.
+        if(gap>=0.12 && gap<=0.65 && e.inst!=='pizzicato_strings')
+          e.d=+Math.max(0.06,Math.min(gap*1.03,g.h.end-e.t-0.015,0.72)).toFixed(4);
+      }
+    }
+    groupsUsed++;
+  });
+  if(removed.size) plan.events=plan.events.filter(function(e){return !removed.has(e);});
+  plan.events.sort(function(a,b){return a.t-b.t;});plan.notes=plan.events.length;
+  plan.arpeggio={groups:groupsUsed,notesChanged:changed,rests:rests};
+  if(plan.kimlik)plan.kimlik.fazGecis+=' · akor içi legato ve arpej';
+  return plan;
+ }
+ function boot(){if(!root.Konser||!root.Konser.build)return;var prev=root.Konser.build;root.Konser.build=function(opts){return apply(prev(opts));};}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})(window);

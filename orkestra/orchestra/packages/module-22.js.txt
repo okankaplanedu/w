@@ -1,0 +1,105 @@
+
+(function(root){
+ 'use strict';
+ function buildHeartbeat(plan){
+   if (!plan || !plan.movements || !plan.events) return plan;
+   var moves=plan.movements, ev=plan.events, n=0;
+   var musicEnd=Math.max(0,plan.totalSec-(plan.endRing || 0));
+   for (var i=0; i<moves.length; i++) {
+     var m=moves[i], grid=(m.beatGrid || []).slice(), next=moves[i+1];
+     var step=60 / Math.max(60,Math.min(190,m.bpmTo || 120));
+     var restEnd=next ? next.start : Math.min(m.start+m.dur,musicEnd);
+     // Bölüm dışındaki dinlenmelere ilave metronom davulu eklenmez.
+     grid.forEach(function(t,j){
+       if (!(t>=0 && t<musicEnd)) return;
+       // Var olan davulla tam üst üste geldiğinde ilave yığılmayı önle.
+       var overlap=ev.some(function(e){return e.inst==='taiko_drum' && Math.abs(e.t-t)<0.045;});
+       var hg=m.harmonyGrid || [], chord=hg.length ? hg[0].notes : [57,60,64];
+       for (var ci=0; ci<hg.length; ci++) { if (t+0.001 >= hg[ci].start) chord=hg[ci].notes; else break; }
+       var rootNote=chord[0];
+       var rootLow=36 + (((rootNote-36)%12+12)%12);
+       var fifthLow=36 + (((rootNote+7-36)%12+12)%12);
+       var drumNote=(j%4===2 ? fifthLow : rootLow);
+       // Dört vuruşluk nefes: ağır adım + zayıf vuruşlar; bölüm karakteri de izlenir.
+       var pattern = [1.0, 0.70, 0.86, 0.66];
+       var mood = m.key === 'kopru' ? 0.74 : (m.key === 'final' ? 1.05 : 0.90);
+       var level = (overlap ? 0.34 : 0.57) * pattern[j % 4] * mood;
+       ev.push({inst:'taiko_drum',midi:drumNote,t:+t.toFixed(4),d:0.16,
+         v:+Math.max(0.10,Math.min(0.65,level)).toFixed(3),px:0,pz:0,amp:0.90,wet:0.36,cut:0.78,heartBeat:true});
+       n++;
+       var interval = j+1<grid.length ? grid[j+1]-t : step;
+       var inMovement = t >= m.start && t < m.start + m.dur;
+       // İkinci kalp vuruşu: bütün vuruşlarda değil, iki ölçülük cümlede iki kez.
+       if (inMovement && interval > 0.24 && (j%8 === 0 || j%8 === 4)) {
+         var softT=t+interval*0.38;
+         if (softT < m.start+m.dur && softT < musicEnd) {
+           ev.push({inst:'taiko_drum',midi:rootLow,t:+softT.toFixed(4),d:0.11,v:+(0.25*mood).toFixed(3),px:0,pz:0,amp:0.75,wet:0.30,cut:0.76,heartBeat:true});n++;
+         }
+       }
+       // Her bölümde tohuma ve dört ölçülük cümleye bağlı ritmik varyasyon.
+       // Ana nabza dokunulmaz; yalnızca seyrek ara vuruş eklenir.
+       var phaseSets = { giris:[1,5], tema:[1,3,6], kopru:[2,5,7], final:[1,3,5,7] };
+       var cells = phaseSets[m.key] || phaseSets.tema;
+       var rotation = ((plan.seed >>> 0) + i * 3 + Math.floor(j/16)) % 8;
+       var cell = (j + rotation) % 8;
+       if (inMovement && interval > 0.26 && cells.indexOf(cell) !== -1 && j%2 === 1) {
+         var variantT = t + interval * (m.key === 'kopru' ? 0.66 : 0.5);
+         var occupied = ev.some(function(e) { return (e.inst === 'taiko_drum' || e.inst === 'melodic_tom') && Math.abs(e.t - variantT) < 0.09; });
+         if (!occupied && variantT < m.start + m.dur - 0.03 && variantT < musicEnd) {
+           ev.push({inst:'melodic_tom',midi:50,t:+variantT.toFixed(4),d:0.10,
+             v:m.key === 'final' ? 0.30 : 0.24,px:(j%4===1?-0.25:0.25),pz:0.18,
+             amp:0.72,wet:0.38,cut:0.78,phaseRhythm:true});
+         }
+       }
+       // İki bando için soldan/sağdan hafif yürüyüş yanıtı; perde dışı tom.
+       if (inMovement && interval > 0.24 && j%8===6) {
+         var marchT=t+interval*0.5;
+         var busy=ev.some(function(e){return (e.inst==='melodic_tom'||e.inst==='taiko_drum') && Math.abs(e.t-marchT)<0.08;});
+         if (!busy && marchT<m.start+m.dur && marchT<musicEnd) {
+           var side=((Math.floor(j/8)+i+(plan.seed>>>0))%2 ? 0.38 : -0.38);
+           ev.push({inst:'melodic_tom',midi:50,t:+marchT.toFixed(4),d:0.12,v:+(0.27*mood).toFixed(3),px:side,pz:0.22,amp:0.8,wet:0.42,cut:0.78,marchStep:true});
+         }
+       }
+       // İki ordunun birbirinden bağımsız, sınırlı vuruş cevabı.
+       if (inMovement && interval > 0.24 && (j%16===3 || j%16===11)) {
+         var armyT=t+interval*0.5, sideB=j%16===11;
+         if (armyT<m.start+m.dur && armyT<musicEnd) {
+           ev.push({inst:sideB?'melodic_tom':'taiko_drum', midi:sideB?50:rootLow,
+             t:+armyT.toFixed(4),d:0.1,v:0.22,px:sideB?0.55:-0.55,pz:0.3,amp:0.7,wet:0.4,cut:0.75,armyDrum:sideB?'B':'A'});
+         }
+       }
+       // Kılıç ve ok sesleri kısa, seyrek ve sentetiktir; ses örneği değildir.
+       if (inMovement && m.key !== 'giris' && interval > 0.24 && (j%64===13 || j%64===45)) {
+         var fxT=t+interval*0.25;
+         if(fxT<m.start+m.dur && fxT<musicEnd) ev.push({inst:j%64===13?'battle_sword':'battle_arrow',
+           midi:60,t:+fxT.toFixed(4),d:0.28,v:0.4,px:j%64===13?-0.35:0.35,pz:0,amp:1,wet:0.5,cut:0.8});
+       }
+       // Haykırma ve yalvarma, konuşma değil; akor tonlarında koro örnekleriyle ifade edilir.
+       if (inMovement && interval>0.24 && ((m.key==='final' && j%96===25) || (m.key==='kopru' && j%96===33))) {
+         var vocalPitch=(m.key==='final' ? chord[2]+12 : chord[1]+12);
+         var vocalDur=Math.min(interval*1.6, m.start+m.dur-t, musicEnd-t);
+         if(vocalDur>0.2 && vocalPitch>=14 && vocalPitch<=118) ev.push({inst:m.key==='final'?'choir_aahs':'voice_oohs',midi:vocalPitch,
+           t:+t.toFixed(4),d:+vocalDur.toFixed(4),v:m.key==='final'?0.27:0.20,px:m.key==='final'?0.2:-0.2,pz:0.65,amp:0.65,wet:0.9,cut:0.75,gesture:m.key==='final'?'haykiris':'yalvaris'});
+       }
+     });
+   }
+   // Bölüm aralıklarına eklenmiş tüm yeni olayları kaldır. Çalınmış notaların
+   // doğal ses/yankı kuyrukları kesilmez; dört müzik bölümü aynen kalır.
+   ev=ev.filter(function(e){
+     for(var r=0;r<(plan.timeline || []).length;r++){
+       var gap=plan.timeline[r];
+       if(gap.type==='rest' && e.t>=gap.start && e.t<gap.start+gap.dur) return false;
+     }
+     return true;
+   });
+   plan.events=ev;
+   ev.sort(function(a,b){return a.t-b.t}); plan.notes=ev.length;
+   plan.master=Math.min(plan.master || 0.9,0.82);
+   if(plan.kimlik) plan.kimlik.fazGecis += ' · bölüm içi nabız · doğal aralar';
+   plan.kalpAtisi=n;plan.marsAdimlari=ev.filter(function(e){return e.marchStep;}).length;return plan;
+ }
+ function boot(){if(!root.Konser || !root.Konser.build)return; var old=root.Konser.build;
+   root.Konser.build=function(opts){return buildHeartbeat(old(opts));};
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})(window);

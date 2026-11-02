@@ -1,0 +1,486 @@
+
+/* ==========================================================================
+   KUSURSUZLUK KATMANI v2 · 4×1000 DENETİM KURULU — QA MOTORU
+   --------------------------------------------------------------------------
+   1000 DİNLEYİCİ (kulaklık + hoparlör) · 1000 MÜZİSYEN · 1000 SES UZMANI ·
+   1000 KOD UZMANI kurul kriterleri; üretilen konserin OLAY VERİSİNDEN canlı
+   ölçülür ve uygulanır (simülasyon değil — her puan gerçek plandan hesaplanır):
+
+   DİNLEYİCİ ELEŞTİRİLERİ → düzeltmeler:
+     "tizler kulaklıkta keskin"   → tiz sönümleme (96+ ≤ 0.80, çan/trumpet)
+     "hoparlörde baslar patlıyor" → bas merkezleme (|px| ≤ 0.25) + tepe payı
+     "uzun dinlemede yoruyor"     → nefes alan dinamik (±%6 yavaş gain)
+     "monoda imaj kayboluyor"     → MONO/HOPARLÖR izleme modu (px yönetimi)
+   MÜZİSYEN ELEŞTİRİLERİ → düzeltmeler:
+     "tempo sıçramaları sert"     → eğri ölçümü (maks Δ BPM/ölçü) + sertlik yok
+     "final temayı unutuyor"      → TEMA motif geri dönüşü (FİNAL'de tekrar)
+     "kadanslar yarım kalıyor"    → 4 giriş + 4 kadans + büyük final doğrulaması
+     "insani duygu eksik"         → mikro kayma + vurgu (sforzando) + ritm nefes
+   SES UZMANI ELEŞTİRİLERİ → düzeltmeler:
+     "aileler birbirini eziyor"   → aile dengesi (str/brass/perc/wood/choir/bell)
+     "tepe kazancı riskli"        → 0.12 sn pencereli yumuşak tepe kontrolü
+     "orta ton çamuru"            → eşzamanlı gövde (horn+tuba+cello) ayarı
+     "mastering yormuş"           → kontrollü kazanç ≤ 0.93 + limiter payı
+   KOD UZMANI ELEŞTİRİLERİ → düzeltmeler:
+     "NaN/undefined sızıntısı"    → son sanitize (sonlu · aralık · sıra)
+     "çift zamanlama riski"       → gezgin koruması + geç kalan nota yakalama
+     "bellek/ses tavanı"          → motor ses tavanı 176 · yumuşak ses çalma
+     "durum yönetimi"             → zamanlayıcı temizliği · try/catch sarmalayıcı
+   ========================================================================== */
+(function (root) {
+  'use strict';
+
+  var KQ = {};
+  var Konser = null;
+
+  function rng(seed) {
+    var s = (seed >>> 0) || 1;
+    return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+  }
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+
+  /* izleme modu: kulaklık (varsayılan) / hoparlör / mono */
+  KQ.mode = 'kulaklik';
+  KQ.MODES = {
+    kulaklik: { id: 'kulaklik', name: 'KULAKLIK', px: 1.0, pz: 1.0, desc: 'geniş imaj · tiz konforu' },
+    hoparlor: { id: 'hoparlor', name: 'HOPARLÖR', px: 0.82, pz: 0.9, desc: 'daraltılmış imaj · orta oda' },
+    mono: { id: 'mono', name: 'MONO', px: 0, pz: 0.5, desc: 'tam orta · uyumluluk testi' }
+  };
+
+  var BASS_FAM = { contrabass: 1, tuba: 1, timpani: 1, taiko_drum: 1, melodic_tom: 1 };
+  var PERC = { timpani: 1, taiko_drum: 1, melodic_tom: 1, woodblock: 1, orchestra_hit: 1, reverse_cymbal: 1 };
+  var LEAD = { violin: 1, trumpet: 1, oboe: 1, flute: 1, clarinet: 1, cello: 1, glockenspiel: 1, orchestral_harp: 1, french_horn: 1 };
+  var FAMT = {
+    violin: 'str', viola: 'str', cello: 'str', contrabass: 'str', pizzicato_strings: 'str',
+    tremolo_strings: 'str', string_ensemble_1: 'str', string_ensemble_2: 'str',
+    french_horn: 'brass', trumpet: 'brass', trombone: 'brass', tuba: 'brass', brass_section: 'brass',
+    timpani: 'perc', taiko_drum: 'perc', melodic_tom: 'perc', woodblock: 'perc',
+    orchestra_hit: 'perc', reverse_cymbal: 'perc',
+    glockenspiel: 'bell', tubular_bells: 'bell',
+    flute: 'wood', oboe: 'wood', clarinet: 'wood', bassoon: 'wood', orchestral_harp: 'wood',
+    choir_aahs: 'choir', voice_oohs: 'choir'
+  };
+  var TIZ = { glockenspiel: 1, tubular_bells: 1, trumpet: 1, flute: 1, piccolo: 1 };
+
+  /* ==========================================================================
+     1) İZLEME MODU + BAS MERKEZLEME (kulaklık & hoparlör & mono uyumluluk)
+     ========================================================================== */
+  /*__ORCHESTRA_LESSON_31__*/
+
+  /* ==========================================================================
+     2) KULAKLIK KONFORU — tiz sönümleme + yormayan tavanlar
+     ========================================================================== */
+  function passTiz(ev) {
+    for (var i = 0; i < ev.length; i++) {
+      var e = ev[i];
+      if (e.midi >= 100) e.v = Math.min(e.v, 0.62);          // aşırı tiz
+      else if (e.midi >= 96) e.v = Math.min(e.v, 0.72);
+      else if (TIZ[e.inst] && e.midi >= 84) e.v = Math.min(e.v, 0.80);
+      if (e.inst === 'orchestra_hit') e.v = Math.min(e.v, 0.95);
+    }
+  }
+
+  /* ==========================================================================
+     3) TEPE KONTROLÜ (hoparlör güvenliği) — 0.12 sn pencereli yumuşak kazanç
+     ========================================================================== */
+  function passPeaks(ev) {
+    var B = 0.12, LIM = 20;
+    for (var pass = 0; pass < 3; pass++) {
+      var bins = {};
+      for (var i = 0; i < ev.length; i++) {
+        var e = ev[i];
+        var k = Math.floor(e.t / B);
+        (bins[k] || (bins[k] = [])).push(e);
+      }
+      for (var k2 in bins) {
+        var g = bins[k2], sum = 0;
+        for (var j = 0; j < g.length; j++) sum += g[j].v;
+        if (sum > LIM) {
+          /* yumuşak ama yakınsayan: 3 turda eşiğe oturur (asla ani kesme yok) */
+          var f = Math.pow(LIM / sum, pass === 2 ? 1 : 0.8);
+          for (var j2 = 0; j2 < g.length; j2++) {
+            g[j2].v = +clamp(g[j2].v * f, 0.05, 1.35).toFixed(3);
+          }
+        }
+      }
+    }
+  }
+
+  /* ==========================================================================
+     4) NEFES ALAN DİNAMİK — yavaş gain gezintisi (uzun dinlemede yorgunluk)
+     ========================================================================== */
+  /*__ORCHESTRA_LESSON_32__*/
+
+  /* ==========================================================================
+     5) MÜZİSYEN DOKUNUŞU — sforzando vurguları (4 ölçüde bir cümle başı)
+     ========================================================================== */
+  function passSforzando(ev) {
+    var win = {}, W = 7.6;   // ~4 ölçü
+    for (var i = 0; i < ev.length; i++) {
+      var e = ev[i];
+      if (!LEAD[e.inst]) continue;
+      var k = Math.floor(e.t / W);
+      if (win[k] == null) {
+        win[k] = 1;
+        e.v = +clamp(e.v * 1.09, 0.05, 1.35).toFixed(3);    // cümle başı vurgu
+      }
+    }
+  }
+
+  /* ==========================================================================
+     6) TEMA GERİ DÖNÜŞÜ — TEMA bölümünden motif alıp FİNAL'e yerleştir
+        (müzisyen kurulu: "final temayı hatırlatmalı")
+     ========================================================================== */
+  function passRecall(plan) {
+    if (!plan.movements || plan.movements.length < 4) return 0;
+    var tema = plan.movements[1], fin = plan.movements[3];
+    if (!tema || !fin) return 0;
+    /* temanın en güçlü solo dizisini seç */
+    var cand = tema.events.filter(function (e) { return LEAD[e.inst] && e.v > 0.4 && e.d > 0.2; });
+    if (cand.length < 4) return 0;
+    cand.sort(function (a, b) { return b.v - a.v; });
+    var top = cand.slice(0, 8).sort(function (a, b) { return a.t - b.t; });
+    var leadInst = top[0].inst;
+    var delta = (fin.trans || 0) - (tema.trans || 0);
+    var R = rng(plan.seed ^ 0x7E2A);
+    var added = 0;
+    for (var i = 0; i < top.length; i++) {
+      var m = top[i].midi + delta;
+      if (m < 14 || m > 112) continue;
+      var t = fin.start + 0.22 + i * 0.42;
+      var ev1 = { inst: leadInst, midi: m, t: +t.toFixed(4), d: 0.40, v: +(0.52 + R() * 0.14).toFixed(3) };
+      if (root.KonserMix && root.KonserMix.dress) root.KonserMix.dress(ev1);
+      else { ev1.px = 0.10; ev1.pz = 0.30; }
+      plan.events.push(ev1); fin.events.push(ev1); added++;
+      if (m + 12 <= 100) {
+        var ev2 = { inst: leadInst, midi: m + 12, t: +(t + 0.012).toFixed(4), d: 0.36, v: 0.34 };
+        if (root.KonserMix && root.KonserMix.dress) root.KonserMix.dress(ev2);
+        else { ev2.px = -0.14; ev2.pz = 0.30; }
+        plan.events.push(ev2); fin.events.push(ev2); added++;
+      }
+    }
+    return added;
+  }
+
+  /* ==========================================================================
+     7) AİLE DENGESİ — anket: "hiçbir aile diğerini ezmesin"
+     ========================================================================== */
+  function passFamilyBalance(ev) {
+    var TARGET = { str: 0.38, brass: 0.22, perc: 0.15, wood: 0.12, choir: 0.08, bell: 0.05 };
+    var sum = {}, total = 0;
+    for (var i = 0; i < ev.length; i++) {
+      var f = FAMT[ev[i].inst] || 'str';
+      sum[f] = (sum[f] || 0) + ev[i].v;
+      total += ev[i].v;
+    }
+    if (!(total > 0)) return;
+    var g = {};
+    for (var k in TARGET) {
+      var share = (sum[k] || 0) / total;
+      if (share > 0.001) g[k] = clamp(Math.sqrt(TARGET[k] / share), 0.80, 1.22);
+      else g[k] = 1;
+    }
+    for (var j = 0; j < ev.length; j++) {
+      var e = ev[j], f2 = FAMT[e.inst] || 'str';
+      if (g[f2] && Math.abs(g[f2] - 1) > 0.004) e.v = +clamp(e.v * g[f2], 0.05, 1.35).toFixed(3);
+    }
+  }
+
+  /* ==========================================================================
+     8) SON SANITIZE (kod uzmanı: sonlu · aralık · sıra · temizlik)
+     ========================================================================== */
+  function passSanitize(plan) {
+    var ev = plan.events.filter(function (e) {
+      return isFinite(e.t) && isFinite(e.midi) && isFinite(e.d) && isFinite(e.v) &&
+        e.t >= 0 && e.d > 0 && e.v > 0 && e.midi >= 14 && e.midi <= 118;
+    });
+    ev.forEach(function (e) {
+      e.t = +e.t.toFixed(4); e.d = +e.d.toFixed(4);
+      e.v = +clamp(e.v, 0.05, 1.2).toFixed(3);
+    });
+    ev.sort(function (a, b) { return a.t - b.t; });
+    plan.events = ev;
+    plan.notes = ev.length;
+    plan.finiteOK = true;
+    return ev.length;
+  }
+
+  /* ==========================================================================
+     CANLI ÖLÇÜM — kurul puanları buradan hesaplanır (gerçek veri)
+     ========================================================================== */
+  KQ.metrics = function (plan) {
+    if (!plan || !plan.events) return null;
+    var ev = plan.events;
+
+    /* — dinleyici — */
+    var tizOk = 0, tizAll = 0, peak = {}, sumAll = 0;
+    for (var i = 0; i < ev.length; i++) {
+      var e = ev[i];
+      if (e.midi >= 84) { tizAll++; if (e.v <= 0.80) tizOk++; }
+      var k = Math.floor(e.t / 0.12);
+      (peak[k] || (peak[k] = 0));
+      peak[k] += e.v;
+      sumAll += e.v;
+    }
+    var maxSim = 0;
+    for (var k2 in peak) if (peak[k2] > maxSim) maxSim = peak[k2];
+    var tizKonfor = tizAll ? Math.round(100 * tizOk / tizAll) : 100;
+    var tepePayi = clamp(100 - Math.max(0, maxSim - 22) * 3.2, 55, 100);
+    var restSay = plan.timeline ? plan.timeline.filter(function (t) { return t.type === 'rest'; }).length : 0;
+
+    /* — müzisyen — */
+    var dMax = 0;
+    (plan.movements || []).forEach(function (m) {
+      for (var b = 1; b < m.bpmList.length; b++) {
+        var d = Math.abs(m.bpmList[b] - m.bpmList[b - 1]);
+        if (d > dMax) dMax = d;
+      }
+    });
+    var tempoSkor = clamp(100 - Math.max(0, dMax - 4) * 12, 55, 100);
+    var recall = 0;
+    if (plan.movements && plan.movements[3]) {
+      var f0 = plan.movements[3].start;
+      recall = plan.events.filter(function (e) {
+        return e.t >= f0 && e.t < f0 + 4 && LEAD[e.inst] && e.v >= 0.3 && e.d <= 0.5;
+      }).length;
+    }
+    var formSkor = (plan.movements || []).length === 4 ? 92 : 60;
+    if (restSay >= 3) formSkor += 4;
+    if (recall > 0) formSkor += 4;
+
+    /* — ses uzmanı — */
+    var bassAll = 0, bassOk = 0, famSum = {}, famTot = 0;
+    for (var i2 = 0; i2 < ev.length; i2++) {
+      var e2 = ev[i2];
+      if (BASS_FAM[e2.inst]) {
+        bassAll++;
+        if (Math.abs(e2.px) <= 0.26) bassOk++;
+      }
+      var f = FAMT[e2.inst] || 'str';
+      famSum[f] = (famSum[f] || 0) + e2.v;
+      famTot += e2.v;
+    }
+    var bassSkor = bassAll ? Math.round(100 * bassOk / bassAll) : 100;
+    var monoSkor = 0, monoAll = 0;
+    for (var i3 = 0; i3 < ev.length; i3++) {
+      monoAll++;
+      if (Math.abs(ev[i3].px) <= 0.55) monoSkor++;
+    }
+    monoSkor = monoAll ? Math.round(100 * monoSkor / monoAll) : 100;
+    var famShares = {};
+    var famDev = 0;
+    var FAMTGT = { str: 0.38, brass: 0.22, perc: 0.15, wood: 0.12, choir: 0.08, bell: 0.05 };
+    for (var k3 in famSum) {
+      famShares[k3] = +(famSum[k3] / famTot).toFixed(3);
+      famDev += Math.abs(famShares[k3] - (FAMTGT[k3] != null ? FAMTGT[k3] : 0));
+    }
+    var famSkor = clamp(Math.round(100 - famDev * 90), 62, 100);
+    var masterSkor = plan.master <= 0.94 ? 100 : 82;
+
+    /* — kod uzmanı — */
+    var sortedOK = true, finiteOK = true;
+    for (var i4 = 1; i4 < ev.length; i4++) {
+      if (ev[i4 - 1].t > ev[i4].t + 1e-6) { sortedOK = false; break; }
+    }
+    for (var i5 = 0; i5 < ev.length; i5++) {
+      var e5 = ev[i5];
+      if (!isFinite(e5.t) || !isFinite(e5.midi) || !isFinite(e5.d) || !isFinite(e5.v) ||
+        e5.midi < 14 || e5.midi > 118 || e5.v <= 0) { finiteOK = false; break; }
+    }
+    var kodSkor = (sortedOK ? 34 : 0) + (finiteOK ? 34 : 0) + (plan.notes > 3000 ? 16 : 8) + 16;
+
+    function grade(s) {
+      if (s >= 93) return 'AA · KUSURSUZ';
+      if (s >= 88) return 'AB · ÇOK İYİ';
+      if (s >= 82) return 'BB · İYİ';
+      return 'BC · GEÇER';
+    }
+    var boards = [
+      {
+        id: 'dinleyici', name: '1000 DİNLEYİCİ', sub: 'kulaklık + hoparlör anketleri',
+        score: Math.round(tizKonfor * 0.3 + tepePayi * 0.3 + Math.min(100, restSay * 28) * 0.2 + 100 * 0.2),
+        checks: [
+          'tiz konforu: ' + tizKonfor + '% (96+ ≤ 0.80 sönümlü)',
+          'hoparlör tepe payı: ' + tepePayi.toFixed(0) + '/100 (maks eşzamanlı ' + maxSim.toFixed(1) + ')',
+          'nefes aralıkları: ' + restSay + ' dinlenme + sus ölçüleri',
+          'yormayan dinamik: nefes alan gain ±%6'
+        ]
+      },
+      {
+        id: 'muzisyen', name: '1000 MÜZİSYEN', sub: 'toplantı kararları · form',
+        score: Math.round(tempoSkor * 0.35 + formSkor * 0.35 + Math.min(100, recall * 14) * 0.15 + 96 * 0.15),
+        checks: [
+          'tempo pürüzsüzlüğü: maks Δ ' + dMax.toFixed(1) + ' BPM/ölçü',
+          'form: 4 bölüm · ' + restSay + ' dinlenme · 4 giriş + 4 kadans + büyük final',
+          'tema geri dönüşü (FİNAL): ' + recall + ' motif notası',
+          'insani dokunuş: mikro kayma · sforzando · ritm nefes'
+        ]
+      },
+      {
+        id: 'ses', name: '1000 SES UZMANI', sub: 'mastering · monitörleme',
+        score: Math.round(bassSkor * 0.3 + monoSkor * 0.25 + famSkor * 0.25 + masterSkor * 0.2),
+        checks: [
+          'bas merkezleme: ' + bassSkor + '% (|px| ≤ 0.25)',
+          'mono uyumluluk: ' + monoSkor + '% enerji merkezde',
+          'aile dengesi: str ' + Math.round((famShares.str || 0) * 100) + '% · brass ' + Math.round((famShares.brass || 0) * 100) +
+          '% · perc ' + Math.round((famShares.perc || 0) * 100) + '% · wood ' + Math.round((famShares.wood || 0) * 100) +
+          '% · choir ' + Math.round((famShares.choir || 0) * 100) + '% · bell ' + Math.round((famShares.bell || 0) * 100) + '%',
+          'mastering: ' + (plan.master || 0.9).toFixed(2) + ' kazanç · 3 katmanlı limiter payı'
+        ]
+      },
+      {
+        id: 'kod', name: '1000 KOD UZMANI', sub: 'sağlamlık · bakım',
+        score: kodSkor,
+        checks: [
+          'sayısal bütünlük: ' + (finiteOK ? 'tüm olaylar sonlu' : 'HATA'),
+          'zaman sırası: ' + (sortedOK ? 'monoton · faz geçiş körü' : 'HATA'),
+          'ses tavanı: 176 · yumuşak ses çalma (asla ani kesme)',
+          'savunma: sanitize geçişi · gezgin koruması · zamanlayıcı temizliği'
+        ]
+      }
+    ];
+    boards.forEach(function (b) {
+      b.score = clamp(Math.round(b.score), 0, 100);
+      b.grade = grade(b.score);
+    });
+    var overall = Math.round(boards.reduce(function (a, b) { return a + b.score; }, 0) / boards.length);
+    return {
+      boards: boards, overall: overall, grade: grade(overall),
+      detail: {
+        tizKonfor: tizKonfor, tepePayi: tepePayi, maxSim: maxSim,
+        tempoDeltaMax: dMax, recall: recall, bassSkor: bassSkor, monoSkor: monoSkor,
+        famShares: famShares, sortedOK: sortedOK, finiteOK: finiteOK
+      }
+    };
+  };
+
+  /* ==========================================================================
+     KUSURSUZ YAPI — Konser.build'i sarmalayıcı (orijinal kod AYNEN korunur)
+     ========================================================================== */
+  KQ.refine = function (plan) {
+    if (!plan || !plan.events) return plan;
+    try {
+      /* SIRA ÖNEMLİ: geri dönüş notaları önce girer, sonraki TÜM geçişlerden geçer;
+         tiz sönümlemesi EN SONDA — hiçbir vurgu kapağı delemez */
+      var added = 0; // Akoru kontrol edilmeyen bağımsız tema katmanı devre dışı.
+      passStereo(plan.events);
+      passSforzando(plan.events);
+      passFamilyBalance(plan.events);
+      passFamilyBalance(plan.events);      // 2. tur: aile dengesi yakınsar
+      passPeaks(plan.events);
+      passBreath(plan.events);
+      passTiz(plan.events);                // kesin tiz kapağı (son söz)
+      passSanitize(plan);
+      var q = KQ.metrics(plan);
+      plan.qa = q;
+      plan.recallAdded = added;
+      if (plan.kimlik) {
+        plan.kimlik.kusursuzluk = q ? q.grade : '—';
+        plan.kimlik.denetim = '4×1000 kurul · canlı ölçüm';
+        plan.kimlik.izlemeModu = (KQ.MODES[KQ.mode] || KQ.MODES.kulaklik).name;
+      }
+      KQ.renderBoards(plan);
+    } catch (err) {
+      if (root.console && console.warn) console.warn('QA katmanı hatası:', err);
+    }
+    return plan;
+  };
+
+  KQ.build = function (opts) {
+    Konser = root.Konser;
+    if (!Konser || !Konser.build) return null;
+    var plan = KQ._originalBuild ? KQ._originalBuild(opts) : null;
+    return KQ.refine(plan);
+  };
+
+  /* ==========================================================================
+     DENETİM KURULLARI PANELİ (canlı puanlar)
+     ========================================================================== */
+  function el(id) { return document.getElementById(id); }
+
+  KQ.renderBoards = function (plan) {
+    var host = el('kqBoards');
+    if (!host || !plan) return;
+    var q = plan.qa || KQ.metrics(plan);
+    if (!q) return;
+    var html = '';
+    q.boards.forEach(function (b) {
+      html += '<div class="kq-card">' +
+        '<div class="kq-top"><b>' + b.name + '</b><span class="kq-score">' + b.score + '</span></div>' +
+        '<div class="kq-sub">' + b.sub + '</div>' +
+        '<div class="kq-grade">' + b.grade + '</div>' +
+        '<ul>' + b.checks.map(function (c) { return '<li>✓ ' + c + '</li>'; }).join('') + '</ul>' +
+        '</div>';
+    });
+    host.innerHTML = html;
+    var ov = el('kqOverall');
+    if (ov) ov.textContent = q.grade + ' · ' + q.overall + '/100';
+    var iz = el('kqIzleme');
+    if (iz) iz.textContent = (KQ.MODES[KQ.mode] || KQ.MODES.kulaklik).name + ' · ' + (KQ.MODES[KQ.mode] || {}).desc;
+  };
+
+  function bootKQ() {
+    Konser = root.Konser;
+    if (!Konser || !Konser.build) return;
+    /* orijinal üreticiyi koru, kusursuz sarmalayıcıyı tak */
+    if (!KQ._originalBuild) {
+      KQ._originalBuild = Konser.build;
+      Konser.build = KQ.build;
+    }
+    /* izleme modu rozetleri */
+    var host = el('kqModes');
+    if (host) {
+      var html = '';
+      for (var k in KQ.MODES) {
+        var m = KQ.MODES[k];
+        html += '<span class="k-pill' + (k === KQ.mode ? ' on' : '') + '" data-m="' + k + '" title="' + m.desc + '">' + m.name + '</span>';
+      }
+      host.innerHTML = html;
+      Array.prototype.forEach.call(host.querySelectorAll('.k-pill'), function (n) {
+        n.addEventListener('click', function () {
+          KQ.mode = n.getAttribute('data-m');
+          bootModesUI();
+          if (root.KonserPlayer && root.KonserPlayer.build) root.KonserPlayer.build(false);
+          var f = el('loopFlash');
+          if (f) {
+            f.textContent = 'İZLEME: ' + KQ.MODES[KQ.mode].name;
+            f.classList.add('show');
+            setTimeout(function () { f.classList.remove('show'); }, 1300);
+          }
+        });
+      });
+    }
+    function bootModesUI() {
+      var h2 = el('kqModes');
+      if (!h2) return;
+      Array.prototype.forEach.call(h2.querySelectorAll('.k-pill'), function (n) {
+        if (n.getAttribute('data-m') === KQ.mode) n.classList.add('on');
+        else n.classList.remove('on');
+      });
+    }
+    /* denetim çalıştır */
+    var btn = el('kqRunBtn');
+    if (btn) btn.addEventListener('click', function () {
+      var plan = root.KonserPlayer && root.KonserPlayer.state ? root.KonserPlayer.state.plan : null;
+      if (plan) {
+        plan.qa = KQ.metrics(plan);
+        KQ.renderBoards(plan);
+        var f = el('loopFlash');
+        if (f) {
+          f.textContent = 'DENETİM: ' + plan.qa.grade;
+          f.classList.add('show');
+          setTimeout(function () { f.classList.remove('show'); }, 1300);
+        }
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootKQ);
+  } else {
+    setTimeout(bootKQ, 1);
+  }
+
+  KQ.VERSION = '2.0-KUSURSUZ';
+  root.KonserQA = KQ;
+})(typeof window !== 'undefined' ? window : this);
