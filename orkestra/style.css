@@ -194,3 +194,30 @@
 
   /* görünmeyen ama betiklerin yazdığı güvenli kaplar */
   .hidden-keep{display:none !important}
+/* SADE STÜDYO · özgün motor ve denetimler korunur */
+#screen{background:radial-gradient(1100px 650px at 4% -15%,#213141 0%,#0c111a 48%,#07090e 100%);padding:16px 24px;gap:12px}
+header{flex-basis:82px;padding:0 12px;border-bottom:1px solid rgba(218,193,139,.2);gap:14px}
+.brand{gap:17px;margin-right:28px}.mark{width:66px;height:66px}
+.brand h1{font-size:25px;letter-spacing:.105em;font-weight:750;white-space:nowrap;color:#f5e6c4}
+.brand h1 strong{font-weight:450;color:#cfb57c}.brand span{font-size:10px;letter-spacing:.20em;color:#91a6af;margin-top:5px}
+.code-brace{font:700 17px ui-monospace,monospace;color:#7fd8c8;margin-right:5px;font-style:normal}
+header .pill{font-size:10px;padding:7px 12px}.grade-box{display:none}
+.main{gap:16px;grid-template-columns:1206px 1fr}.col{gap:12px}
+.card{background:linear-gradient(145deg,rgba(23,30,41,.92),rgba(13,17,24,.94));border-color:rgba(189,207,211,.12);border-radius:14px;padding:16px}
+.card h4{font-size:12px;letter-spacing:.14em;margin-bottom:12px;color:#aebfc7}
+.main > .col:nth-child(2) > .card:nth-child(3),.main > .col:nth-child(2) > .card:nth-child(4){display:none}
+.kq-grid,#mxSep,#kqRunBtn{display:none!important}.dq-foot{justify-content:flex-start;margin:0}
+.kp-profiles{gap:7px;margin:5px 0 14px}.k-pill{font-size:10px;padding:7px 10px}
+.kp-controls{gap:9px}button{font-size:11px;padding:12px 15px}#kPlayBtn{font-size:13px;padding:14px 19px}
+#playBtn,#newBtn,#seedBtn{display:none}.kp-seg,.kp-seg b,.vol{font-size:10px}.vol{width:100%;margin-top:12px;gap:12px}
+.vol input[type=range]{width:230px;height:6px}.vol span:last-child{font-size:14px;color:#f2d79a;font-weight:700}
+.kp-now{font-size:10px;max-height:42px;margin-top:14px}.kp-now #kPlanInfo{display:none}
+.stagerow{flex-basis:65px}.sec-dot{font-size:10px;padding:7px 11px}.meter b{font-size:14px}.meter span{font-size:9px}
+.front-wrap{grid-template-columns:1fr 200px}#front{background:radial-gradient(ellipse at 50% 95%,rgba(186,152,96,.17),transparent 55%),linear-gradient(145deg,#101925,#090d14)}
+.front-side{font-size:10px}.front-side b{font-size:12px}.nowline{display:none}
+.bot-right .card{padding:12px}.kp-row{font-size:9px}.stat-chips{display:none}
+#tm-open{background:#d9bd83!important;color:#111923!important;letter-spacing:.08em}
+#tm-panel{background:#101821!important;border-color:#987f54!important}
+.story-card{flex:1 1 auto;min-height:160px;display:flex;flex-direction:column;justify-content:flex-start;gap:14px;overflow:hidden;background:linear-gradient(145deg,#151e29,#0d121b);border-color:rgba(218,193,139,.22)}
+.story-card h4{margin:0}.story-count{font:600 12px ui-monospace,monospace;letter-spacing:.07em;color:#9dbcb9}.story-count span{color:#c6a766;padding:0 4px}
+.story-names{font:600 11px ui-monospace,monospace;color:#e4c68d;letter-spacing:.08em}.story-title{font-size:22px;font-weight:700;color:#f0e5d0}.story-text{font-size:14px;line-height:1.7;color:#b8c7cf;margin:0;max-width:62ch}.story-foot{margin-top:auto;font:10px ui-monospace,monospace;color:#7f929b}
