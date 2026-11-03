@@ -1,0 +1,2039 @@
+<!doctype html>
+<html lang="tr">
+<!-- HEAD START: page settings and linked resources begin at the next tag. -->
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OKAN KAPLAN SOUND LAB · My Orchestra</title>
+
+<!-- LESSON 01: HTML DOCUMENT AND HEAD STRUCTURE ARE CREATED HERE. -->
+
+<!-- LESSON 02 · STEP 02 · BEGIN -->
+<!-- LESSON 02 | HEAD / HTML | EXPECTED HTML LINES 12–87 -->
+<!-- CONTINUE AFTER LESSON 01: INSERT BELOW LESSON 02 STEP 02 BEGIN. -->
+<link rel="stylesheet" href="https://okankaplanedu.github.io/w/orkestra/style.css">
+<link rel="stylesheet" href="https://okankaplanedu.github.io/w/orkestra/orchestra/packages/extra.css">
+<script src="https://okankaplanedu.github.io/w/orkestra/script.js"></script>
+<script>
+// Connect the student's lesson blocks to the published orchestra loader.
+(function () {
+  const packageBase = 'https://okankaplanedu.github.io/w/orkestra/orchestra/';
+  const originalFetch = window.fetch.bind(window);
+  window.fetch = function (resource, options) {
+    if (typeof resource !== 'string') return originalFetch(resource, options);
+    if (resource === 'packages/manifest.json') {
+      for (const required of ['lesson-46', 'lesson-47']) {
+        if (!document.getElementById(required)) return Promise.reject(new Error('Complete ' + required + ' in the HTML first.'));
+      }
+    }
+    if (resource === 'packages/module-29.js.txt') return Promise.resolve(new Response('',{status:200})); if(resource==='packages/module-10.js.txt')return originalFetch(packageBase+resource,options).then(function(r){if(!r.ok)return r;return r.text().then(function(src){src=src.replace("lfo.type = 'sine'; lfo.frequency.value = 4.5 + (opts.midi % 7) * 0.11;","lfo.type = 'sine'; lfo.frequency.value = inst === 'oboe' ? 3.9 : 4.5 + (opts.midi % 7) * 0.11;");src=src.replace("var cents = Math.min(8, masterConfig.vibrato * (20 + 6 * softRisk));","var cents = inst === 'oboe' ? Math.min(13, masterConfig.vibrato * 34) : Math.min(8, masterConfig.vibrato * (20 + 6 * softRisk));");src=src.replace("if ((fam === 'wood' || fam === 'brass') && softRisk > 0.10) {","if (fam === 'wood' || fam === 'brass') {");src=src.replace("var depthHz=Math.min(180, filt.frequency.value * 0.028 * softRisk * masterConfig.vibrato / 0.34);","var depthHz=inst==='oboe' ? Math.min(340, filt.frequency.value * 0.08 * masterConfig.vibrato / 0.34) : Math.min(230, filt.frequency.value * 0.055 * masterConfig.vibrato / 0.34);");return new Response(src,{status:200,headers:{'Content-Type':'text/javascript; charset=utf-8'}});});}); if (resource.startsWith('packages/')) return originalFetch(packageBase + resource, options);
+    const match = /^exercises\/(\d{2})-[^/]+\.js$/.exec(resource);
+    if (!match) return originalFetch(resource, options);
+    const number = Number(match[1]) + 2;
+    const label = String(number).padStart(2, '0');
+    const block = document.getElementById('lesson-' + label);
+    const code = block ? block.textContent : '';
+    if (!/\bfunction\s+[\w$]+\s*\(/.test(code)) {
+      return Promise.reject(new Error('Lesson ' + label + ' is missing from the HTML skeleton.'));
+    }
+    return Promise.resolve(new Response(code, {status: 200, headers: {'Content-Type': 'text/javascript'}}));
+  };
+})();
+</script>
+<script src="https://okankaplanedu.github.io/w/orkestra/orchestra/loader.js" defer></script>
+<script>
+(function(){const D={"The meter shows the browser’s digital output; actual headphone or speaker sound pressure and CPU use cannot be measured. Device volumes may differ. Drum, vibrato, haze and treble settings apply to subsequent notes.":"Sayaç, tarayıcının dijital çıkışını gösterir; gerçek kulaklık veya hoparlör ses basıncı ve CPU kullanımı ölçülemez. Cihaz hacimleri farklı olabilir. Davul, titreşim, pus ve tiz ayarları sonraki notalara uygulanır.","Those waiting behind the front carry the quiet marks of separation. Footsteps merge with memories of those left behind.":"Önde bekleyenler ayrılığın sessiz izlerini taşıyor. Ayak sesleri geride kalanların anılarıyla birleşiyor.","A brief wave of joy reaches the home front; the two armies’ rhythms meet again.":"Kısa bir sevinç dalgası cepheden geriye ulaşır; iki ordunun ritimleri yeniden karşılaşır.","Tension rises as opposing marches strengthen and those waiting behind remain anxious.":"Gerginlik yükselir; karşılıklı yürüyüşler güçlenirken geride bekleyenlerin kaygısı sürer.","The march is accompanied by lights of home, memories of earlier days and dreams of returning.":"Birliklerin yürüyüşüne evlerin ışığı, eski günlerin hatırası ve dönüş hayali eşlik eder.","The two sides approach in turn; drums carry the tension of the conflict.":"Cephedeki iki tarafın adımları sırayla yaklaşır; davullar çatışmanın gerilimini taşır.","A lament for those lost is heard; distant drums sustain the hope of those left behind.":"Kayıpların ağıdı duyulur; uzaktan gelen davul, geride kalanların umudunu canlı tutar.","Under the march, thoughts of return continue; memory and hope meet toward the finale.":"Yürüyüşün altında bir dönüş düşüncesi sürer; anılar ve umut finale doğru birleşir.","Each person is part of the story model, not a separate audio voice.":"Her kişi ayrı ses değil, besteyi yönlendiren hikâye modelinin parçasıdır.","A plea from behind the front breathes between the slow rhythms.":"Cephe gerisinden yükselen bir yakarış, ağır ritmin arasında nefes alır.","Stereo master output · soft start · live metering":"Stereo ana çıkış · yumuşak başlangıç · canlı ölçüm","The armies and the home front meet in one story.":"Ordular ve cephe gerisi aynı hikâyede buluşuyor.","CPU-friendly (extra shimmer disabled)":"CPU dostu (ekstra parlaklık devre dışı)","Professional Orchestra Concert Generator":"Profesyonel Orkestra Konser Üreteci","recorded instrument samples":"gerçek kayıtlı enstrüman örnekleri","Sword and arrow effects (synthesis)":"Kılıç ve ok efektleri (sentez)","intro · theme · bridge · finale":"giriş · tema · köprü · final","Start the concert to measure.":"Ölçmek için konsere başlayın.","Chamber Ensemble · Woodwinds":"Oda Topluluğu · Nefesliler","Preparing a new concert":"Yeni konser hazırlanıyor","Strings / winds vibrato":"Teller / rüzgarlar titreşimi","Tuned skin drum gain":"Ayarlanmış cilt davul kazancı","recorded samples":"gerçek kayıtlı örnekler","Units preparing":"Birlikler hazırlanıyor","Cinematic Strings Concert":"Sinematik Yaylı Çalgılar Konseri","orchestra tuning":"orkestra akortlanıyor","Dynamic peak control":"Dinamik tepe kontrolü","LIVE CONCERT ENGINE":"CANLI KONSER MOTORU","TONE MASTER · EDITOR":"TON USTASI · EDİTÖR","Anger and resistance":"Kızgınlık ve direnç","live instruments":"canlı enstrümanlar","Dreams and memories":"Hayaller ve anılar","Heroic March":"Kahramanlık Marşı","NEW CONCERT READY":"YENİ KONSER HAZIR","Joy and reunion":"Sevinç ve kavuşma","OVERALL SCORE":"GENEL PUAN","controlled gain":"kontrollü kazanç","◈ FRONT LINE STORY":"◈ ÖN HAT HİKAYESİ","narrowed image":"daraltılmış imaj","CONCERT CONTROLS":"KONSER KONTROLLERİ","REFRESH CHECKS":"YENİLEME KONTROLLERİ","contour melodies":"kontur ezgileri","Storm Concert":"Fırtına Konseri","Cathedral Choir":"Katedral Korosu","CONCERT STARTING":"KONSER BAŞLIYOR","compatibility test":"uyumluluk testi","Those left behind":"Geride kalanlar","tabu similarity":"tabu benzerlik","STOP CONCERT":"KONSERİ DURDUR","◉ LISTENING MODE":"◉ DİNLEME MODU","orchestra ready":"orkestra hazır","NEW OSTINATO":"YENİ OSTİNATO","sharp contour":"keskin kontur","Treble softening":"Tiz yumuşatma","Eagle Army":"Kartal Ordusu","uniqueness":"benzersizlik","preparing":"hazırlanıyor","CORPS CONSOLE":"KITA KONSOLU","CONCERT PLAN":"KONSER PLANI","Lament and hope":"Ağıt ve umut","Hand-to-hand":"Göğüs göğüse","Dream of return":"Dönüş hayali","Dawn Army":"Şafak Ordusu","Northern Army":"Kuzey Ordusu","Sun Army":"Güneş Ordusu","HEARTBEAT DRUM":"KALP DAVULU","concert key":"konser anahtarı","FRONT LINE":"ÖN HAT","Equal forces":"Eşit kuvvetler","PLAY CONCERT":"KONSER OYNA","NEW CONCERT":"YENİ KONSER","COLOUR PALETTE":"RENK PALETİ","AUDIO BALANCE":"SES DENGESİ","colour separation":"renk ayrımı","Lament & Hope":"Ağıt & Umut","Victory Procession":"Zafer Alayı","Stardust":"Yıldız Tozu","treble comfort":"tiz konforu","NEW CYCLE":"YENİ DÖNGÜ","NEW COMPOSITION":"YENİ KOMPOZİSYON","Sound haze":"Ses bulanıklığı","Woodwinds":"Nefesliler","wide image":"geniş imaj","Iron Army":"Demir Ordu","Crimson Army":"Kızıl Ordu","Silver Army":"Gümüş Ordu","FULL SCREEN":"TAM EKRAN","instruments":"enstrüman","simultaneous":"eşzamanlı","Moon Army":"Ay Ordusu","Left Wing":"Sol Kanat","Right Wing":"Sağ Kanat","A minor":"La minör","advance":"avans","retreat":"geri çekilmek","RANDOM SEED":"RASTGELE TOHUM","MASTER GAIN":"ANA SES SEVİYESİ","HEADPHONES":"KULAKLIKLAR","SPEAKERS":"KONUŞMACILAR","4 UNITS":"4 BİRİM","ARRANGEMENT":"ARANJMAN","medium room":"orta oda","centred":"tam orta","A plea":"Yalvarış","Fourth":"Dördüncü","DYNAMICS":"DİNAMİKLER","encirclement":"kuşatma","10 PEOPLE":"10 KİŞİ","Reset":"Sıfırla","again":"yeniden","woodwind":"nefesli","percussion":"vurmalılar","solos":"sololar","Guard":"Muhafız","First":"Birinci","dominance":"hakimiyet","2 ARMIES":"2 ORDU","4 CORPS":"4 KOLORDU","LIVE:":"CANLI:","REPEAT":"TEKRAR","concert":"konser","seconds":"saniye","minutes":"dakika","Second":"İkinci","Third":"Üçüncü","INTRO":"GİRİŞ","Intro":"Giriş","BRIDGE":"KÖPRÜ","Bridge":"Köprü","FINALE":"FİNAL","MOVEMENT":"HAREKET","CYCLE":"DÖNGÜ","balance":"denge","STATUS":"DURUM","counter":"sayaç","victory":"zafer","movement":"bölüm","▶ PLAY":"▶ OYNA","SEED":"TOHUM","now":"şimdi","READY":"HAZIR","ready":"hazır","strings":"yaylılar","brass":"bakırlar","intro":"giriş","bridge":"köprü","rhythm":"ritim","reverb":"yankı","THEME":"TEMA","Theme":"Tema","BAR":"ÖLÇÜ","bar":"ölçü","DURATION":"SÜRE","equal":"eşit","chaos":"kaos","Mid":"Orta","NEW":"YENİ","theme":"tema","timbre":"tını","chord":"akor","note":"nota","Vanguard":"Öncü","Treble":"tiz","OKAN KAPLAN SOUND LAB":"OKAN KAPLAN SOUND LAB","Professional Orchestra Concert Generator · recorded instrument samples":"Profesyonel Orkestra Konser Oluşturucusu · kaydedilmiş enstrüman örnekleri","orchestra ready · recorded samples (28 instruments)":"orkestraya hazır · kayıtlı örnekler (28 enstrüman)","NEW CYCLE · NEW OSTINATO":"YENİ DÖNGÜ · YENİ OSTİNATO","SOUND LAB":"SOUND LAB","ORCHESTRAL INTELLIGENCE   //   LIVE CONCERT ENGINE · HEARTBEAT DRUM":"ORKESTRAL ZEKA   //   CANLI KONSER MOTORU · HEARTBEAT DRUM","Mi♭ minor":"Mi ♭ minör","arrangement":"düzenleme","AA · KUSURSUZ · 96/100":"AA · KUŞURSUZ · 96/100","⛶ FULL SCREEN":"⛶ TAM EKRAN","A minor · 132 BPM · 4/4 · 1:23 · 3983 note · cycle #1":"A minör · 132 BPM · 4/4 · 1:23 · 3983 not · döngü #1","Storm Ordusu":"Fırtına Ordusu","strings 1.02":"dizeler 1.02","brass 1.18":"pirinç 1.18","percussion 0.53":"perküsyon 0.53","tahta 0.99":"Tahta 0,99","bell 1.43":"zil 1.43","Katedral · koro tutti · 3983 olay · mutasyon p=0.07":"Katedral · koro tutti · 3983 olay · uyumludur p=0.07","1 · Cinematic Strings Concert":"1 · Sinematik Yaylı Çalgılar Konseri","2 · Heroic March":"2 · Kahramanca Yürüyüş","3 · Cathedral Choir":"3 · Katedral Korosu","4 · Chamber Ensemble · Woodwinds":"4 · Oda Topluluğu · Nefesli Çalgılar","5 · Storm Concert":"5 · Fırtına Konseri","6 · Lament & Hope":"6 · Ağıt ve Umut","7 · Victory Procession":"7 · Zafer Alayı","8 · Stardust · Enchanted Finale":"8 · Stardust · Büyülü Final","HEADPHONES · wide image · treble comfort":"KULAKLIK · geniş görüntü · tiz konforu","AA · KUSURSUZ":"AA · KUŞURSUZ","✓ yormayan dinamik: nefes alan gain ±%6":"✓ yormayan dinamik: nefes alan kazancı ±%6","✓ form: 4 movement · 3 dinlenme · 4 intro + 4 kadans + grand finale":"✓ form: 4 hareket · 3 dinlenme · 4 giriş + 4 kadan + büyük final","✓ bas merkezleme: 100% (|px| ≤ 0.25)":"✓ bas merkezleme: %100 (|px| ≤ 0,25)","✓ mono uyumluluk: 100% enerji merkezde":"✓ mono uyumluluk: %100 enerji merkezinde","✓ aile balancesi: str 39% · brass 26% · perc 30% · wood 3% · choir 1% · bell 1%":"✓ aile balansları: str %39 · pirinç %26 · perk %30 · ahşap %3 · koro %1 · çan %1","CORPS CONSOLE · COLOUR PALETTE":"KOLORDU KONSOLU · RENK PALETİ","derinlik 0.12":"derinlik 0,12","sis ×0.95":"kız kardeşim ×0,95","SOL KITA":"SOL KİTA","derinlik 0.32":"derinlik 0,32","sis ×1.00":"kız kardeşim ×1.00","derinlik 0.38":"derinlik 0,38","derinlik 0.22":"derinlik 0,22","sis ×0.85":"kız kardeşim ×0,85","BAS HAT":"BAS ŞAPKA","derinlik 0.18":"derinlik 0,18","sis ×0.70":"kız kardeşim ×0,70","beyaz sis":"beyaz kız kardeş","sis ×1.35":"kız kardeşim ×1.35","derinlik 0.26":"derinlik 0,26","INTRO · Dawn Army":"GİRİŞ · Şafak Ordusu","Crimson Army  //  Dawn Army":"Kızıl Ordu // Şafak Ordusu","// Each person is part of the story model, not a separate audio voice.":"// Her kişi ayrı bir ses değil, hikaye modelinin bir parçasıdır.","3:47 · 3788 note · 1.0-FINAL":"3:47 · 3788 not · 1.0-FİNAL","controlled · 0.92 gain · shared score · common tone · gentle tempo · movement pulse · natural pauses · common-tone response · chord-linked wind phrase · chord legato and arpeggio · chord-tone harp phrases · minor-key harmony · 4/4, 3/4 and 6/8 · call and response · varied drums · melody-focused balance":"kontrollü · 0,92 kazanç · paylaşılan nota · ortak ton · hafif tempo · hareket darbesi · doğal duraklamalar · ortak ton tepkisi · akor bağlantılı rüzgar cümlesi · akor legato ve arpej · akor tonlu arp cümleleri · minör tonlu armoni · 4/4, 3/4 ve 6/8 · çağrı ve yanıt · çeşitli davullar · melodi odaklı denge","0–23. bar (24)":"0–23. çubuk (24)","+6 semitones":"+6 yarım ton","esit, retreat, kusatma, victory":"esit, geri çekilme, kusatma, zafer","672 note · density 1.05":"672 not · yoğunluk 1,05","8–40. bar (33)":"8–40. çubuk (33)","retreat, kusatma, victory, baskin, karsi":"geri çekilme, kusatma, zafer, baskin, karsi","834 note · density 1.31":"834 not · yoğunluk 1,31","24–45. bar (22)":"24–45. çubuk (22)","victory, baskin, karsi, advance":"zafer, baskin, karsi, avans","753 note · density 1.32":"753 not · yoğunluk 1,32","13–45. bar (33)":"13–45. çubuk (33)","kusatma, victory, baskin, karsi, advance":"kusatma, zafer, baskin, karsi, avans","1531 note · density 1.34":"1531 not · yoğunluk 1,34","CONTINUOUS MOVEMENTS":"SÜREKLİ HAREKETLER","0.0 sn · 0.0 sn · 0.0 sn · sonunda 2.2 sn reverb":"0,0 sn · 0,0 sn · 0,0 sn · sonunda 2,2 sn yankı","yavasYukselis → plagal + grand finale":"yavasYukselis → plagal + büyük final","LIVE: BPM":"CANLI: BPM","· DURATION":"· SÜRE","STATUSLAR":"DURUMLAR","TEMPOLAR":"GEÇİCİ","uyum 5 bar · direnc 13 bar · ofke 7 bar · victory 9 bar · savas 6 bar · yenilgi 6 bar":"uyum 5 bar · direnç 13 bar · ofke 7 bar · galibiyet 9 bar · savaş 6 bar · yenilgi 6 bar","JEST":"şaka","2. Keman":"2.Keman","Kontrbas":"Kontrbaş","1. Keman":"1.Keman","Pizzicato":"Pizzacato","Trompet (B♭)":"Trompet (B ♭)","Fagot":"ibne","strings ×0.82":"dizeler ×0,82","brass ×0.55":"pirinç ×0,55","percussion ×0.70":"perküsyon ×0,70","woodwind ×0.88":"nefesli ×0,88","strings ×1.00":"dizeler ×1,00","brass ×0.92":"pirinç ×0,92","percussion ×0.94":"perküsyon ×0,94","woodwind ×0.95":"nefesli ×0,95","theme: dolu ama controlled":"tema: dolu ama kontrollü","strings ×0.60":"dizeler ×0,60","brass ×0.36":"pirinç ×0,36","percussion ×0.36":"perküsyon ×0,36","woodwind ×0.85":"nefesli ×0,85","brass ×1.00":"pirinç ×1,00","percussion ×1.00":"perküsyon ×1.00","woodwind ×1.00":"nefesli ×1,00","◈ Ton Master":"◈ Ton Ustası","koro + bell · uzun woodwind dualar · derinlik":"koro + bell · uzun nefesli dualar · derinlik","wide image · treble comfort":"geniş görüntü · tiz konforu","narrowed image · medium room":"daraltılmış görüntü · orta oda","centred · compatibility test":"merkezli · uyumluluk testi","Cinematic Rise":"Sinematik Yükseliş","Heroic Brass":"Kahraman Bakır","Lament":"Ağıt","Triumph":"Zafer","Starlight":"Yıldız Işığı","Bar":"Ölçü","minor":"minör","major":"majör","winds":"nefesliler","bell":"çan","Movement":"Bölüm","minor-key harmony":"minör ton armonisi","call and response":"soru ve cevap","varied drums":"çeşitli davullar","melody-focused balance":"melodi odaklı denge","4/4, 3/4 and 6/8":"4/4, 3/4 ve 6/8","HAREKET":"BÖLÜM"};const entries=Object.entries(D).sort((a,b)=>b[0].length-a[0].length);function tr(s){if(D[s.trim()])return s.replace(s.trim(),D[s.trim()]);return entries.reduce((t,p)=>p[0].length>8?t.split(p[0]).join(p[1]):t,s)}function visit(n){if(n.nodeType===3){if(!n.parentElement||n.parentElement.closest('script,style,textarea,pre,code'))return;let v=tr(n.nodeValue);if(v!==n.nodeValue)n.nodeValue=v}else if(n.nodeType===1&&!n.matches('script,style,textarea,pre,code')){for(const k of ['title','aria-label','placeholder'])if(n.hasAttribute(k)){let v=n.getAttribute(k),w=tr(v);if(v!==w)n.setAttribute(k,w)}for(const c of n.childNodes)visit(c)}}function start(){visit(document.body);new MutationObserver(rs=>rs.forEach(r=>{if(r.type==='childList')r.addedNodes.forEach(visit);else visit(r.target)})).observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['title','aria-label','placeholder']})}if(document.body)start();else addEventListener('DOMContentLoaded',start,{once:true})})();
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+// Türkçe arayüz çevirisi.
+</script>
+<!-- LESSON 02 FRAGMENT ENDS HERE; KEEP IT BEFORE THE CLOSING HEAD TAG. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- LESSON 02 · STEP 02 · END -->
+<!-- HEAD END: the closing head tag immediately below ends the head. -->
+</head>
+<!-- BODY START: the opening body tag immediately below begins the body. -->
+<body>
+<div id="module-loader-status" role="status" style="position:fixed;z-index:999999;left:0;right:0;top:0;padding:10px;background:#151d28;color:#f3ce82;font:14px system-ui">Add lessons 02–47 to this HTML and connect to the internet.</div>
+<main id="orchestra-root"></main>
+<!-- LESSON 01: THIS EMPTY JAVASCRIPT BLOCK SHOWS THE BASIC STRUCTURE. -->
+<script>
+  // JavaScript begins here. This example contains no executable statements.
+  // Lessons 03–47 add their own numbered JavaScript blocks below.
+</script>
+<!-- LESSON 01: THE JAVASCRIPT EXAMPLE ENDS AT THE CLOSING SCRIPT TAG ABOVE. -->
+
+<!-- LESSON 03 · STEP 03 · BEGIN -->
+<!-- LESSON 03 | BODY / JAVASCRIPT | EXPECTED HTML LINES 103–133 -->
+<!-- CONTINUE AFTER LESSON 02: INSERT BELOW LESSON 03 STEP 03 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 03 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-03">
+/* LESSON 03: JAVASCRIPT FUNCTION START */
+function buildMatrix(push) {
+    /* P[i][j]: transition weight from degree i to degree j */
+    var base = [
+      /*0 */ [0, 22, 10, 6, 14, 4, 8, 2],
+      /*1 */ [16, 0, 20, 12, 6, 2, 4, 1],
+      /*2 */ [10, 18, 0, 22, 8, 2, 3, 1],
+      /*3 */ [6, 10, 18, 0, 20, 6, 4, 2],
+      /*4 */ [18, 4, 8, 16, 0, 10, 6, 2],
+      /*5 */ [10, 4, 4, 12, 16, 0, 12, 2],
+      /*6 */ [12, 4, 6, 6, 12, 12, 0, 8],
+      /*7 */ [20, 2, 4, 4, 10, 4, 10, 0]
+    ];
+    var p = push == null ? 0.12 : push;               // probability of an unexpected leap
+    var R = rng(0xC0FFEE ^ Math.floor(p * 1000));
+    return base.map(function (row) {
+      var r = row.map(function (w) { return Math.max(0.01, w + (R() - 0.5) * 4); });
+      /* Distant degrees of four steps or more have a low probability to preserve the genre */
+      for (var j = 0; j < r.length; j++) if (Math.abs(j - r.indexOf(row[0])) >= 4) r[j] *= (0.4 + p);
+      var sum = r.reduce(function (a, b) { return a + b; }, 0);
+      return r.map(function (w) { return w / sum; });
+    });
+  }
+/* LESSON 03: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 03: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 03 fragment here, including its script tags. -->
+<!-- LESSON 03 · STEP 03 · END -->
+
+<!-- LESSON 04 · STEP 04 · BEGIN -->
+<!-- LESSON 04 | BODY / JAVASCRIPT | EXPECTED HTML LINES 138–154 -->
+<!-- CONTINUE AFTER LESSON 03: INSERT BELOW LESSON 04 STEP 04 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 04 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-04">
+/* LESSON 04: JAVASCRIPT FUNCTION START */
+function fibDur(R, minBeat, maxBeat) {
+    var pool = FIB.filter(function (f) { return f >= minBeat * 4 && f <= maxBeat * 4; });
+    if (!pool.length) pool = [1, 2, 3];
+    var f = pool[Math.floor(R() * pool.length)];
+    /* Golden-ratio duration stretch: multiply by phi to the power of zero or minus one */
+    var warp = R() < 0.28 ? (R() < 0.5 ? PHI : 1 / PHI) : 1;
+    return Math.max(minBeat, Math.min(maxBeat, (f / 4) * warp));
+  }
+/* LESSON 04: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 04: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 04 fragment here, including its script tags. -->
+<!-- LESSON 04 · STEP 04 · END -->
+
+<!-- LESSON 05 · STEP 05 · BEGIN -->
+<!-- LESSON 05 | BODY / JAVASCRIPT | EXPECTED HTML LINES 159–187 -->
+<!-- CONTINUE AFTER LESSON 04: INSERT BELOW LESSON 05 STEP 05 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 05 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-05">
+/* LESSON 05: JAVASCRIPT FUNCTION START */
+function genMotif(opts) {
+    opts = opts || {};
+    var R = rng(opts.seed || 12345);
+    var rows = opts.matrix || buildMatrix(opts.push);
+    var len = opts.len || 8 + Math.floor(R() * 5);          // 8–12 olay
+    var root = opts.root == null ? 57 : opts.root;          // La3
+    var minBeat = opts.minBeat || 0.5, maxBeat = opts.maxBeat || 2;
+    var out = [];
+    var st = opts.start != null ? opts.start : 0;           // Start on the tonic
+    for (var i = 0; i < len; i++) {
+      var deg = ((st % 8) + 8) % 8;
+      var midi = root + SCALE[deg] + (st >= 8 ? 12 : 0);
+      out.push({ deg: deg, midi: midi, dur: fibDur(R, minBeat, maxBeat) });
+      st = nextState(rows[deg], R);
+      /* Cadential tendency: approach the tonic or fifth near the end of the motif */
+      if (i === len - 2 && R() < 0.6) st = 4;               // fifth
+      if (i === len - 1) st = 0;
+    }
+    return out;
+  }
+/* LESSON 05: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 05: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 05 fragment here, including its script tags. -->
+<!-- LESSON 05 · STEP 05 · END -->
+
+<!-- LESSON 06 · STEP 06 · BEGIN -->
+<!-- LESSON 06 | BODY / JAVASCRIPT | EXPECTED HTML LINES 192–223 -->
+<!-- CONTINUE AFTER LESSON 05: INSERT BELOW LESSON 06 STEP 06 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 06 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-06">
+/* LESSON 06: JAVASCRIPT FUNCTION START */
+function fibRhythm(R, beats, detail) {
+    /* beats: total beats, for example four; detail: subdivision density from zero to one */
+    var onsets = [], t = 0, guard = 0;
+    var step = [2, 3, 3, 5, 5, 8][Math.floor(R() * 6)] / 4;   // 0.5 to 2 beats
+    while (t < beats - 1e-6 && guard++ < 64) {
+      onsets.push(+t.toFixed(3));
+      var a = step;
+      var b = a / PHI;
+      var pickA = R() < (0.5 + (detail || 0) * 0.35);
+      t += (pickA ? a : b) * (R() < 0.2 ? PHI : 1);
+      if (t > beats) break;
+    }
+    /* Golden-section accent: add a beat at the 0.618 point */
+    var pivot = +(beats * 0.618).toFixed(3);
+    if (pivot < beats && onsets.indexOf(pivot) < 0) onsets.push(pivot);
+    onsets.sort(function (x, y) { return x - y; });
+    var out = [];
+    for (var i = 0; i < onsets.length; i++) {
+      var d = (i + 1 < onsets.length ? onsets[i + 1] : beats) - onsets[i];
+      out.push({ t: onsets[i], d: Math.max(0.08, d * 0.96) });
+    }
+    return out;
+  }
+/* LESSON 06: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 06: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 06 fragment here, including its script tags. -->
+<!-- LESSON 06 · STEP 06 · END -->
+
+<!-- LESSON 07 · STEP 07 · BEGIN -->
+<!-- LESSON 07 | BODY / JAVASCRIPT | EXPECTED HTML LINES 228–253 -->
+<!-- CONTINUE AFTER LESSON 06: INSERT BELOW LESSON 07 STEP 07 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 07 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-07">
+/* LESSON 07: JAVASCRIPT FUNCTION START */
+function mutate(motif, p, seed) {
+    var R = rng(seed || 777);
+    p = Math.max(0.05, Math.min(0.20, p == null ? 0.12 : p));
+    return motif.map(function (n) {
+      var m = { deg: n.deg, midi: n.midi, dur: n.dur };
+      if (R() < p) {                                        // perde mutasyonu (±1 derece)
+        var d = (R() < 0.5 ? -1 : 1) * (R() < 0.8 ? 1 : 2);
+        var nd = ((m.deg + d) % 8 + 8) % 8;
+        m.deg = nd; m.midi = n.midi + (SCALE[nd] - SCALE[n.deg]);
+      }
+      if (R() < p * 0.8) {                                  // duration mutation
+        var w = R() < 0.5 ? PHI : 1 / PHI;
+        m.dur = Math.max(0.25, Math.min(3, m.dur * w));
+      }
+      return m;
+    });
+  }
+/* LESSON 07: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 07: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 07 fragment here, including its script tags. -->
+<!-- LESSON 07 · STEP 07 · END -->
+
+<!-- LESSON 08 · STEP 08 · BEGIN -->
+<!-- LESSON 08 | BODY / JAVASCRIPT | EXPECTED HTML LINES 258–282 -->
+<!-- CONTINUE AFTER LESSON 07: INSERT BELOW LESSON 08 STEP 08 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 08 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-08">
+/* LESSON 08: JAVASCRIPT FUNCTION START */
+function invert(chord, inv) {
+    var shape = INV[((inv % 3) + 3) % 3];
+    var root = chord[0];
+    return shape.map(function (iv) {
+      /* Placement nearest to the chord tones */
+      var target = root + iv;
+      var best = chord[0], bd = 99;
+      chord.forEach(function (pc) {
+        for (var o = -12; o <= 24; o += 12) {
+          var cand = pc + o, d = Math.abs(cand - target);
+          if (d < bd) { bd = d; best = cand; }
+        }
+      });
+      return best;
+    }).sort(function (a, b) { return a - b; });
+  }
+/* LESSON 08: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 08: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 08 fragment here, including its script tags. -->
+<!-- LESSON 08 · STEP 08 · END -->
+
+<!-- LESSON 09 · STEP 09 · BEGIN -->
+<!-- LESSON 09 | BODY / JAVASCRIPT | EXPECTED HTML LINES 287–301 -->
+<!-- CONTINUE AFTER LESSON 08: INSERT BELOW LESSON 09 STEP 09 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 09 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-09">
+/* LESSON 09: JAVASCRIPT FUNCTION START */
+function passingChord(a, b, R) {
+    /* Passing chord between two chords: common tones and semitone approach */
+    var mid = a.map(function (pc, i) { return Math.round((pc + b[i]) / 2); });
+    if (R() < 0.5) mid[0] -= 1;                              // yeden (leading tone) etkisi
+    return mid;
+  }
+/* LESSON 09: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 09: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 09 fragment here, including its script tags. -->
+<!-- LESSON 09 · STEP 09 · END -->
+
+<!-- LESSON 10 · STEP 10 · BEGIN -->
+<!-- LESSON 10 | BODY / JAVASCRIPT | EXPECTED HTML LINES 306–325 -->
+<!-- CONTINUE AFTER LESSON 09: INSERT BELOW LESSON 10 STEP 10 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 10 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-10">
+/* LESSON 10: JAVASCRIPT FUNCTION START */
+function timpPitches(chord) {
+    var root = chord[0];
+    while (root > 48) root -= 12;          // Move into the D2 to D-sharp 3 range
+    while (root < 36) root += 12;
+    var fifth = root;
+    for (var i = 0; i < 12; i++) {
+      fifth++;
+      if (((fifth % 12) + 12) % 12 === (((chord[0] + 7) % 12) + 12) % 12) break;
+    }
+    return [root, fifth];
+  }
+/* LESSON 10: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 10: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 10 fragment here, including its script tags. -->
+<!-- LESSON 10 · STEP 10 · END -->
+
+<!-- LESSON 11 · STEP 11 · BEGIN -->
+<!-- LESSON 11 | BODY / JAVASCRIPT | EXPECTED HTML LINES 330–349 -->
+<!-- CONTINUE AFTER LESSON 10: INSERT BELOW LESSON 11 STEP 11 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 11 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-11">
+/* LESSON 11: JAVASCRIPT FUNCTION START */
+function palette(R) {
+    var base = { str: 1, brass: 1, perc: 1, wood: 0.9, choir: 0.6, bell: 0.3 };
+    var keys = ['str', 'brass', 'perc', 'wood', 'choir', 'bell'];
+    var hi = pick(R, keys), lo = pick(R, keys.filter(function (k) { return k !== hi; }));
+    base[hi] = 1.35 + R() * 0.3;
+    base[lo] = 0.35 + R() * 0.25;
+    keys.forEach(function (k) {
+      if (k !== hi && k !== lo) base[k] = 0.75 + R() * 0.6;
+    });
+    return { w: base, hi: hi, lo: lo, hiW: base[hi], loW: base[lo] };
+  }
+/* LESSON 11: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 11: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 11 fragment here, including its script tags. -->
+<!-- LESSON 11 · STEP 11 · END -->
+
+<!-- LESSON 12 · STEP 12 · BEGIN -->
+<!-- LESSON 12 | BODY / JAVASCRIPT | EXPECTED HTML LINES 354–386 -->
+<!-- CONTINUE AFTER LESSON 11: INSERT BELOW LESSON 12 STEP 12 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 12 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-12">
+/* LESSON 12: JAVASCRIPT FUNCTION START */
+function shape(list, up) {
+      list.forEach(function (w) {
+        var t0 = w.start * bar, t1 = (w.start + w.len) * bar;
+        ev.forEach(function (e) {
+          if (e.t < t0 || e.t >= t1) return;
+          var prog = (e.t - t0) / (t1 - t0);
+          var k = up ? Math.sin(Math.PI * prog) : -Math.sin(Math.PI * prog);
+          /* Dynamics: peak and valley */
+          e.v = Math.max(0.06, Math.min(1.35, e.v * (1 + k * w.amp * 0.55)));
+          /* Move lower on a descent and open upwards on an ascent */
+          if (e.px != null) e.px = Math.max(-1, Math.min(1, e.px + k * w.amp * 0.30));
+          if (up) info.rises++; else info.falls++;
+        });
+        /* Gesture layer: rising strings on ascents and descending cello on falls */
+        var ch = chordAt[w.start] || o.chord || [57, 60, 64];
+        var steps = 6;
+        for (var i = 0; i < steps; i++) {
+          var tt = t0 + (t1 - t0) * (i / steps);
+          var mm = snap(ch[0] + 12 + (up ? i * 2 : -i * 2));
+          push(up ? 'violin' : 'cello', mm, tt, beat * 0.9,
+            (up ? 0.42 + i * 0.06 : 0.40 - i * 0.03) * w.amp * (up ? pal.str : pal.str));
+        }
+      });
+    }
+/* LESSON 12: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 12: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 12 fragment here, including its script tags. -->
+<!-- LESSON 12 · STEP 12 · END -->
+
+<!-- LESSON 13 · STEP 13 · BEGIN -->
+<!-- LESSON 13 | BODY / JAVASCRIPT | EXPECTED HTML LINES 391–409 -->
+<!-- CONTINUE AFTER LESSON 12: INSERT BELOW LESSON 13 STEP 13 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 13 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-13">
+/* LESSON 13: JAVASCRIPT FUNCTION START */
+function nearest(inst, midi) {
+    var arr = buffers[inst];
+    if (!arr || !arr.length) return null;
+    var best = arr[0], bd = 999;
+    for (var i = 0; i < arr.length; i++) {
+      var d = Math.abs(arr[i].midi - midi);
+      if (d < bd) { bd = d; best = arr[i]; }
+    }
+    return best;
+  }
+/* LESSON 13: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 13: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 13 fragment here, including its script tags. -->
+<!-- LESSON 13 · STEP 13 · END -->
+
+<!-- LESSON 14 · STEP 14 · BEGIN -->
+<!-- LESSON 14 | BODY / JAVASCRIPT | EXPECTED HTML LINES 414–447 -->
+<!-- CONTINUE AFTER LESSON 13: INSERT BELOW LESSON 14 STEP 14 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 14 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-14">
+/* LESSON 14: JAVASCRIPT FUNCTION START */
+function masterMonitor() {
+    if (!ctx || ctx.state !== 'running' || !monitor) return;
+    monitor.getFloatTimeDomainData(meterData);
+    var sum = 0, peak = 0;
+    for (var i = 0; i < meterData.length; i++) {
+      var x = meterData[i]; sum += x*x; peak = Math.max(peak, Math.abs(x));
+    }
+    masterPeak = peak; masterRms = Math.sqrt(sum / meterData.length);
+    monitor.getFloatFrequencyData(freqData);
+    var highPower = 0, allPower = 0;
+    for (var j = 1; j < freqData.length; j++) {
+      var power = Math.pow(10, freqData[j] / 10);
+      if (!isFinite(power)) continue;
+      allPower += power;
+      if (j * ctx.sampleRate / monitor.fftSize >= 3500) highPower += power;
+    }
+    var ratio = highPower / Math.max(1e-12, allPower);
+    var reduce = masterConfig.dynamic && masterRms > 0.012 ? -Math.min(5, Math.max(0, (ratio - 0.12) * 16)) : 0;
+    trebleReduction += (reduce - trebleReduction) * (reduce < trebleReduction ? 0.35 : 0.08);
+    paramSmooth(deEsser.gain, trebleReduction, 0.16);
+    // Do not raise gain during silence; apply limited reduction only as peaks increase.
+    var target = masterConfig.dynamic && peak > 0.72 ? Math.max(0.60, autoGain * 0.72 / peak) : 1;
+    autoGain += (target - autoGain) * (target < autoGain ? 0.24 : 0.012);
+    paramSmooth(dynamicGain.gain, autoGain, target < autoGain ? 0.12 : 1.2);
+  }
+/* LESSON 14: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 14: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 14 fragment here, including its script tags. -->
+<!-- LESSON 14 · STEP 14 · END -->
+
+<!-- LESSON 15 · STEP 15 · BEGIN -->
+<!-- LESSON 15 | BODY / JAVASCRIPT | EXPECTED HTML LINES 452–474 -->
+<!-- CONTINUE AFTER LESSON 14: INSERT BELOW LESSON 15 STEP 15 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 15 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-15">
+/* LESSON 15: JAVASCRIPT FUNCTION START */
+function makeIR(dur, decay) {
+    var sr = ctx.sampleRate, len = Math.max(1, Math.floor(sr * dur));
+    var buf = ctx.createBuffer(2, len, sr);
+    var pre = Math.floor(sr * 0.022);
+    for (var ch = 0; ch < 2; ch++) {
+      var d = buf.getChannelData(ch);
+      for (var i = 0; i < len; i++) {
+        if (i < pre) { d[i] = 0; continue; }
+        var t = (i - pre) / (len - pre);
+        d[i] = (Math.random() * 2 - 1) * Math.pow(1 - t, decay) * (1 - t * 0.2);
+      }
+    }
+    return buf;
+  }
+/* LESSON 15: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 15: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 15 fragment here, including its script tags. -->
+<!-- LESSON 15 · STEP 15 · END -->
+
+<!-- LESSON 16 · STEP 16 · BEGIN -->
+<!-- LESSON 16 | BODY / JAVASCRIPT | EXPECTED HTML LINES 479–519 -->
+<!-- CONTINUE AFTER LESSON 15: INSERT BELOW LESSON 16 STEP 16 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 16 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-16">
+/* LESSON 16: JAVASCRIPT FUNCTION START */
+function makeProgression(seed) {
+    var R = rng((seed ^ 0x4A39B70D) >>> 0);
+    var graph = {
+      Am: [['Dm',3],['F',3],['C',2],['G',2],['Em',1]],
+      Dm: [['G',3],['E',3],['F',2],['Am',1]],
+      F:  [['Dm',2],['G',3],['C',2],['E',2],['Am',1]],
+      C:  [['Dm',3],['F',2],['G',3],['Em',1]],
+      G:  [['Am',3],['C',2],['F',2],['Em',1]],
+      Em: [['F',3],['Dm',2],['Am',2],['G',1]],
+      E:  [['Am',8]]
+    };
+    var out=['Am'];
+    while(out.length<16) {
+      var pos=out.length;
+      if(pos===7 || pos===15) { out.push('E'); continue; }
+      if(pos===8) { out.push('Am'); continue; }
+      var prev=out[out.length-1], choices=graph[prev] || graph.Am;
+      var weights=choices.map(function(c){
+        var w=c[1];
+        if(c[0]==='Am' || c[0]==='Dm' || c[0]==='Em') w*=5; // Prefer minor triads without removing major cadence chords.
+        if((pos===6 || pos===14) && c[0]==='E') w=0;
+        if(c[0]===out[out.length-2]) w*=0.20;
+        if(c[0]===out[out.length-3]) w*=0.50;
+        if(pos>=5 && pos<7 && (c[0]==='Dm'||c[0]==='F')) w*=1.5;
+        return w;
+      });
+      var total=weights.reduce(function(a,b){return a+b;},0), pickValue=R()*total, chosen=choices[0][0];
+      for(var i=0;i<choices.length;i++){ pickValue-=weights[i]; if(pickValue<0){chosen=choices[i][0];break;} }
+      out.push(chosen);
+    }
+    return out;
+  }
+/* LESSON 16: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 16: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 16 fragment here, including its script tags. -->
+<!-- LESSON 16 · STEP 16 · END -->
+
+<!-- LESSON 17 · STEP 17 · BEGIN -->
+<!-- LESSON 17 | BODY / JAVASCRIPT | EXPECTED HTML LINES 524–551 -->
+<!-- CONTINUE AFTER LESSON 16: INSERT BELOW LESSON 17 STEP 17 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 17 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-17">
+/* LESSON 17: JAVASCRIPT FUNCTION START */
+function selectProgression(seed){
+    var candidates=[], R=rng((seed^0x95102731)>>>0);
+    for(var i=0;i<12;i++)candidates.push(makeProgression((seed+Math.imul(i+1,0x9e3779b1))>>>0));
+    if(root.Store && root.Store.PROGRESSIONS) for(var j=0;j<4;j++)candidates.push(root.Store.PROGRESSIONS[Math.floor(R()*root.Store.PROGRESSIONS.length)]);
+    var best=candidates[0], bestScore=Infinity;
+    candidates.forEach(function(c){
+      var worst=0;progressionHistory.forEach(function(h){worst=Math.max(worst,progressionDistance(c,h));});
+      var usage=0;
+      if(root.Sayac) for(var z=1;z<c.length;z++) usage+=root.Sayac.get('akor_gecis',c[z-1]+'>'+c[z]);
+      var score=worst + 0.12*(usage/(usage+60));
+      if(score<bestScore){bestScore=score;best=c;}
+    });
+    var selected=best.slice();
+    if(root.Sayac){root.Sayac.mark('akor_dizisi',selected.join('-'));
+      selected.forEach(function(ch,i){root.Sayac.mark('akor',ch);if(i)root.Sayac.mark('akor_gecis',selected[i-1]+'>'+ch);});}
+    progressionHistory.push(selected);if(progressionHistory.length>48)progressionHistory.shift();
+    try {root.localStorage.setItem('oksl.progressions.v2',JSON.stringify(progressionHistory));}catch(e){}
+    return selected;
+  }
+/* LESSON 17: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 17: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 17 fragment here, including its script tags. -->
+<!-- LESSON 17 · STEP 17 · END -->
+
+<!-- LESSON 18 · STEP 18 · BEGIN -->
+<!-- LESSON 18 | BODY / JAVASCRIPT | EXPECTED HTML LINES 556–569 -->
+<!-- CONTINUE AFTER LESSON 17: INSERT BELOW LESSON 18 STEP 18 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 18 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-18">
+/* LESSON 18: JAVASCRIPT FUNCTION START */
+function nearestChordPitch(note, chord) {
+    var best=note, distance=99;
+    chord.forEach(function(c){ for(var o=-3;o<=3;o++){var v=c+o*12, d=Math.abs(v-note);if(d<distance){distance=d;best=v;}} });
+    return Math.max(24,Math.min(100,best));
+  }
+/* LESSON 18: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 18: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 18 fragment here, including its script tags. -->
+<!-- LESSON 18 · STEP 18 · END -->
+
+<!-- LESSON 19 · STEP 19 · BEGIN -->
+<!-- LESSON 19 | BODY / JAVASCRIPT | EXPECTED HTML LINES 574–593 -->
+<!-- CONTINUE AFTER LESSON 18: INSERT BELOW LESSON 19 STEP 19 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 19 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-19">
+/* LESSON 19: JAVASCRIPT FUNCTION START */
+function windLine(chord, R, reg) {
+    var set = chord.concat([chord[0] + 12, chord[2] - 12]);
+    var n = 3 + Math.floor(R() * 3);
+    var out = [], idx = Math.floor(R() * set.length);
+    for (var i = 0; i < n; i++) {
+      out.push(set[idx % set.length] + (reg || 12));
+      idx += (R() < 0.55 ? 1 : -1) * (1 + Math.floor(R() * 2));
+      if (idx < 0) idx = set.length - 1;
+    }
+    return out;
+  }
+/* LESSON 19: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 19: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 19 fragment here, including its script tags. -->
+<!-- LESSON 19 · STEP 19 · END -->
+
+<!-- LESSON 20 · STEP 20 · BEGIN -->
+<!-- LESSON 20 | BODY / JAVASCRIPT | EXPECTED HTML LINES 598–612 -->
+<!-- CONTINUE AFTER LESSON 19: INSERT BELOW LESSON 20 STEP 20 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 20 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-20">
+/* LESSON 20: JAVASCRIPT FUNCTION START */
+function choirVoicing(chord, mode) {
+    var base = chord[0];
+    if (mode === 'oohs') return [base + 12, chord[1] + 12, chord[2] + 12];
+    if (mode === 'aahs') return [base, chord[1], chord[2], chord[2] + 12];
+    return [base - 12, base, chord[1], chord[2], chord[2] + 12];   // tutti
+  }
+/* LESSON 20: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 20: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 20 fragment here, including its script tags. -->
+<!-- LESSON 20 · STEP 20 · END -->
+
+<!-- LESSON 21 · STEP 21 · BEGIN -->
+<!-- LESSON 21 | BODY / JAVASCRIPT | EXPECTED HTML LINES 617–670 -->
+<!-- CONTINUE AFTER LESSON 20: INSERT BELOW LESSON 21 STEP 21 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 21 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-21">
+/* LESSON 21: JAVASCRIPT FUNCTION START */
+function schedule() {
+    if (!state.playing || !state.score) return;
+    var sc = state.score, ev = sc.events;
+    var horizon = A.now() + state.lookAhead;
+    while (state.nextIdx < ev.length) {
+      var e = ev[state.nextIdx];
+      if (!isFinite(e.t) || !isFinite(e.midi) || !isFinite(e.d) || !isFinite(e.v)) { state.nextIdx++; continue; }
+      var at = state.startAt + e.t;
+      if (at > horizon) break;
+      /* Skip silently if the instrument has not loaded, avoiding crackles */
+      /* REST OR CEASEFIRE ZONE: orchestra stops; only solo and choir remain */
+      if (state.ceaseBars && state.ceaseBars[Math.floor(e.t / sc.bar)]) {
+        /* Drums continue as a steady metronome */
+        var soloOK = (e.inst === 'voice_oohs' || e.inst === 'choir_aahs' ||
+          e.inst === 'timpani' || e.inst === 'taiko_drum' || e.inst === 'melodic_tom' ||
+          e.inst === 'woodblock' || e.inst === 'orchestra_hit' ||
+          e.inst === 'oboe' || e.inst === 'tremolo_strings');
+        state.nextIdx++;
+        if (!soloOK) continue;
+      }
+      A.note(e.inst, e.midi, at, e.d, e.v, (e.px != null ? { px: e.px, pz: e.pz } : null));
+      state.notesPlayed++;
+      state.activeInst[e.inst] = A.now();
+      state.nextIdx++;
+    }
+    /* When the cycle ends, create a new composition in real time without a gap */
+    var endAt = state.startAt + sc.totalSec;
+    if (state.nextIdx >= ev.length && A.now() > endAt + 0.4) {
+      newScore(false);
+      flashLoop();
+    }
+    /* UI */
+    var elapsed = A.now() - state.startAt;
+    var bar = Math.floor(elapsed / sc.bar);
+    if ($('#barInfo')) $('#barInfo').textContent =
+      Math.min(sc.duration, Math.max(0, bar)) + ' / ' + sc.duration + ' ölçü';
+    if ($('#clockInfo')) $('#clockInfo').textContent = fmt(elapsed);
+    var si = 0;
+    for (var i = 0; i < sc.sections.length; i++) if (elapsed >= sc.sections[i].start) si = i;
+    if (si !== state.secIdx) { state.secIdx = si; paintSection(); }
+    paintFront(bar);
+    paintCorps(bar);
+    paintEmotion(bar);
+    drawTimeline(elapsed);
+  }
+/* LESSON 21: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 21: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 21 fragment here, including its script tags. -->
+<!-- LESSON 21 · STEP 21 · END -->
+
+<!-- LESSON 22 · STEP 22 · BEGIN -->
+<!-- LESSON 22 | BODY / JAVASCRIPT | EXPECTED HTML LINES 675–689 -->
+<!-- CONTINUE AFTER LESSON 21: INSERT BELOW LESSON 22 STEP 22 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 22 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-22">
+/* LESSON 22: JAVASCRIPT FUNCTION START */
+function uniqueSeed(seed) {
+    seed = seed >>> 0;
+    while (SEED_LEDGER[seed]) seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+    SEED_LEDGER[seed] = 1;
+    return seed;
+  }
+/* LESSON 22: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 22: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 22 fragment here, including its script tags. -->
+<!-- LESSON 22 · STEP 22 · END -->
+
+<!-- LESSON 23 · STEP 23 · BEGIN -->
+<!-- LESSON 23 | BODY / JAVASCRIPT | EXPECTED HTML LINES 694–719 -->
+<!-- CONTINUE AFTER LESSON 22: INSERT BELOW LESSON 23 STEP 23 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 23 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-23">
+/* LESSON 23: JAVASCRIPT FUNCTION START */
+function makeVarya(R) {
+    return {
+      cellRotate: +(0.55 + R() * 0.30).toFixed(2),   // probability of chord-cell rotation
+      seqRotate: +(0.25 + R() * 0.25).toFixed(2),    // rotate the solo sequence
+      seqSwap: +(0.30 + R() * 0.30).toFixed(2),      // swap adjacent notes
+      progSwap: +(0.18 + R() * 0.27).toFixed(2),     // swap progression bar blocks
+      cellDens: +(0.85 + R() * 0.30).toFixed(2),     // cell rhythm density
+      motifFlip: +(0.08 + R() * 0.14).toFixed(2),    // probability of motif inversion
+      rubato: +(0.4 + R() * 1.0).toFixed(2),         // microtiming variation
+      durJitter: +(0.08 + R() * 0.12).toFixed(2),    // duration variation
+      panScale: +(0.94 + R() * 0.16).toFixed(2),     // three-dimensional stage width
+      tempoFeel: +(0.97 + R() * 0.06).toFixed(3),    // tempo feel variation
+      tilt: pick(R, ['str', 'brass', 'wood', 'choir', 'bell', 'perc']), // featured emotional family
+      tiltAmt: +(0.05 + R() * 0.06).toFixed(2),
+      fp: ''
+    };
+  }
+/* LESSON 23: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 23: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 23 fragment here, including its script tags. -->
+<!-- LESSON 23 · STEP 23 · END -->
+
+<!-- LESSON 24 · STEP 24 · BEGIN -->
+<!-- LESSON 24 | BODY / JAVASCRIPT | EXPECTED HTML LINES 724–767 -->
+<!-- CONTINUE AFTER LESSON 23: INSERT BELOW LESSON 24 STEP 24 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 24 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-24">
+/* LESSON 24: JAVASCRIPT FUNCTION START */
+function makeTimeMap(baseBar, winStartBar, N, bpmList, outStart) {
+    /* Half-bar breaks smooth the curve and warm the tempo flow */
+    var pts = [], cum = outStart, H = 2 * N;
+    for (var h = 0; h <= H; h++) {
+      var x = h * 0.5;
+      var baseT = (winStartBar + x) * baseBar;
+      if (h > 0) {
+        var bpm = bpmAtList(bpmList, x - 0.25);
+        if (!(bpm > 20)) bpm = 120;
+        cum += (240 / bpm) / 2;
+      }
+      pts.push({ b: baseT, c: cum });
+    }
+    var endT = pts[pts.length - 1].c;
+    return {
+      pts: pts,
+      to: function (baseT) {
+        if (!(baseT > pts[0].b)) return pts[0].c;
+        if (baseT >= pts[pts.length - 1].b) return endT;
+        var lo = 0, hi = pts.length - 1;
+        while (hi - lo > 1) { var mid = (lo + hi) >> 1; if (pts[mid].b <= baseT) lo = mid; else hi = mid; }
+        var p1 = pts[lo], p2 = pts[hi];
+        var k = (baseT - p1.b) / Math.max(1e-9, p2.b - p1.b);
+        return p1.c + (p2.c - p1.c) * k;
+      },
+      rate: function (baseT) {
+        var lo = 0, hi = pts.length - 1;
+        if (baseT <= pts[0].b) baseT = pts[0].b + 1e-6;
+        if (baseT >= pts[pts.length - 1].b) baseT = pts[pts.length - 1].b - 1e-6;
+        while (hi - lo > 1) { var mid2 = (lo + hi) >> 1; if (pts[mid2].b <= baseT) lo = mid2; else hi = mid2; }
+        var q1 = pts[lo], q2 = pts[hi];
+        return (q2.c - q1.c) / Math.max(1e-9, q2.b - q1.b);
+      }
+    };
+  }
+/* LESSON 24: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 24: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 24 fragment here, including its script tags. -->
+<!-- LESSON 24 · STEP 24 · END -->
+
+<!-- LESSON 25 · STEP 25 · BEGIN -->
+<!-- LESSON 25 | BODY / JAVASCRIPT | EXPECTED HTML LINES 772–838 -->
+<!-- CONTINUE AFTER LESSON 24: INSERT BELOW LESSON 25 STEP 25 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 25 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-25">
+/* LESSON 25: JAVASCRIPT FUNCTION START */
+function applySusAndRhythm(ev, sc, s, N, R, profile, barSec) {
+    var susBars = {};
+    /* Preserve the score’s existing ceasefire and rest windows */
+    if (sc.ceasefire && sc.ceasefire.detail) {
+      sc.ceasefire.detail.forEach(function (d) {
+        for (var q = d.start; q < d.start + d.len; q++) {
+          var local = q - s;
+          if (local >= 0 && local < N) susBars[local] = 1;
+        }
+      });
+    }
+    /* Additional breathing bars leave space between rises and falls */
+    var extra = [];
+    var tries = 0;
+    while (extra.length < 2 && tries++ < 40) {
+      var b = 2 + Math.floor(R() * Math.max(1, N - 5));
+      if (susBars[b] || extra.indexOf(b) >= 0) continue;
+      extra.push(b); susBars[b] = 2;      // 2 = bizim nefesimiz
+    }
+    /* Rhythm variation: a short breath on beat 3.5 in two bars; leave percussion untouched */
+    var gapBars = {};
+    tries = 0;
+    while (Object.keys(gapBars).length < 2 && tries++ < 40) {
+      var g = 1 + Math.floor(R() * Math.max(1, N - 2));
+      if (susBars[g]) continue;
+      gapBars[g] = 1;
+    }
+    var beat = barSec / 4;
+    var kept = [];
+    for (var i = 0; i < ev.length; i++) {
+      var e = ev[i];
+      var bIdx = Math.floor(e.t / barSec + 1e-6);
+      if (susBars[bIdx]) {
+        if (!SOLO_OK[e.inst]) continue;           // rest: the orchestra withdraws
+        e.v = +(e.v * 0.85).toFixed(3);
+      } else if (gapBars[bIdx]) {
+        var off = e.t - bIdx * barSec;
+        if (!PERC_LOCK[e.inst] && !LEAD_SET[e.inst] && off >= beat * 3.25 && off < beat * 3.75) continue;
+      }
+      /* Human microtiming shift; do not move the percussion grid */
+      if (!PERC_LOCK[e.inst]) {
+        var jit = (R() - 0.5) * (LEAD_SET[e.inst] ? 0.028 : 0.014);
+        e.t = +Math.max(0, e.t + jit).toFixed(4);
+      }
+      /* Rhythmic breathing: duration variation in solo voices */
+      if (LEAD_SET[e.inst] && R() < 0.3) e.d = +Math.max(0.05, e.d * (0.9 + R() * 0.28)).toFixed(4);
+      kept.push(e);
+    }
+    /* Warm solo notes for breathing bars and interaction */
+    extra.forEach(function (b) {
+      var t0 = b * barSec + beat * (R() < 0.5 ? 0 : 2);
+      kept.push({
+        inst: profile.echoInst, midi: pick(R, [69, 72, 76, 74, 72, 69]),
+        t: +t0.toFixed(4), d: +(beat * 1.6).toFixed(4), v: 0.5, px: 0.18, pz: -0.6
+      });
+    });
+    return kept;
+  }
+/* LESSON 25: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 25: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 25 fragment here, including its script tags. -->
+<!-- LESSON 25 · STEP 25 · END -->
+
+<!-- LESSON 26 · STEP 26 · BEGIN -->
+<!-- LESSON 26 | BODY / JAVASCRIPT | EXPECTED HTML LINES 843–926 -->
+<!-- CONTINUE AFTER LESSON 25: INSERT BELOW LESSON 26 STEP 26 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 26 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-26">
+/* LESSON 26: JAVASCRIPT FUNCTION START */
+function permuteCells(ev, R, vy) {
+    var pCell = vy ? vy.cellRotate : 0.55;
+    var pSeq = vy ? vy.seqRotate : 0.28;
+    var pSwap = vy ? vy.seqSwap : 0.35;
+    /* 1. Rotate the pitch order of simultaneous chord cells */
+    var groups = {};
+    for (var i = 0; i < ev.length; i++) {
+      var e = ev[i];
+      if (!CHORD_SET[e.inst]) continue;
+      var key = Math.round(e.t * 1000);
+      (groups[key] || (groups[key] = [])).push(e);
+    }
+    for (var k in groups) {
+      var g = groups[k];
+      if (g.length < 2 || g.length > 6) continue;
+      if (R() > pCell) continue;
+      var mids = g.map(function (x) { return x.midi; });
+      var uniq = {}; mids.forEach(function (m) { uniq[m] = 1; });
+      if (Object.keys(uniq).length < 2) continue;
+      var rot = 1 + Math.floor(R() * (g.length - 1));
+      for (var j = 0; j < g.length; j++) g[j].midi = mids[(j + rot) % g.length];
+    }
+    /* 2. Rotate or reorder solo sequences within a bar */
+    var bars = {};
+    for (var i2 = 0; i2 < ev.length; i2++) {
+      var e2 = ev[i2];
+      if (!LEAD_SET[e2.inst] || e2.d < 0.12) continue;
+      var b = Math.floor(e2.t / 2);
+      var key2 = e2.inst + ':' + b;
+      (bars[key2] || (bars[key2] = [])).push(e2);
+    }
+    for (var k2 in bars) {
+      var seq = bars[k2];
+      if (seq.length < 3 || seq.length > 14) continue;
+      seq.sort(function (a, b2) { return a.t - b2.t; });
+      if (R() < pSeq) {
+        var m2 = seq.map(function (x) { return x.midi; });
+        var rot2 = 1 + Math.floor(R() * (seq.length - 1));
+        for (var j2 = 0; j2 < seq.length; j2++) seq[j2].midi = m2[(j2 + rot2) % seq.length];
+      } else if (R() < pSwap) {
+        var a1 = Math.floor(R() * (seq.length - 1));
+        var tmp = seq[a1].midi; seq[a1].midi = seq[a1 + 1].midi; seq[a1 + 1].midi = tmp;
+      }
+    }
+    /* 3. Vary the breathing and density of chord-cell rhythms */
+    var cellDens = vy ? vy.cellDens : 1;
+    for (var i3 = 0; i3 < ev.length; i3++) {
+      var e3 = ev[i3];
+      if (!CHORD_SET[e3.inst] || e3.d < 0.1) continue;
+      if (R() < 0.22) e3.d = +Math.max(0.08, e3.d * cellDens * (0.85 + R() * 0.3)).toFixed(4);
+    }
+    /* 4. PROGRESSION SWAP: exchange complete bar blocks; change the progression while preserving harmony within each block */
+    var pProg = vy ? vy.progSwap : 0.3;
+    var bucket = {};
+    for (var i4 = 0; i4 < ev.length; i4++) {
+      var e4 = ev[i4];
+      var bkey = Math.floor(e4.t / 2);
+      (bucket[bkey] || (bucket[bkey] = [])).push(e4);
+    }
+    var bkeys = Object.keys(bucket).map(Number).sort(function (a, b) { return a - b; });
+    if (bkeys.length >= 6) {
+      var swaps = 1 + Math.floor(R() * 3);
+      for (var sw = 0; sw < swaps; sw++) {
+        var ia = 1 + Math.floor(R() * (bkeys.length - 2));
+        var ib = 1 + Math.floor(R() * (bkeys.length - 2));
+        if (ia === ib || R() > pProg) continue;
+        var A = bucket[bkeys[ia]], B = bucket[bkeys[ib]];
+        if (!A || !B) continue;
+        var tA = bkeys[ia] * 2, tB = bkeys[ib] * 2;
+        for (var q = 0; q < A.length; q++) A[q].t = +(tB + (A[q].t - tA)).toFixed(4);
+        for (var q2 = 0; q2 < B.length; q2++) B[q2].t = +(tA + (B[q2].t - tB)).toFixed(4);
+      }
+    }
+    return ev;
+  }
+/* LESSON 26: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 26: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 26 fragment here, including its script tags. -->
+<!-- LESSON 26 · STEP 26 · END -->
+
+<!-- LESSON 27 · STEP 27 · BEGIN -->
+<!-- LESSON 27 | BODY / JAVASCRIPT | EXPECTED HTML LINES 931–950 -->
+<!-- CONTINUE AFTER LESSON 26: INSERT BELOW LESSON 27 STEP 27 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 27 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-27">
+/* LESSON 27: JAVASCRIPT FUNCTION START */
+function transpose(ev, semis) {
+    var out = [];
+    for (var i = 0; i < ev.length; i++) {
+      var e = ev[i];
+      if (semis && !NO_TRANS[e.inst]) e.midi = e.midi + semis;
+      /* Engine range: ORC.note accepts 14 to 118; discard notes outside it */
+      if (!(e.midi >= 14 && e.midi <= 118)) continue;
+      out.push(e);
+    }
+    return out;
+  }
+/* LESSON 27: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 27: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 27 fragment here, including its script tags. -->
+<!-- LESSON 27 · STEP 27 · END -->
+
+<!-- LESSON 28 · STEP 28 · BEGIN -->
+<!-- LESSON 28 | BODY / JAVASCRIPT | EXPECTED HTML LINES 955–1002 -->
+<!-- CONTINUE AFTER LESSON 27: INSERT BELOW LESSON 28 STEP 28 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 28 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-28">
+/* LESSON 28: JAVASCRIPT FUNCTION START */
+function introGesture(style, t0, beat, R) {
+    var ev = [];
+    function p(inst, midi, t, d, v, px, pz) {
+      ev.push({ inst: inst, midi: midi, t: +t.toFixed(4), d: +d.toFixed(4), v: +clamp(v, 0.05, 1.35).toFixed(3), px: px || 0, pz: pz || 0 });
+    }
+    var T = t0;
+    if (style === 'fanfar') {
+      p('timpani', 45, T, 0.25, 1.0); p('timpani', 45, T + beat * 0.5, 0.25, 0.8);
+      p('trumpet', 69, T + beat, beat * 0.9, 0.85); p('trumpet', 76, T + beat * 2, beat * 0.9, 0.9);
+      p('french_horn', 57, T + beat, beat * 1.8, 0.6); p('brass_section', 57, T + beat * 2, beat * 1.6, 0.55);
+    } else if (style === 'timpRulo') {
+      for (var i = 0; i < 8; i++) p('timpani', 45, T + i * beat * 0.25, 0.16, 0.35 + i * 0.09);
+      p('string_ensemble_1', 57, T, beat * 2, 0.35); p('string_ensemble_1', 64, T, beat * 2, 0.30);
+      p('orchestra_hit', 57, T + beat * 2, 0.3, 0.8);
+    } else if (style === 'koroNefes') {
+      p('choir_aahs', 57, T, beat * 3, 0.42); p('voice_oohs', 64, T, beat * 3, 0.36);
+      p('tubular_bells', 69, T + beat * 1.5, beat * 1.5, 0.35);
+    } else if (style === 'harpDizisi') {
+      var up = [57, 60, 64, 69, 72, 76, 81];
+      up.forEach(function (m, j) { p('orchestral_harp', m, T + j * beat * 0.25, beat * 0.5, 0.45 + j * 0.04); });
+      p('string_ensemble_1', 57, T + beat * 1.75, beat * 1.5, 0.3);
+    } else if (style === 'marş') {
+      p('woodblock', 72, T, 0.08, 0.55); p('woodblock', 72, T + beat * 0.5, 0.08, 0.4);
+      p('melodic_tom', 50, T + beat, 0.12, 0.7); p('taiko_drum', 43, T + beat * 2, 0.14, 0.85);
+      p('brass_section', 57, T + beat * 2, beat * 1.2, 0.62); p('brass_section', 64, T + beat * 3, beat * 1.2, 0.58);
+    } else if (style === 'yildiz') {
+      p('reverse_cymbal', 60, T, beat * 2, 0.55);
+      var gl = [81, 84, 88, 91, 88, 84];
+      gl.forEach(function (m, j) { p('glockenspiel', m, T + beat * 0.5 + j * beat * 0.22, beat * 0.4, 0.4 + j * 0.05); });
+      p('orchestral_harp', 57, T + beat * 0.5, beat * 1.5, 0.35);
+    } else if (style === 'sessizNefes') {
+      p('oboe', 72, T + beat * 0.5, beat * 1.8, 0.4, -0.1, -1.8);
+      p('pizzicato_strings', 45, T + beat * 2.5, 0.2, 0.4);
+    } else { /* yavasYukselis */
+      p('string_ensemble_1', 57, T, beat * 2.5, 0.32); p('string_ensemble_2', 64, T, beat * 2.5, 0.26);
+      p('tuba', 33, T, beat * 2.5, 0.5); p('cello', 45, T + beat * 1, beat * 1.5, 0.4);
+    }
+    return ev;
+  }
+/* LESSON 28: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 28: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 28 fragment here, including its script tags. -->
+<!-- LESSON 28 · STEP 28 · END -->
+
+<!-- LESSON 29 · STEP 29 · BEGIN -->
+<!-- LESSON 29 | BODY / JAVASCRIPT | EXPECTED HTML LINES 1007–1070 -->
+<!-- CONTINUE AFTER LESSON 28: INSERT BELOW LESSON 29 STEP 29 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 29 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-29">
+/* LESSON 29: JAVASCRIPT FUNCTION START */
+function cadenceGesture(style, t0, beat, R, isFinal) {
+    var ev = [];
+    function p(inst, midi, t, d, v, px, pz) {
+      ev.push({ inst: inst, midi: midi, t: +t.toFixed(4), d: +d.toFixed(4), v: +clamp(v, 0.05, 1.35).toFixed(3), px: px || 0, pz: pz || 0 });
+    }
+    var T = t0;
+    var long = isFinal ? beat * 4.5 : beat * 2;
+    if (style === 'zafer') {
+      /* V to I: E followed by A minor, a full cadence for tutti */
+      CH.E.forEach(function (m) { p('brass_section', m, T, beat * 1.2, 0.85); });
+      p('timpani', 40, T, 0.3, 1.0);
+      CH.Am.forEach(function (m) { p('brass_section', m + 12, T + beat * 1.5, long, 0.9); p('french_horn', m, T + beat * 1.5, long, 0.7); });
+      p('string_ensemble_1', 57, T + beat * 1.5, long, 0.6); p('string_ensemble_1', 69, T + beat * 1.5, long, 0.5);
+      p('timpani', 45, T + beat * 1.5, 0.4, 1.05); p('taiko_drum', 43, T + beat * 1.5, 0.2, 0.8);
+      p('tubular_bells', 69, T + beat * 1.5, long, 0.5);
+    } else if (style === 'plagal') {
+      /* IV to I: warm strings */
+      CH.Dm.forEach(function (m) { p('string_ensemble_1', m, T, beat * 1.4, 0.5); });
+      CH.Am.forEach(function (m) { p('string_ensemble_1', m, T + beat * 1.5, long, 0.55); p('choir_aahs', m + 12, T + beat * 1.5, long, 0.35); });
+      p('orchestral_harp', 57, T + beat * 1.5, long * 0.8, 0.4);
+    } else if (style === 'yalvarma') {
+      [72, 71, 69].forEach(function (m, j) { p('oboe', m, T + j * beat * 0.75, beat * 0.7, 0.5 - j * 0.05, -0.12, -1.4); });
+      CH.Am.forEach(function (m) { p('voice_oohs', m, T + beat * 2.2, long, 0.3); });
+    } else if (style === 'sessizAmin') {
+      CH.Am.forEach(function (m) { p('choir_aahs', m, T, long * 1.2, 0.32); p('voice_oohs', m + 12, T + beat * 0.5, long, 0.24); });
+      p('tubular_bells', 57, T, long, 0.3);
+    } else if (style === 'hemiola') {
+      /* 3-3-2 vurgu: ritmik kadans */
+      [[0, 69], [beat * 1.5, 64], [beat * 3, 57]].forEach(function (q, j) {
+        p('brass_section', q[1], T + q[0], beat * 0.8, 0.8 - j * 0.05);
+        p('timpani', j === 2 ? 45 : 40, T + q[0], 0.22, 0.85);
+      });
+      CH.Am.forEach(function (m) { p('brass_section', m, T + beat * 4, long, 0.7); });
+    } else if (style === 'parlak') {
+      var run = [69, 72, 76, 81, 84, 88];
+      run.forEach(function (m, j) { p('glockenspiel', m, T + j * beat * 0.25, beat * 0.4, 0.5 + j * 0.05); });
+      CH.Am.forEach(function (m) { p('string_ensemble_1', m + 12, T + beat * 1.6, long, 0.55); });
+      p('tubular_bells', 81, T + beat * 1.6, long, 0.55); p('tubular_bells', 69, T + beat * 1.6, long, 0.45);
+      p('reverse_cymbal', 60, T, beat * 1.5, 0.5);
+    } else { /* Return: prepare for the patrol with an E7 chord */
+      [52, 56, 59, 65].forEach(function (m, j) { p('french_horn', m, T + j * beat * 0.35, beat * 1.2, 0.45); });
+      p('timpani', 40, T + beat * 1.8, 0.25, 0.6);
+    }
+    if (isFinal) {
+      /* GRAND FINALE: sustained A minor, bell and reverse cymbal for every profile */
+      CH.Am.forEach(function (m) {
+        p('brass_section', m, T + beat * 2, beat * 4, 0.8);
+        p('string_ensemble_1', m + 12, T + beat * 2, beat * 4, 0.5);
+      });
+      p('tubular_bells', 81, T + beat * 2, beat * 4, 0.5);
+      p('reverse_cymbal', 60, T + beat * 1.2, beat * 1.2, 0.55);
+      p('timpani', 45, T + beat * 2, 0.5, 1.0);
+    }
+    return ev;
+  }
+/* LESSON 29: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 29: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 29 fragment here, including its script tags. -->
+<!-- LESSON 29 · STEP 29 · END -->
+
+<!-- LESSON 30 · STEP 30 · BEGIN -->
+<!-- LESSON 30 | BODY / JAVASCRIPT | EXPECTED HTML LINES 1075–1096 -->
+<!-- CONTINUE AFTER LESSON 29: INSERT BELOW LESSON 30 STEP 30 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 30 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-30">
+/* LESSON 30: JAVASCRIPT FUNCTION START */
+function buildPlan(autoPlay) {
+    if (state.playing) stop();
+    var plan = K.build({ seed: state.seed, profile: state.profileIdx, targetSec: state.targetSec });
+    if (!plan) { flash('motor hazır değil'); return; }
+    state.plan = plan;
+    var tonicLabel = el('kTon'); if (tonicLabel) tonicLabel.textContent = plan.tonicName;
+    state.nextIdx = 0;
+    renderPlan(plan);
+    drawTimeline(0);
+    var kn = el('kNow'); if (kn) kn.textContent = 'hazır · ' + plan.kimlik.aranjman + ' · ' + plan.tonicName;
+    var pi = el('kPlanInfo'); if (pi) pi.textContent = K.describe(plan) + ' · ' + plan.kimlik.fazGecis + (plan.varya ? ' · ' + plan.kimlik.varya : '');
+    if (autoPlay) start();
+  }
+/* LESSON 30: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 30: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 30 fragment here, including its script tags. -->
+<!-- LESSON 30 · STEP 30 · END -->
+
+<!-- LESSON 31 · STEP 31 · BEGIN -->
+<!-- LESSON 31 | BODY / JAVASCRIPT | EXPECTED HTML LINES 1101–1116 -->
+<!-- CONTINUE AFTER LESSON 30: INSERT BELOW LESSON 31 STEP 31 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 31 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-31">
+/* LESSON 31: JAVASCRIPT FUNCTION START */
+function moveAt(plan, t) {
+    for (var i = 0; i < plan.timeline.length; i++) {
+      var it = plan.timeline[i];
+      if (t >= it.start && t < it.start + it.dur) return { item: it, idx: it.idx, i: i };
+    }
+    return null;
+  }
+/* LESSON 31: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 31: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 31 fragment here, including its script tags. -->
+<!-- LESSON 31 · STEP 31 · END -->
+
+<!-- LESSON 32 · STEP 32 · BEGIN -->
+<!-- LESSON 32 | BODY / JAVASCRIPT | EXPECTED HTML LINES 1121–1142 -->
+<!-- CONTINUE AFTER LESSON 31: INSERT BELOW LESSON 32 STEP 32 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 32 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-32">
+/* LESSON 32: JAVASCRIPT FUNCTION START */
+function bpmAt(plan, t) {
+    var mv = moveAt(plan, t);
+    if (!mv || mv.item.type !== 'mov') {
+      /* Rest and reverb: use the final movement’s last BPM */
+      var last = plan.movements[plan.movements.length - 1];
+      return last.bpmTo;
+    }
+    var m = plan.movements[mv.idx];
+    var f = clamp((t - m.start) / Math.max(0.001, m.dur), 0, 1) * (m.bpmList.length - 1);
+    var i = Math.floor(f), fr = f - i;
+    var a = m.bpmList[i], b = m.bpmList[Math.min(m.bpmList.length - 1, i + 1)];
+    return Math.round(a + (b - a) * fr);
+  }
+/* LESSON 32: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 32: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 32 fragment here, including its script tags. -->
+<!-- LESSON 32 · STEP 32 · END -->
+
+<!-- LESSON 33 · STEP 33 · BEGIN -->
+<!-- LESSON 33 | BODY / JAVASCRIPT | EXPECTED HTML LINES 1147–1171 -->
+<!-- CONTINUE AFTER LESSON 32: INSERT BELOW LESSON 33 STEP 33 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 33 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-33">
+/* LESSON 33: JAVASCRIPT FUNCTION START */
+function passStereo(ev) {
+    var mode = KQ.MODES[KQ.mode] || KQ.MODES.kulaklik;
+    for (var i = 0; i < ev.length; i++) {
+      var e = ev[i];
+      if (e.px == null) e.px = 0;
+      if (e.pz == null) e.pz = 0;
+      /* Centre low frequencies for speaker playback */
+      if (BASS_FAM[e.inst]) {
+        e.px = +clamp(e.px, -0.25, 0.25).toFixed(3);
+        e.pz = +(e.pz * 0.6).toFixed(3);
+      }
+      /* Manage the image in monitoring mode */
+      e.px = +(clamp(e.px * mode.px, -0.95, 0.95)).toFixed(3);
+      e.pz = +(clamp(e.pz * mode.pz, -2.8, 2.8)).toFixed(3);
+    }
+  }
+/* LESSON 33: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 33: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 33 fragment here, including its script tags. -->
+<!-- LESSON 33 · STEP 33 · END -->
+
+<!-- LESSON 34 · STEP 34 · BEGIN -->
+<!-- LESSON 34 | BODY / JAVASCRIPT | EXPECTED HTML LINES 1176–1193 -->
+<!-- CONTINUE AFTER LESSON 33: INSERT BELOW LESSON 34 STEP 34 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 34 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-34">
+/* LESSON 34: JAVASCRIPT FUNCTION START */
+function passBreath(ev) {
+    var ph = (ev.length % 7) * 0.9;
+    for (var i = 0; i < ev.length; i++) {
+      var e = ev[i];
+      if (PERC[e.inst]) continue;
+      var g = 1 - 0.06 * (0.5 + 0.5 * Math.sin((e.t / 23) * Math.PI * 2 + ph));
+      e.v = +clamp(e.v * g, 0.05, 1.35).toFixed(3);
+    }
+  }
+/* LESSON 34: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 34: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 34 fragment here, including its script tags. -->
+<!-- LESSON 34 · STEP 34 · END -->
+
+<!-- LESSON 35 · STEP 35 · BEGIN -->
+<!-- LESSON 35 | BODY / JAVASCRIPT | EXPECTED HTML LINES 1198–1237 -->
+<!-- CONTINUE AFTER LESSON 34: INSERT BELOW LESSON 35 STEP 35 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 35 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-35">
+/* LESSON 35: JAVASCRIPT FUNCTION START */
+function passStage(ev, R, stats, vy) {
+    var keskin = MIX.sep !== 'dogal';
+    var panScale = (vy && vy.panScale) || 1;          // VARYA: three-dimensional stage width per concert
+    for (var i = 0; i < ev.length; i++) {
+      var e = ev[i];
+      var u = MIX.unitOf(e.inst);
+      var jit = (R() - 0.5) * 0.07;                      // organic micro-width
+      var px, pz, cut, wet, amp;
+      if (keskin) {
+        px = (u.px + jit) * panScale;
+        pz = u.pz + Math.abs((R() - 0.5) * 0.10);
+        cut = u.cut * (0.97 + R() * 0.06);
+        wet = u.wet * (0.96 + R() * 0.08);
+        amp = u.amp;
+      } else {
+        /* Natural: blend with the battle scene for partial contrast */
+        px = ((e.px != null ? e.px : 0) * 0.5 + (u.px + jit) * 0.5) * panScale;
+        pz = (Math.abs(e.pz || 0) * 0.5 + u.pz * 0.5);
+        cut = 1 + (u.cut - 1) * 0.55;
+        wet = 1 + (u.wet - 1) * 0.55;
+        amp = 1 + (u.amp - 1) * 0.55;
+      }
+      e.px = +clamp(px, -0.95, 0.95).toFixed(3);
+      e.pz = +clamp(pz, 0.05, 2.2).toFixed(3);
+      e.cut = +clamp(cut, 0.55, 1.5).toFixed(3);
+      e.wet = +clamp(wet, 0.55, 1.6).toFixed(3);
+      e.amp = +clamp(amp, 0.4, 1.6).toFixed(3);
+      e.unit = u.id;
+      stats.staged++;
+    }
+  }
+/* LESSON 35: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 35: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 35 fragment here, including its script tags. -->
+<!-- LESSON 35 · STEP 35 · END -->
+
+<!-- LESSON 36 · STEP 36 · BEGIN -->
+<!-- LESSON 36 | BODY / JAVASCRIPT | EXPECTED HTML LINES 1242–1269 -->
+<!-- CONTINUE AFTER LESSON 35: INSERT BELOW LESSON 36 STEP 36 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 36 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-36">
+/* LESSON 36: JAVASCRIPT FUNCTION START */
+function passVoicing(ev, stats) {
+    var bins = {};
+    for (var i = 0; i < ev.length; i++) {
+      var e = ev[i];
+      if (!CHORDISH[e.inst]) continue;
+      var k = Math.round(e.t * 20);
+      (bins[k] || (bins[k] = [])).push(e);
+    }
+    for (var k2 in bins) {
+      var g = bins[k2];
+      if (g.length < 3 || g.length > 6) continue;
+      g.sort(function (x, y) { return x.midi - y.midi; });
+      for (var j = 0; j < g.length; j++) {
+        var f = j === 0 ? 1.03 : j === 1 ? 0.90 : j === 2 ? 0.86 : 0.82;
+        g[j].amp = +clamp((g[j].amp || 1) * f, 0.4, 1.6).toFixed(3);
+        stats.voiced++;
+      }
+    }
+  }
+/* LESSON 36: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 36: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 36 fragment here, including its script tags. -->
+<!-- LESSON 36 · STEP 36 · END -->
+
+<!-- LESSON 37 · STEP 37 · BEGIN -->
+<!-- LESSON 37 | BODY / JAVASCRIPT | EXPECTED HTML LINES 1274–1301 -->
+<!-- CONTINUE AFTER LESSON 36: INSERT BELOW LESSON 37 STEP 37 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 37 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-37">
+/* LESSON 37: JAVASCRIPT FUNCTION START */
+function voiceBudget(ev, stats) {
+    var bins = {};
+    for (var i = 0; i < ev.length; i++) {
+      var e = ev[i];
+      var k = Math.floor(e.t * 4);
+      (bins[k] || (bins[k] = [])).push(e);
+    }
+    for (var k2 in bins) {
+      var g = bins[k2];
+      if (g.length <= 42) continue;
+      g.sort(function (a, b) { return a.v * (a.amp || 1) - b.v * (b.amp || 1); });
+      var n = Math.ceil(g.length * 0.3);
+      for (var j = 0; j < n; j++) {
+        if (PERC[g[j].inst]) continue;
+        g[j].amp = +clamp((g[j].amp || 1) * 0.75, 0.45, 1.55).toFixed(3);
+        stats.budgetTrims++;
+      }
+    }
+  }
+/* LESSON 37: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 37: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 37 fragment here, including its script tags. -->
+<!-- LESSON 37 · STEP 37 · END -->
+
+<!-- LESSON 38 · STEP 38 · BEGIN -->
+<!-- LESSON 38 | BODY / JAVASCRIPT | EXPECTED HTML LINES 1306–1340 -->
+<!-- CONTINUE AFTER LESSON 37: INSERT BELOW LESSON 38 STEP 38 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 38 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-38">
+/* LESSON 38: JAVASCRIPT FUNCTION START */
+function densityControl(ev, stats) {
+    var bins = {};
+    for (var i = 0; i < ev.length; i++) {
+      var e = ev[i];
+      var k = Math.floor(e.t * 8);                       // 0.125 sn
+      (bins[k] || (bins[k] = [])).push(e);
+    }
+    var keep = {};
+    for (var k2 in bins) {
+      var g = bins[k2];
+      if (g.length <= 14) continue;
+      g.sort(function (a, b) {
+        var ia = a.v * (a.amp || 1) * (SOLO[a.inst] ? 1.3 : 1) * (PERC[a.inst] ? 1.12 : 1);
+        var ib = b.v * (b.amp || 1) * (SOLO[b.inst] ? 1.3 : 1) * (PERC[b.inst] ? 1.12 : 1);
+        return ib - ia;
+      });
+      for (var j = 14; j < g.length; j++) {
+        var e2 = g[j];
+        if (SOLO[e2.inst] || PERC[e2.inst]) continue;
+        if (e2.v * (e2.amp || 1) > 0.5) continue;        // Never remove a strong note
+        e2._drop = 1;
+        stats.densityDrops++;
+      }
+    }
+    return ev.filter(function (e) { return !e._drop; });
+  }
+/* LESSON 38: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 38: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 38 fragment here, including its script tags. -->
+<!-- LESSON 38 · STEP 38 · END -->
+
+<!-- LESSON 39 · STEP 39 · BEGIN -->
+<!-- LESSON 39 | BODY / JAVASCRIPT | EXPECTED HTML LINES 1345–1371 -->
+<!-- CONTINUE AFTER LESSON 38: INSERT BELOW LESSON 39 STEP 39 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 39 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-39">
+/* LESSON 39: JAVASCRIPT FUNCTION START */
+function contourSeq(R, shape, n, d0) {
+    var out = [], d = d0;
+    for (var i = 0; i < n; i++) {
+      out.push(d);
+      if (shape === 'rise') d += R() < 0.72 ? 1 : (R() < 0.5 ? 2 : -1);
+      else if (shape === 'fall') d += R() < 0.72 ? -1 : (R() < 0.5 ? -2 : 1);
+      else if (shape === 'wave') {
+        var ph = Math.sin((i / Math.max(1, n - 1)) * Math.PI * 2 - Math.PI / 2);
+        d += ph > 0.2 ? (R() < 0.7 ? 1 : 2) : (R() < 0.7 ? -1 : -2);
+      } else if (shape === 'zigzag') {
+        d += (i % 2 === 0) ? (1 + Math.floor(R() * 2)) : -(1 + Math.floor(R() * 2));
+      } else { /* plateau */
+        d += R() < 0.58 ? 0 : (R() < 0.5 ? 1 : -1);
+      }
+      d = clamp(d, -2, 14);
+    }
+    return out;
+  }
+/* LESSON 39: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 39: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 39 fragment here, including its script tags. -->
+<!-- LESSON 39 · STEP 39 · END -->
+
+<!-- LESSON 40 · STEP 40 · BEGIN -->
+<!-- LESSON 40 | BODY / JAVASCRIPT | EXPECTED HTML LINES 1376–1432 -->
+<!-- CONTINUE AFTER LESSON 39: INSERT BELOW LESSON 40 STEP 40 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 40 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-40">
+/* LESSON 40: JAVASCRIPT FUNCTION START */
+function addContourLines(plan, R, stats) {
+    var movs = plan.movements;
+    var USE = { giris: ['A', 'B'], tema: ['A', 'C'], kopru: ['B', 'C'], final: ['A', 'B', 'C', 'D'] };
+    movs.forEach(function (m, mi) {
+      var beat = 60 / Math.max(40, (m.bpmFrom + m.bpmTo) / 2);
+      var rootM = 57 + (m.trans || 0);      // Tonal root of the movement; do not shadow the module root
+      var hats = USE[m.key] || ['A', 'B'];
+      hats.forEach(function (hat, hi) {
+        var L = null;
+        for (var q = 0; q < LINES.length; q++) if (LINES[q].hat === hat) L = LINES[q];
+        if (!L) return;
+        var inst = pick(R, L.insts);
+        var startDeg = L.lo + Math.floor(R() * (L.hi - L.lo + 1));
+        var t0 = m.start + 0.6 + hi * 1.7 + R() * 0.5;
+        /* Two phrases: the second uses a different contour, developing rather than repeating */
+        for (var phrase = 0; phrase < 2; phrase++) {
+          var shape = phrase === 0 ? L.shape : pick(R, SHAPES.filter(function (s) { return s !== L.shape; }));
+          var n = 7 + Math.floor(R() * 3);
+          var degs = contourSeq(R, shape, n, startDeg + phrase * 2);
+          var noteDur = beat * (1.0 + R() * 0.35);
+          for (var k = 0; k < degs.length; k++) {
+            var t = t0 + k * (noteDur + beat * 0.12);
+            if (t >= m.start + m.dur - 0.4) break;
+            var midi = degToMidi(degs[k], rootM);
+            if (midi < 26 || midi > 106) continue;
+            var ev1 = {
+              inst: inst, midi: midi, t: +t.toFixed(4),
+              d: +(noteDur * (0.92 + R() * 0.2)).toFixed(4),
+              v: +(0.40 + R() * 0.14).toFixed(3)
+            };
+            /* palet giysisi + keskin kontur (renk boyama metaforu) */
+            var MX = root.KonserMix;
+            if (MX && MX.dress) MX.dress(ev1);
+            else { ev1.px = 0.1; ev1.pz = 0.3; ev1.cut = 1.1; ev1.wet = 1; ev1.amp = 1; }
+            ev1.cut = +clamp((ev1.cut || 1) * 1.18, 0.55, 1.5).toFixed(3);   // keskin kontur
+            ev1.amp = +clamp((ev1.amp || 1) * 0.58, 0.45, 1.35).toFixed(3);  // Clear rather than loud
+            ev1.pz = +clamp((ev1.pz || 0.3) * 0.75, 0.05, 2.2).toFixed(3);   // forward
+            ev1.wet = +clamp((ev1.wet || 1) * 1.05, 0.55, 1.6).toFixed(3);
+            ev1.kontur = hat + (phrase + 1);
+            plan.events.push(ev1);
+            if (m.events) m.events.push(ev1);
+            stats.lineNotes++;
+          }
+          t0 += (n * (noteDur + beat * 0.12)) + beat * (1.2 + R() * 1.2);   // rest between phrases
+        }
+      });
+    });
+  }
+/* LESSON 40: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 40: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 40 fragment here, including its script tags. -->
+<!-- LESSON 40 · STEP 40 · END -->
+
+<!-- LESSON 41 · STEP 41 · BEGIN -->
+<!-- LESSON 41 | BODY / JAVASCRIPT | EXPECTED HTML LINES 1437–1487 -->
+<!-- CONTINUE AFTER LESSON 40: INSERT BELOW LESSON 41 STEP 41 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 41 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-41">
+/* LESSON 41: JAVASCRIPT FUNCTION START */
+function transitions(p){
+  if(!p || !p.events || !p.movements)return p;
+  var ev=p.events, moves=p.movements, count=0, details=[];
+  for(var i=0;i<moves.length-1;i++){
+   var before=moves[i], next=moves[i+1], t=next.start;
+   // Common pitch classes between the outgoing and incoming movements; otherwise change the expression without adding a pitch.
+   var prev=pcs(ev,Math.max(before.start,t-0.45),t-0.01);
+   var incoming=pcs(ev,t,t+0.65), common=[];
+   for(var k=0;k<12;k++)if(prev[k] && incoming[k])common.push(k);
+   var added=0;
+   if(common.length){
+    var seed=((p.seed>>>0)^Math.imul(i+1,0x9e3779b1))>>>0;
+    var first=common[seed%common.length], second=common[(seed+1)%common.length];
+    var inst=i===1?'clarinet':(i===2?'french_horn':'cello');
+    var base=inst==='cello'?55:inst==='clarinet'?67:60;
+    // The first note enters with the section; the second is a quiet rhythmic response.
+    for(var j=0;j<2;j++){
+      var at=t+0.08+j*0.30, dur=0.23;
+      if(at+dur>=next.start+next.dur)continue;
+      var pitch=closest(j===0?first:second,base+(j?2:0));
+      ev.push({inst:inst,midi:pitch,t:+at.toFixed(4),d:dur,v:j===0?0.20:0.17,
+        px:inst==='cello'?0.18:-0.16,pz:0.45,amp:0.65,wet:0.7,cut:0.82,transitionCounter:true});
+      count++;added++;
+    }
+   } else {
+    // If no pitch class is shared, answer briefly with a note already playing in the incoming movement;
+    // do not introduce a new pitch class or exceed the source note’s duration.
+    var anchors=ev.filter(function(e){return melodic[e.inst] && e.t>=t && e.t<t+0.8 && e.d>=0.30 && e.midi>=48 && e.midi<=84;});
+    anchors.sort(function(a,b){return a.t-b.t;});
+    if(anchors.length){
+      var a=anchors[0], offset=Math.min(0.16,a.d*0.33), len=Math.min(0.18,a.d-offset);
+      if(len>=0.06){ev.push({inst:a.inst,midi:a.midi,t:+(a.t+offset).toFixed(4),d:+len.toFixed(4),
+        v:0.14,px:isFinite(a.px)?a.px:0,pz:0.45,amp:0.62,wet:0.65,cut:0.78,transitionCounter:true});
+        count++;added++;}
+    }
+   }
+   details.push({from:before.name,to:next.name,common:common.length,added:added});
+  }
+  ev.sort(function(a,b){return a.t-b.t});p.notes=ev.length;p.counterTransitions=details;
+  if(p.kimlik)p.kimlik.fazGecis+=' · ortak tonlu karşılık';
+  return p;
+ }
+/* LESSON 41: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 41: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 41 fragment here, including its script tags. -->
+<!-- LESSON 41 · STEP 41 · END -->
+
+<!-- LESSON 42 · STEP 42 · BEGIN -->
+<!-- LESSON 42 | BODY / JAVASCRIPT | EXPECTED HTML LINES 1492–1541 -->
+<!-- CONTINUE AFTER LESSON 41: INSERT BELOW LESSON 42 STEP 42 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 42 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-42">
+/* LESSON 42: JAVASCRIPT FUNCTION START */
+function windPhrases(plan){
+  if(!plan || !plan.events || !plan.movements)return plan;
+  var events=plan.events, additions=[], adjusted=0, splits=0;
+  var budget=[0,0,0,0];
+  events.forEach(function(e){
+   if(!winds[e.inst] || !isFinite(e.midi) || !isFinite(e.t) || !isFinite(e.d))return;
+   var mi=-1;
+   for(var k=0;k<plan.movements.length;k++)if(e.t>=plan.movements[k].start && e.t<plan.movements[k].start+plan.movements[k].dur){mi=k;break;}
+   if(mi<0)return;
+   var m=plan.movements[mi], grid=m.beatGrid||[], harmony=m.harmonyGrid||[], h=null;
+   for(var j=0;j<harmony.length;j++) if(e.t>=harmony[j].start && e.t<harmony[j].end){h=harmony[j];break;}
+   if(!h || !h.notes || !h.notes.length)return;
+   var closestBeat=Infinity;
+   for(var g=0;g<grid.length;g++){var dd=Math.abs(e.t-grid[g]);if(dd<closestBeat)closestBeat=dd;}
+   // Connect a solo note on the main beat to the nearest chord tone; leave passing notes untouched.
+   if(closestBeat<0.065){var old=e.midi,newPitch=nearestChord(old,h.notes);
+     if(Math.abs(newPitch-old)<=3){e.midi=newPitch;if(old!==newPitch)adjusted++;}}
+   // Develop measured phrases on longer high notes within their original duration and tempo.
+   if(e.midi<76 || e.d<0.42 || closestBeat>0.10 || budget[mi]>=24)return;
+   var available=Math.min(e.d,h.end-e.t,m.start+m.dur-e.t);
+   if(available<0.42)return;
+   var parts=e.midi>=84 && available>=0.90 ? 3 : 2;
+   var unit=available/parts, original=e.midi;
+   var second=nearestChord(original+(e.midi>=84 ? -3 : 2),h.notes);
+   if(Math.abs(second-original)>5)second=original;
+   e.d=+(unit*0.91).toFixed(4);
+   for(var q=1;q<parts;q++){
+     var t=e.t+unit*q, n=q%2?second:original;
+     var x={inst:e.inst,midi:n,t:+t.toFixed(4),d:+(unit*0.91).toFixed(4),
+       v:+Math.max(0.05,Math.min(0.75,e.v*(q===1?0.77:0.70))).toFixed(3),
+       px:isFinite(e.px)?e.px:0,pz:isFinite(e.pz)?e.pz:0.35,
+       amp:isFinite(e.amp)?Math.min(e.amp,0.85):0.8,cut:isFinite(e.cut)?Math.min(e.cut,0.9):0.85,
+       wet:isFinite(e.wet)?e.wet:0.8,windPhrase:true};
+     additions.push(x);budget[mi]++;splits++;
+   }
+  });
+  Array.prototype.push.apply(events,additions);events.sort(function(a,b){return a.t-b.t;});
+  plan.notes=events.length;plan.windPhrases={aligned:adjusted,extraNotes:splits};
+  if(plan.kimlik)plan.kimlik.fazGecis+=' · akora bağlı nefesli cümle';
+  return plan;
+ }
+/* LESSON 42: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 42: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 42 fragment here, including its script tags. -->
+<!-- LESSON 42 · STEP 42 · END -->
+
+<!-- LESSON 43 · STEP 43 · BEGIN -->
+<!-- LESSON 43 | BODY / JAVASCRIPT | EXPECTED HTML LINES 1546–1563 -->
+<!-- CONTINUE AFTER LESSON 42: INSERT BELOW LESSON 43 STEP 43 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 43 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-43">
+/* LESSON 43: JAVASCRIPT FUNCTION START */
+function chordTone(target,chord,last){
+   var choices=[];
+   chord.forEach(function(v){for(var o=-3;o<=3;o++){var m=v+12*o;if(m>=40 && m<=96 && Math.abs(m-target)<=6 && choices.indexOf(m)<0)choices.push(m);}});
+   if(!choices.length)return target;
+   choices.sort(function(a,b){
+     var ap=Math.abs(a-target)+(last===a?2:0),bp=Math.abs(b-target)+(last===b?2:0);return ap-bp;
+   });
+   return choices[0];
+ }
+/* LESSON 43: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 43: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 43 fragment here, including its script tags. -->
+<!-- LESSON 43 · STEP 43 · END -->
+
+<!-- LESSON 44 · STEP 44 · BEGIN -->
+<!-- LESSON 44 | BODY / JAVASCRIPT | EXPECTED HTML LINES 1568–1608 -->
+<!-- CONTINUE AFTER LESSON 43: INSERT BELOW LESSON 44 STEP 44 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 44 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-44">
+/* LESSON 44: JAVASCRIPT FUNCTION START */
+function harpSolos(plan){
+  if(!plan || !plan.events || !plan.movements)return plan;
+  var R=rng((plan.seed^0x7552ecb1)>>>0), extra=[], phrases=0;
+  var oldHarp=plan.events.filter(function(e){return e.inst==='orchestral_harp';});
+  plan.movements.forEach(function(m,mi){
+   var bars=m.harmonyGrid||[], used=0, offset=(Math.floor(R()*3)+mi)%4;
+   bars.forEach(function(h,bi){
+    if(used>=5 || (bi+offset)%4!==0 || !h.notes || h.notes.length<3)return;
+    var dur=h.end-h.start;if(dur<0.7)return;
+    var start=h.start+dur*0.125, step=dur/8;
+    var lastPossible=start+step*4;
+    // Prefer an empty region to avoid overlapping existing harp solos.
+    if(oldHarp.some(function(e){return e.t<lastPossible+step && e.t+e.d>start-0.12;}))return;
+    var ids=patterns.map(function(_,i){return i;});
+    var idx=root.Sayac ? root.Sayac.pick(R,'arp_hucresi',ids,function(x){return String(x);}) : Math.floor(R()*patterns.length);
+    var pat=patterns[idx], register=64+Math.floor(R()*5), last=register, n=0;
+    pat.forEach(function(degree,q){
+      var at=start+q*step; if(at+0.08>=h.end || at>=plan.totalSec-(plan.endRing||0))return;
+      var tone=h.notes[degree % Math.min(3,h.notes.length)];
+      var pc=((Math.round(tone)%12)+12)%12, pitch=warmPitch(pc,last+(q%2===0?2:-1));last=pitch;
+      var d=Math.max(0.08,Math.min(step*0.72,h.end-at-0.03,0.28));
+      extra.push({inst:'orchestral_harp',midi:pitch,t:+at.toFixed(4),d:+d.toFixed(4),
+        v:+(0.19+(q===0?0.03:0)+(R()*0.025)).toFixed(3),px:-0.28,pz:0.25,amp:0.72,cut:0.82,wet:0.70,harpGrain:true});n++;
+    });
+    if(n){phrases++;used++;}
+   });
+  });
+  Array.prototype.push.apply(plan.events,extra);plan.events.sort(function(a,b){return a.t-b.t});
+  plan.notes=plan.events.length;plan.harpGranules={phrases:phrases,notes:extra.length};
+  if(plan.kimlik)plan.kimlik.fazGecis+=' · akor sesli arp cümleleri';
+  return plan;
+ }
+/* LESSON 44: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 44: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 44 fragment here, including its script tags. -->
+<!-- LESSON 44 · STEP 44 · END -->
+
+<!-- LESSON 45 · STEP 45 · BEGIN -->
+<!-- LESSON 45 | BODY / JAVASCRIPT | EXPECTED HTML LINES 1613–1643 -->
+<!-- CONTINUE AFTER LESSON 44: INSERT BELOW LESSON 45 STEP 45 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 45 STARTS AT THE SCRIPT TAG BELOW. -->
+<script type="text/plain" id="lesson-45">
+/* LESSON 45: JAVASCRIPT FUNCTION START */
+function countPhrases(plan){
+  if(!plan || !plan.events || !root.Sayac)return plan;
+  var groups={}, counter=root.Sayac;
+  plan.events.forEach(function(e){
+   if(!lead[e.inst] || !isFinite(e.t) || !isFinite(e.midi))return;
+   var key=e.inst+':'+Math.floor(e.t/4);(groups[key]||(groups[key]=[])).push(e);
+  });
+  var n=0;
+  Object.keys(groups).forEach(function(key){
+   var seq=groups[key].slice(0,8); if(seq.length<2)return;
+   var hash=2166136261>>>0, start=seq[0].midi;
+   seq.forEach(function(e){hash=Math.imul(hash^((e.midi-start+128)&255),16777619)>>>0;});
+   var cell=seq[0].inst+':'+(hash%128), times=counter.get('solo_hucresi',cell);
+   // The counter manages subtle expression changes without altering existing pitches or durations.
+   var gain=[1,0.96,1.035][times%3];
+   seq.forEach(function(e){e.v=+Math.max(0.05,Math.min(1.15,e.v*gain)).toFixed(3);});
+   counter.mark('solo_hucresi',cell);n++;
+  });
+  plan.soloCounterGroups=n;
+  try{root.localStorage.setItem('oksl_sayac',counter.dump());}catch(e){}
+  return plan;
+ }
+/* LESSON 45: JAVASCRIPT FUNCTION END */
+</script>
+<!-- LESSON 45: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 45 fragment here, including its script tags. -->
+<!-- LESSON 45 · STEP 45 · END -->
+
+<!-- LESSON 46 · STEP 46 · BEGIN -->
+<!-- LESSON 46 | BODY / JAVASCRIPT | EXPECTED HTML LINES 1648–1722 -->
+<!-- CONTINUE AFTER LESSON 45: INSERT BELOW LESSON 46 STEP 46 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 46 STARTS AT THE SCRIPT TAG BELOW. -->
+<script id="lesson-46">
+/* LESSON 46: SEEDED INSTRUMENT PALETTE AND INTERNAL BREATHING WINDOWS */
+(function (root) {
+  'use strict';
+  var families = {
+    strings: ['violin', 'viola', 'cello', 'tremolo_strings', 'string_ensemble_1', 'string_ensemble_2', 'pizzicato_strings'],
+    winds: ['flute', 'oboe', 'clarinet', 'bassoon'],
+    brass: ['french_horn', 'trumpet', 'trombone', 'tuba', 'brass_section']
+  };
+  var member = {};
+  Object.keys(families).forEach(function (group) {
+    families[group].forEach(function (name) { member[name] = group; });
+  });
+  function random(seed) {
+    var x = seed >>> 0 || 1;
+    return function () { x = (Math.imul(x, 1664525) + 1013904223) >>> 0; return x / 4294967296; };
+  }
+  function choose(items, count, R) {
+    var a = items.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(R() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a.slice(0, Math.min(count, a.length));
+  }
+  function movementAt(movements, time) {
+    for (var i = 0; i < movements.length; i++) {
+      if (time >= movements[i].start && time < movements[i].start + movements[i].dur) return i;
+    }
+    return -1;
+  }
+  function prepare(plan) {
+    if (!plan || !Array.isArray(plan.events) || !Array.isArray(plan.movements)) return plan;
+    var R = random((plan.seed ^ 0x487ab13d) >>> 0), choices = [], breaths = [];
+    plan.movements.forEach(function (m, mi) {
+      var present = { strings: {}, winds: {}, brass: {} };
+      plan.events.forEach(function (e) {
+        var group = member[e.inst];
+        if (group && e.t >= m.start && e.t < m.start + m.dur) present[group][e.inst] = true;
+      });
+      var pick = {};
+      Object.keys(families).forEach(function (group) {
+        var names = Object.keys(present[group]);
+        pick[group] = choose(names, group === 'strings' ? 2 : group === 'winds' ? 2 : 1, R);
+      });
+      choices.push(pick);
+      var bars = m.harmonyGrid || [], chosen = 0, offset = Math.floor(R() * 4);
+      bars.forEach(function (h, bi) {
+        if ((bi + offset) % 6 !== 0 || chosen >= 5 || h.start < m.start + 3 || h.end > m.start + m.dur - 3) return;
+        var span = h.end - h.start;
+        if (span < 0.9) return;
+        var begin = h.start + span * (0.45 + 0.10 * R());
+        breaths.push({ start: +begin.toFixed(4), end: +(Math.min(h.end - 0.04, begin + span * (0.22 + R() * 0.13))).toFixed(4), movement: mi });
+        chosen++;
+      });
+    });
+    var removed = 0, breathRemoved = 0;
+    plan.events = plan.events.filter(function (e) {
+      var mi = movementAt(plan.movements, e.t), group = member[e.inst];
+      if (mi < 0 || !group) return true;
+      if (choices[mi][group].indexOf(e.inst) < 0) { removed++; return false; }
+      var isBreath = breaths.some(function (b) { return b.movement === mi && e.t >= b.start && e.t < b.end; });
+      if (isBreath && !e.bridgeAttack && !e.finalAttack) { breathRemoved++; return false; }
+      return true;
+    });
+    plan.smartPalette = { groups: choices, breathWindows: breaths, removedByPalette: removed, removedForBreath: breathRemoved };
+    return plan;
+  }
+  root.OrchestraPalette = { prepare: prepare };
+})(window);
+</script>
+<!-- LESSON 46: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 46 fragment here, including its script tags. -->
+<!-- LESSON 46 · STEP 46 · END -->
+
+<!-- LESSON 47 · STEP 47 · BEGIN -->
+<!-- LESSON 47 | BODY / JAVASCRIPT | EXPECTED HTML LINES 1727–2032 -->
+<!-- CONTINUE AFTER LESSON 46: INSERT BELOW LESSON 47 STEP 47 BEGIN. -->
+<!-- JAVASCRIPT BLOCK FOR LESSON 47 STARTS AT THE SCRIPT TAG BELOW. -->
+<script id="lesson-47">
+/* LESSON 47: HARMONY-BOUND MOTIFS, SPATIAL MOVEMENT AND CONTROLLED DRUMS */
+(function (root) {
+  'use strict';
+  function random(seed) {
+    var x = seed >>> 0 || 1;
+    return function () { x = (Math.imul(x, 1664525) + 1013904223) >>> 0; return x / 4294967296; };
+  }
+  function limit(x, lo, hi) { return Math.max(lo, Math.min(hi, x)); }
+  function nearPitch(note, target) {
+    var pc = ((Math.round(note) % 12) + 12) % 12, best = pc + 12 * Math.round((target - pc) / 12);
+    while (best < 48) best += 12;
+    while (best > 84) best -= 12;
+    return best;
+  }
+  // Snap a wind note to the closest pitch class in the sounding chord, without changing its register unnecessarily.
+  function chordPitch(midi, notes) {
+    var best = Math.round(midi), distance = Infinity;
+    notes.forEach(function (n) {
+      if (!isFinite(n)) return;
+      var pc = ((Math.round(n) % 12) + 12) % 12;
+      var candidate = pc + 12 * Math.round((midi - pc) / 12);
+      while (candidate < 0) candidate += 12;
+      while (candidate > 127) candidate -= 12;
+      var d = Math.abs(candidate - midi);
+      if (d < distance) { best = candidate; distance = d; }
+    });
+    return best;
+  }
+  // Concert-pitch playing ranges and a conventional, approximate orchestral seating map.
+  var registers = { flute:[60,96], oboe:[58,91], clarinet:[50,94], bassoon:[34,75],
+    french_horn:[36,77], trumpet:[54,86], trombone:[40,72], tuba:[28,65],
+    violin:[55,79], viola:[48,83], cello:[36,76], contrabass:[28,72],
+    tremolo_strings:[48,84], string_ensemble_1:[48,84], string_ensemble_2:[48,84],
+    pizzicato_strings:[48,96], orchestral_harp:[24,96] };
+  var stage = { violin:-0.52, viola:-0.20, cello:0.27, contrabass:0.52,
+    tremolo_strings:-0.32, string_ensemble_1:-0.38, string_ensemble_2:-0.12, pizzicato_strings:-0.24,
+    flute:-0.18, oboe:0.02, clarinet:-0.10, bassoon:0.18, french_horn:-0.35,
+    trumpet:0.22, trombone:0.38, tuba:0.48, brass_section:0.24, orchestral_harp:-0.60 };
+  function fitRegister(inst, midi) {
+    var range = registers[inst], pitch = Math.round(midi);
+    if (!range || !isFinite(midi)) return midi;
+    while (pitch < range[0]) pitch += 12;
+    while (pitch > range[1]) pitch -= 12;
+    return pitch;
+  }
+  // Pick one of the six remaining orchestral patterns for each movement.
+  function chooseMovementPatterns(plan, profiles) {
+    var R = random((plan.seed ^ 0x7a29c641) >>> 0), pool = profiles.slice();
+    for (var i = pool.length - 1; i > 0; i--) { var j = Math.floor(R() * (i + 1)), t = pool[i]; pool[i] = pool[j]; pool[j] = t; }
+    var chosen = plan.movements.map(function (m, index) {
+      var p = pool[index % pool.length];
+      m.sectionPattern = { id:p.id, name:p.name, description:p.desc, tempoFactor:limit(p.tempoK || 1, 0.96, 1.04) };
+      return p;
+    });
+    var family = { violin:'str', viola:'str', cello:'str', contrabass:'str', pizzicato_strings:'str', tremolo_strings:'str', string_ensemble_1:'str', string_ensemble_2:'str',
+      french_horn:'brass', trumpet:'brass', trombone:'brass', tuba:'brass', brass_section:'brass',
+      timpani:'perc', taiko_drum:'perc', melodic_tom:'perc', woodblock:'perc', orchestra_hit:'perc', reverse_cymbal:'perc',
+      flute:'wood', oboe:'wood', clarinet:'wood', bassoon:'wood', orchestral_harp:'wood',
+      choir_aahs:'choir', voice_oohs:'choir', glockenspiel:'bell', tubular_bells:'bell' };
+    plan.events = plan.events.filter(function (e) {
+      var mi = plan.movements.findIndex(function (m) { return e.t >= m.start && e.t < m.start + m.dur; });
+      if (mi < 0) mi = e.t >= plan.movements[plan.movements.length-1].start ? plan.movements.length-1 : 0;
+      var p = chosen[mi], protectedHit = e.heartBeat || e.marchStep || e.armyDrum || e.finalAttack;
+      if (!protectedHit && p.drop && p.drop[e.inst]) return false;
+      if (!protectedHit && p.remap && p.remap[e.inst]) e.inst = p.remap[e.inst];
+      var fam = family[e.inst] || 'str', gain = p.famGain && p.famGain[fam] != null ? p.famGain[fam] : 1;
+      e.v = +limit(e.v * gain, 0.05, 1.20).toFixed(3);
+      return true;
+    });
+    plan.sectionPatterns = chosen.map(function (p) { return p.id; });
+    if(plan.kimlik){plan.kimlik.aranjman='Bölüm başına rastgele aranjman';plan.kimlik.aranjmanId='bolumsel';plan.kimlik.aciklama=plan.movements.map(function(m){return m.name+': '+m.sectionPattern.name;}).join(' · ');}
+    return plan;
+  }
+  // Re-time complete movement material onto real 4/4, 3/4 and 6/8 bar grids.
+  function setMovementMeters(plan) {
+    var meters = ['4/4', '3/4', '6/8', '4/4'], factors = [1, 0.75, 0.75, 1].map(function(v,i){return v / (plan.movements[i] && plan.movements[i].sectionPattern ? plan.movements[i].sectionPattern.tempoFactor : 1);}), maps = [], cursor = 0;
+    var oldMusic = plan.movements.reduce(function (n, m) { return n + m.dur; }, 0);
+    var weighted = plan.movements.reduce(function (n, m, i) { return n + m.dur * factors[i % factors.length]; }, 0);
+    var normalization = weighted > 0 ? oldMusic / weighted : 1;
+    plan.movements.forEach(function (m, i) {
+      var oldStart = m.start, oldDur = m.dur, next = +(cursor + oldDur * factors[i % factors.length] * normalization).toFixed(3);
+      var scale = oldDur > 0 ? (next - cursor) / oldDur : 1;
+      maps.push({ oldStart:oldStart, oldEnd:oldStart + oldDur, start:cursor, end:next, scale:scale });
+      cursor = next;
+    });
+    function mapTime(t) {
+      for (var i = 0; i < maps.length; i++) {
+        var x = maps[i];
+        if (t < x.oldEnd || i === maps.length - 1) return x.start + (t - x.oldStart) * x.scale;
+      }
+      return t;
+    }
+    plan.events.forEach(function (e) {
+      var x = maps.find(function (q) { return e.t >= q.oldStart && e.t < q.oldEnd; }) || maps[maps.length-1];
+      e.t = +mapTime(e.t).toFixed(4); e.d = +Math.max(0.001, e.d * x.scale).toFixed(4);
+    });
+    if (plan.story && Array.isArray(plan.story.scenes)) plan.story.scenes.forEach(function (scene) { scene.start=+mapTime(scene.start).toFixed(4); scene.end=+mapTime(scene.end).toFixed(4); });
+    plan.movements.forEach(function (m, i) {
+      var x=maps[i], oldGrid=m.beatGrid || [], grid=m.harmonyGrid || [], meter=meters[i % meters.length];
+      var extra=oldGrid.filter(function (t) { return !grid.some(function (h) { return t >= h.start && t < h.end; }); }).map(mapTime);
+      grid.forEach(function (h) { h.start=+mapTime(h.start).toFixed(4); h.end=+mapTime(h.end).toFixed(4); });
+      var beats=[];
+      grid.forEach(function (h) { var subdivisions=meter==='6/8'?6:meter==='3/4'?3:4; for(var j=0;j<subdivisions;j++) beats.push(+(h.start+(h.end-h.start)*j/subdivisions).toFixed(4)); });
+      m.beatGrid=extra.concat(beats).sort(function (a,b) { return a-b; });
+      var tempoScale=(meter==='4/4'?1:0.75)/x.scale;
+      m.bpmList=(m.bpmList||[]).map(function (v) { return Math.max(1,Math.round(v*tempoScale)); });
+      m.bpmFrom=Math.round(m.bpmFrom*tempoScale); m.bpmTo=Math.round(m.bpmTo*tempoScale); m.bpmPeak=Math.round(m.bpmPeak*tempoScale);
+      m.start=x.start; m.dur=+(x.end-x.start).toFixed(3); m.meter=meter;
+    });
+    if(Array.isArray(plan.timeline))plan.timeline.forEach(function (item) { var old=item.start, end=old+item.dur; item.start=+mapTime(old).toFixed(3); item.dur=+(mapTime(end)-item.start).toFixed(3); });
+    var originalEnd=maps[maps.length-1].oldEnd, oldTotal=plan.totalSec;
+    plan.totalSec=+(cursor + Math.max(0, oldTotal-originalEnd)).toFixed(3);
+    plan.meters=meters.slice(0,plan.movements.length);
+    if(plan.kimlik){plan.kimlik.tempoHarita=plan.movements.map(function(m){return m.name+' · '+m.meter+' · '+m.bpmFrom+'–'+m.bpmTo+' BPM';});var seconds=Math.round(plan.totalSec);plan.kimlik.sure=Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0');}
+    return plan;
+  }
+  // Vary existing drum hits inside sections; story and finale attacks are never removed.
+  function varyDrums(plan, drumSet, phase) {
+    var four = [[0,1,3,4,6],[0,2,4,6,7],[0,2,4,5,6],[0,2,3,5,7]], triple = [[0,1,2,4],[0,2,3,5],[0,1,3,4],[0,2,4,5]], compound = [[0,2,3,5],[0,1,2,3,5],[0,2,3,4,5],[0,1,2,3,4]], removed = 0, used = {};
+    plan.events = plan.events.filter(function (e) {
+      if (!drumSet[e.inst] || !isFinite(e.t)) return true;
+      var m = plan.movements.find(function (item) { return e.t >= item.start && e.t < item.start + item.dur; });
+      if (!m) return true;
+      var grid = m.harmonyGrid || [], bar = grid.findIndex(function (h) { return e.t >= h.start && e.t < h.end; });
+      if (bar < 0) return true;
+      var h = grid[bar], width = h.end - h.start;
+      if (!(width > 0)) return true;
+      var patterns = m.meter === '3/4' ? triple : m.meter === '6/8' ? compound : four, slots=m.meter==='4/4'?8:6;
+      var choice = (Math.floor(bar / 2) + phase) % patterns.length;
+      var slot = Math.min(slots-1, Math.max(0, Math.round((e.t - h.start) * slots / width)));
+      var protectedHit = e.heartBeat || e.marchStep || e.armyDrum || e.bridgeAttack || e.finalAttack;
+      var atEdge = e.t < m.start + 0.35 || e.t > m.start + m.dur - 0.35;
+      used[choice] = true;
+      if (!protectedHit && !atEdge && patterns[choice].indexOf(slot) < 0) { removed++; return false; }
+      if (!protectedHit && !atEdge) e.t = +(h.start + width * slot / slots).toFixed(4);
+      var shape = [0.94, 1.04, 0.84, 0.98][Math.floor(bar / 2) % 4];
+      if (bar % 8 === 7 && !e.finalAttack) shape *= 0.84;
+      e.v = +limit(e.v * shape, 0.04, 0.84).toFixed(3);
+      return true;
+    });
+    return { removed: removed, patternCount: Object.keys(used).length };
+  }
+  function arrange(plan, profiles) {
+    if (!root.OrchestraPalette || !plan || !plan.events || !plan.movements) return plan;
+    chooseMovementPatterns(plan, profiles);
+    setMovementMeters(plan); plan.events=plan.events.filter(function(e){return !/^(timpani|taiko_drum|melodic_tom|woodblock|orchestral_harp|pizzicato_strings|violin|tremolo_strings|string_ensemble_1|string_ensemble_2|glockenspiel|tubular_bells|reverse_cymbal|orchestra_hit|battle_arrow|battle_sword|flute|trumpet|brass_section)$/.test(e.inst);});
+    root.OrchestraPalette.prepare(plan);
+    var R = random((plan.seed ^ 0xc4b3a219) >>> 0), additions = [], phrases = 0, motifWindows = [];
+    var melodic = { violin:1, viola:1, cello:1, flute:1, oboe:1, clarinet:1, bassoon:1, french_horn:1, trumpet:1, trombone:1 };
+    var drums = { timpani:1, taiko_drum:1, melodic_tom:1, woodblock:1 };
+    var wind = { flute:1, oboe:1, clarinet:1, bassoon:1, french_horn:1, trumpet:1, trombone:1, tuba:1, brass_section:1 };
+    var tuned = 0, unmapped = 0, registerChanges = 0;
+    var phase = R() * Math.PI * 2, globalTheme = Math.floor(R() * 4);
+    var rhythm = varyDrums(plan, drums, Math.floor(R() * 4)); plan.events.forEach(function(e){if(!/^(taiko_drum|melodic_tom|woodblock)$/.test(e.inst))return;var m=plan.movements.find(function(x){return e.t>=x.start&&e.t<x.start+x.dur}), grid=m&&m.harmonyGrid||[], h=grid.find(function(x){return e.t>=x.start&&e.t<x.end&&x.notes&&x.notes.length;})||grid.find(function(x){return x.notes&&x.notes.length;});var target=h?h.notes[(e.marchStep||e.armyDrum)&&h.notes.length>2?2:0]:e.midi, pc=((Math.round(target)%12)+12)%12, note=pc+12*Math.round((47-pc)/12);while(note<38)note+=12;while(note>57)note-=12;e.inst='timpani';e.midi=note;e.v=+limit(e.v*0.80,0.035,0.55).toFixed(3);e.amp=+Math.min(isFinite(e.amp)?e.amp:1,0.85).toFixed(3);});
+    plan.events.forEach(function (e) {
+      if (wind[e.inst] && isFinite(e.t) && isFinite(e.midi)) {
+        var movement = plan.movements.find(function (m) { return e.t >= m.start && e.t < m.start + m.dur; });
+        var grid = movement && movement.harmonyGrid || [];
+        var h = grid.find(function (item) { return e.t >= item.start && e.t < item.end && Array.isArray(item.notes) && item.notes.length; });
+        // Intro and finale events can lie just outside the chord grid; use the closest available chord.
+        if (!h) {
+          var available = grid.length ? grid : plan.movements.reduce(function (a, m) { return a.concat(m.harmonyGrid || []); }, []);
+          var distance = Infinity;
+          available.forEach(function (item) {
+            if (!Array.isArray(item.notes) || !item.notes.length) return;
+            var d = e.t < item.start ? item.start - e.t : e.t > item.end ? e.t - item.end : 0;
+            if (d < distance) { distance = d; h = item; }
+          });
+        }
+        if (h) {
+          var pitch = chordPitch(e.midi, h.notes);
+          if (pitch !== e.midi) { e.midi = pitch; tuned++; }
+          var next = grid.find(function (item) { return Math.abs(item.start - h.end) < 0.001 && Array.isArray(item.notes) && item.notes.length; });
+          if (next && e.t < h.end && e.t + e.d > h.end && !next.notes.some(function (n) { return ((Math.round(n) - pitch) % 12 + 12) % 12 === 0; })) {
+            e.d = +Math.max(0.001, h.end - e.t).toFixed(4);
+          }
+        } else { unmapped++; }
+      }
+      if (registers[e.inst] && isFinite(e.midi)) {
+        var placedPitch = fitRegister(e.inst, e.midi);
+        if (placedPitch !== e.midi) { e.midi = placedPitch; registerChanges++; }
+      }
+      if (stage[e.inst] != null && isFinite(e.t)) {
+        var travel = Math.sin(e.t * 2 * Math.PI / 36 + phase);
+        e.px = +limit(stage[e.inst] + travel * 0.32, -0.88, 0.88).toFixed(3);
+        e.pz = +limit(0.30 + 0.22 * (1 + Math.cos(e.t * 2 * Math.PI / 52 + phase)) / 2, 0.2, 0.65).toFixed(3);
+      }
+      if (melodic[e.inst] && isFinite(e.t)) {
+        e.v = +limit(e.v * 0.96, 0.05, 0.70).toFixed(3);
+        e.amp = +limit((isFinite(e.amp) ? e.amp : 1) * 0.96, 0.35, 1.10).toFixed(3);
+        if (e.midi >= 84) e.v = +limit(e.v * 0.88, 0.05, 0.68).toFixed(3);
+      }
+      if (drums[e.inst]) { if(e.inst==='timpani'){while(e.midi<38)e.midi+=12;while(e.midi>57)e.midi-=12;}
+        e.v = +limit(e.v * (e.inst === 'taiko_drum' || e.inst === 'woodblock' ? 0.80 : 1.22), 0.05, 0.78).toFixed(3);
+        e.amp = +limit((isFinite(e.amp) ? e.amp : 1) * 1.02, 0.35, 1.12).toFixed(3);
+        e.wet = +Math.min(isFinite(e.wet) ? e.wet : 0.45, 0.45).toFixed(3);
+      }
+    });
+    plan.movements.forEach(function (m, mi) {
+      var harmony = m.harmonyGrid || [], selection = plan.smartPalette.groups[mi], count = 0;
+      var choices = selection.winds.concat(selection.brass, selection.strings);
+      if (!choices.length) return;
+      var offset = Math.floor(R() * 3), patterns = [[0,1,2,1,0],[2,1,0,1,2],[0,2,1,0,2],[1,0,2,1,0]], theme = globalTheme;
+      harmony.forEach(function (h, hi) {
+        if (count >= 7 || (hi + offset) % 3 !== 0 || !h.notes || h.notes.length < 3) return;
+        if (h.start < m.start + 1.2 || h.end > m.start + m.dur - 1.0) return;
+        var width = h.end - h.start, unit = width / 7, start = h.start + unit, pattern = patterns[(theme + Math.floor(count / 2)) % patterns.length];
+        if (unit < 0.12) return;
+        if (plan.smartPalette.breathWindows.some(function (b) { return start < b.end && start + unit * 5 > b.start; })) return;
+        var lead = choices[count % choices.length], answer = choices[(count + 1) % choices.length];
+        var previous = lead === 'tuba' ? 52 : lead === 'cello' || lead === 'trombone' ? 60 : 70;
+        var phraseId = mi + ':' + count;
+        motifWindows.push({ start:start, end:start + unit * 5, movement:mi });
+        pattern.forEach(function (degree, k) {
+          var inst = k < 3 ? lead : answer;
+          var t = start + unit * k, pitch = fitRegister(inst, nearPitch(h.notes[degree % h.notes.length], previous + (k % 2 ? -1 : 1)));
+          previous = pitch;
+          additions.push({ inst:inst, midi:pitch, t:+t.toFixed(4), d:+Math.min(unit * 0.84, h.end - t - 0.025).toFixed(4),
+            v:+(0.39 + R() * 0.05).toFixed(3), px:+limit((stage[inst] || 0) + 0.32 * Math.sin(t * 2 * Math.PI / 36 + phase), -0.88, 0.88).toFixed(3),
+            pz:0.40, amp:0.96, cut:0.86, wet:0.55, smartMotif:true, phraseId:phraseId, phrasePart:k < 3 ? 'call' : 'answer' });
+        });
+        count++; phrases++;
+      });
+    });
+    /* Uzun nefesli cümleleri, kontrbas adımları ve seyrek pizzicato. */ plan.movements.forEach(function(m,mi){var grid=m.harmonyGrid||[],pick=plan.smartPalette.groups[mi],winds=(pick&&pick.winds||[]),seq=0;grid.forEach(function(h,hi){if(!h.notes||!h.notes.length)return;var span=h.end-h.start;if(!(span>0.6))return;for(var k=0;k<2;k++){var t=h.start+span*k/2,pc=((Math.round(h.notes[k&&h.notes.length>2?2:0])%12)+12)%12,pitch=pc+12*Math.round((36-pc)/12);while(pitch<28)pitch+=12;while(pitch>48)pitch-=12;additions.push({inst:'contrabass',midi:pitch,t:+t.toFixed(4),d:+Math.min(1.15,span*0.43).toFixed(4),v:k?0.25:0.29,amp:0.77,cut:0.72,wet:0.23,lowStep:true});}if(true){var pc=((Math.round(h.notes[(hi%3)%h.notes.length])%12)+12)%12,n=pc+12*Math.round((63-pc)/12);additions.push({inst:'pizzicato_strings',midi:n,t:+(h.start+span*0.55).toFixed(4),d:0.30,v:0.44,amp:1.05,cut:0.72,wet:0.18,pluckedViolin:true});}if(!winds.length||hi%6!==1||!grid[hi+1])return;var next=grid[hi+1],begin=h.start+0.15,end=next.end-0.12;if(end-begin<2.4||motifWindows.some(function(w){return begin<w.end&&end>w.start;}))return;var step=(end-begin)/8.6,windInst=winds[seq++%winds.length],phrase='uzun:'+mi+':'+hi;for(var j=0;j<7;j++){var wt=begin+step*(j+(j>=3?0.42:0)),ch=wt<next.start?h:next,notes=ch.notes||h.notes,pitch=fitRegister(windInst,nearPitch(notes[[0,1,2,1,0,2,1][j]%notes.length],windInst==='bassoon'?58:66));additions.push({inst:windInst,midi:pitch,t:+wt.toFixed(4),d:+Math.min(step*0.88,ch.end-wt-0.02).toFixed(4),v:0.32,amp:0.82,cut:0.68,wet:0.42,smartMotif:true,longWind:true,phraseId:phrase,phrasePart:j<3?'call':'answer'});}motifWindows.push({start:begin,end:end,movement:mi,longWind:true});});}); plan.events=plan.events.filter(function(e){return !(wind[e.inst]&&!e.smartMotif&&motifWindows.some(function(w){return w.longWind&&e.t<w.end&&e.t+e.d>w.start;}));}); plan.events.forEach(function(e){if(!wind[e.inst]||e.smartMotif)return;var m=plan.movements.find(function(x){return e.t>=x.start&&e.t<x.start+x.dur}),h=m&&(m.harmonyGrid||[]).find(function(x){return e.t>=x.start&&e.t<x.end;});if(h)e.d=+Math.max(0.06,Math.min(e.d*1.32,h.end-e.t)).toFixed(4);});    // Let the shared phrase be heard while existing orchestral accompaniment continues.
+    plan.events.forEach(function (e) {
+      if (motifWindows.some(function (w) { return e.t >= w.start && e.t < w.end; })) {
+        if (registers[e.inst]) e.v = +limit(e.v * 0.58, 0.04, 0.82).toFixed(3);
+        else if (drums[e.inst]) e.v = +limit(e.v * (e.heartBeat || e.marchStep || e.armyDrum ? 0.82 : 0.62), 0.04, 0.84).toFixed(3);
+      }
+    });
+    Array.prototype.push.apply(plan.events, additions);
+    plan.events.forEach(function(e){var str=/^(violin|viola|tremolo_strings|string_ensemble_1|string_ensemble_2)$/.test(e.inst);if(str){e.midi=fitRegister(e.inst,e.midi);e.v=+limit(e.v*(e.inst==='violin'?0.64:0.76),0.035,0.55).toFixed(3);e.amp=+limit((isFinite(e.amp)?e.amp:1)*0.76,0.25,0.9).toFixed(3);e.cut=+Math.min(isFinite(e.cut)?e.cut:1,e.inst==='violin'?0.48:0.58).toFixed(3);}if(/^(trumpet|trombone|brass_section)$/.test(e.inst)&&!e.finalAttack)e.v=+limit(e.v*0.78,0.04,0.65).toFixed(3);var m=plan.movements.find(function(x){return e.t>=x.start&&e.t<x.start+x.dur});if(m&&!e.heartBeat&&!e.marchStep&&!e.armyDrum&&!e.finalAttack){var i=plan.movements.indexOf(m),edgeIn=e.t-m.start,edgeOut=m.start+m.dur-e.t,k=1;if(i>0&&edgeIn<2)k=Math.min(k,0.72+0.28*Math.max(0,edgeIn)/2);if(i<plan.movements.length-1&&edgeOut<2)k=Math.min(k,0.82+0.18*Math.max(0,edgeOut)/2);e.v=+limit(e.v*k,0.035,1).toFixed(3);}}); plan.events.sort(function (a, b) { return a.t - b.t; });
+    var upperOctave={flute:74,oboe:74,clarinet:74,bassoon:70,french_horn:72,trumpet:74,trombone:70,tuba:60,brass_section:72,violin:76,viola:76,cello:72,contrabass:60,tremolo_strings:76,string_ensemble_1:76,string_ensemble_2:76,choir_aahs:76,voice_oohs:76};plan.events.forEach(function(e){var cap=upperOctave[e.inst];if(cap!=null&&isFinite(e.midi)){while(e.midi>cap)e.midi-=12;if(e.inst==='oboe')e.midi=Math.max(46,e.midi-12);}});plan.events.forEach(function(e){if(wind[e.inst]){e.cut=+Math.min(isFinite(e.cut)?e.cut:1,0.54).toFixed(3);e.v=+limit(e.v*0.85,0.035,0.52).toFixed(3);e.amp=+Math.min(isFinite(e.amp)?e.amp:1,0.86).toFixed(3);}});var windLine=[], lastWind=null, removeWind=new Set(); plan.events.forEach(function(e){if(!wind[e.inst]||!isFinite(e.t)||!isFinite(e.d))return;if(lastWind&&e.t<lastWind.t+lastWind.d+0.035){if(e.smartMotif&&!lastWind.smartMotif){var remain=e.t-lastWind.t-0.035;if(remain>=0.10)lastWind.d=+remain.toFixed(4);else removeWind.add(lastWind);}else{removeWind.add(e);return;}}lastWind=e;windLine.push(e);});plan.events=plan.events.filter(function(e){return !removeWind.has(e);}); // Üflemeliler ayrı ve sırayla duyulur.    // Hold an existing melodic note to the first event at the next section; never insert an extra bridge or drum hit.
+    for (var boundary = 1; boundary < plan.movements.length; boundary++) {
+      var edge = plan.movements[boundary].start, lastEnd = -Infinity, firstNext = Infinity, sustain = null;
+      plan.events.forEach(function (e) {
+        if (e.t >= edge) { firstNext = Math.min(firstNext, e.t); return; }
+        lastEnd = Math.max(lastEnd, e.t + e.d);
+        if (melodic[e.inst] && !e.smartMotif && (!sustain || e.t + e.d > sustain.t + sustain.d)) sustain = e;
+      });
+      if (sustain && sustain.t+sustain.d>=edge-0.5 && firstNext > lastEnd && firstNext - lastEnd < 0.5) {
+        sustain.d = +(Math.ceil((firstNext - sustain.t) * 10000) / 10000 + 0.0001).toFixed(4);
+      }
+    }
+    plan.movements.forEach(function (m) { if (Array.isArray(m.events)) m.events = plan.events.filter(function (e) { return e.t >= m.start && e.t < m.start + m.dur; }); });
+    plan.notes = plan.events.length;
+    plan.smartArrangement = { phrases: phrases, motifNotes: plan.events.filter(function(e){return !!e.smartMotif;}).length, stereoPeriodSeconds: 36, drums: 'controlled, dry', windNotesCorrected: tuned, windNotesWithoutHarmony: unmapped, registerChanges: registerChanges, stage: 'orchestral seating with slow motion', sharedPhrases: phrases, drumPatterns: rhythm.patternCount, drumHitsRemoved: rhythm.removed, meters: plan.meters, sectionPatterns: plan.sectionPatterns };
+    if (root.KonserQA && typeof root.KonserQA.metrics === 'function') plan.qa = root.KonserQA.metrics(plan);
+    if (plan.kimlik) {
+      plan.kimlik.fazGecis += ' · minor-key harmony · 4/4, 3/4 and 6/8 · call and response · varied drums · melody-focused balance';
+      plan.kimlik.kusursuzluk = 'Automated score only';
+      plan.kimlik.denetim = 'Automated checks; human listening required';
+    }
+    return plan;
+  }
+  function install() {
+    if (!root.Konser || !root.OrchestraPalette || root.Konser._smartArrangementInstalled) return;
+    var original = root.Konser.build, profiles = root.Konser.PROFILES;
+    // Keep the six remaining original profiles; disable both removed profiles everywhere.
+    for (var i = profiles.length - 1; i >= 0; i--) if (profiles[i].id === 'oda' || profiles[i].id === 'firtina') profiles.splice(i, 1);
+    if (profiles.length !== 6) throw new Error('Six arrangement profiles are required.');
+    root.Konser.build = function (options) {
+      // The underlying score is neutral; only the chosen movement profile colours each section.
+      var first = profiles[0], neutral = Object.assign({}, first, { id:'neutral', name:'Ortak partisyon', arr:0, remap:null, drop:null, famGain:{}, tempoK:1 });
+      var plan;
+      profiles[0] = neutral;
+      try { plan = original.call(this, Object.assign({}, options || {}, { profile:0 })); }
+      finally { profiles[0] = first; }
+      return arrange(plan, profiles);
+    };
+    root.Konser._smartArrangementInstalled = true; var simpleStyle=document.createElement('style');simpleStyle.textContent='#kProfiles .k-pill:not(.on){display:none!important}#kProfiles .k-pill.on{font-size:14px;padding:7px 11px}#kProfiles:before{content:"OTOMATİK BÖLÜM ARANJMANI";display:block;margin:0 0 6px;color:#a9bac2;font:11px system-ui;letter-spacing:.08em}#palRow,.kp-head span:last-child,.kp-rest,#kPlanInfo{display:none!important}#kPlan .kp-row:not(.kp-head) span:nth-of-type(n+3){display:none!important}#kPlan .kp-row{font-size:12px}#tm-panel label:has(#tm-drum),#tm-panel label:has(#tm-haze),#tm-panel label:has(#tm-battle){display:none!important}.kp-controls button{font-size:13px!important}.story-text{font-size:15px!important}';document.head.appendChild(simpleStyle);var brandNote=document.querySelector('#screen .brand > div > span');if(brandNote)brandNote.textContent='ORKESTRAL ZEKA  //  CANLI KONSER MOTORU';['tm-drum','tm-haze','tm-battle'].forEach(function(id){var input=document.getElementById(id);if(input&&input.parentElement)input.parentElement.style.display='none';});var battleBox=document.getElementById('tm-battle');if(battleBox)battleBox.checked=false;var masterInfo=document.querySelector('#tm-panel small:last-child');if(masterInfo)masterInfo.textContent='Ölçüm tarayıcının dijital çıkışındadır; gerçek kulaklık veya hoparlör ses basıncı ölçülemez. Ayarlar sonraki notalarda uygulanır.'; var vol=document.getElementById('vol'), volLabel=document.getElementById('volv'); if(vol){vol.max='0.30';vol.step='0.01';vol.value='0.16';if(volLabel)volLabel.textContent='0.16';} var safeVolume=root.Orchestra.setVolume; root.Orchestra.setVolume=function(v){return safeVolume.call(root.Orchestra,limit(Number(v)||0,0,0.24));}; root.Orchestra.setVolume(0.16); if(root.Orchestra.toneMaster){var config=root.Orchestra.toneMaster.configure;root.Orchestra.toneMaster.configure=function(o){return config.call(this,Object.assign({},o||{},{battle:false,haze:0}));};root.Orchestra.toneMaster.configure({battle:false,haze:0});var haze=document.getElementById('tm-haze'),hazeVal=document.getElementById('tm-haze-v');if(haze)haze.value='0';if(hazeVal)hazeVal.textContent='0.00';} var originalNote=root.Orchestra.note;root.Orchestra.note=function(inst,midi,at,dur,velocity,opts){if(/^(timpani|taiko_drum|melodic_tom|woodblock|orchestral_harp|violin|tremolo_strings|string_ensemble_1|string_ensemble_2|glockenspiel|tubular_bells|reverse_cymbal|orchestra_hit|battle_arrow|battle_sword|flute|trumpet|brass_section)$/.test(inst))return;var limits={flute:74,oboe:74,clarinet:74,bassoon:70,french_horn:72,trumpet:74,trombone:70,tuba:60,brass_section:72,violin:76,viola:76,cello:72,contrabass:60,tremolo_strings:76,string_ensemble_1:76,string_ensemble_2:76,choir_aahs:76,voice_oohs:76};if(inst==='oboe'&&!(root.KonserPlayer&&root.KonserPlayer.state.playing)&&isFinite(midi))midi=Math.max(46,midi-12);var cap=limits[inst];if(cap!=null&&isFinite(midi))while(midi>cap)midi-=12;return originalNote.call(root.Orchestra,inst,midi,at,dur,velocity,opts);};
+    // Show the current movement meter instead of a fixed 4/4 header.
+    var barPill = Array.prototype.find.call(document.querySelectorAll('.pill'), function (el) { return /^\s*(?:bar|ölçü)\s/i.test(el.textContent); });
+    var meterNode = barPill && barPill.querySelector('b');
+    if (meterNode) setInterval(function () {
+      var state = root.KonserPlayer && root.KonserPlayer.state, p = state && state.plan;
+      if (!p || !p.movements || !p.movements.length) return;
+      var t = state.playing && root.Orchestra ? Math.max(0,root.Orchestra.now()-state.startAt) : 0;
+      var m = p.movements.find(function (item) { return t >= item.start && t < item.start + item.dur; }) || p.movements[p.movements.length-1];
+      meterNode.textContent = m.meter || '4/4';
+      var host = document.getElementById('kProfiles');
+      if (host) {
+        if (host.querySelectorAll('.k-pill').length !== profiles.length) {
+          host.replaceChildren();
+          profiles.forEach(function (p, i) { var pill = document.createElement('span'); pill.className='k-pill'; pill.textContent=(i+1)+' · '+p.name; host.appendChild(pill); });
+        }
+        host.style.pointerEvents = 'none';
+        host.setAttribute('aria-label', 'Her bölüm için altı aranjmandan biri otomatik seçilir');
+        Array.prototype.forEach.call(host.querySelectorAll('.k-pill'), function (pill, i) {
+          pill.classList.toggle('on', !!m.sectionPattern && !!profiles[i] && profiles[i].id === m.sectionPattern.id);
+        });
+        host.title = 'Her bölümde bir aranjman otomatik seçilir; aktif olan vurgulanır.';
+      }
+      var title = document.getElementById('arrPill'); if (title && m.sectionPattern) title.textContent = m.sectionPattern.name;
+    }, 350);
+  }
+  root.addEventListener('orchestra-modules-ready', install, { once: true });
+})(window);
+</script>
+<!-- LESSON 47: JAVASCRIPT BLOCK ENDS AT THE SCRIPT CLOSING TAG ABOVE. -->
+<!-- LINE NUMBERS ARE A DISPLAY GUIDE; DO NOT TYPE THEM INTO THE HTML. -->
+<!-- Paste the complete lesson 47 fragment here, including its script tags. -->
+<!-- LESSON 47 · STEP 47 · END -->
+
+<!-- BODY END: the closing body tag immediately below ends the body. -->
+</body>
+<!-- HTML DOCUMENT END: the closing html tag immediately below ends the page. -->
+</html>
