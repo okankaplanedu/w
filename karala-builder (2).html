@@ -1,0 +1,2317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<title>Karala — Draw-to-Page Builder</title>
+
+<style>
+/* ============================================================
+ KARALA BUILDER — kendi arayüz stilleri (tamamen gömülü, internet beklemez)
+ ============================================================ */
+:root{
+ --ink:#0f172a; --pri:#2563eb; --acc:#2563eb; --sun:#f59e0b; --mint:#059669;
+ --paper:#ffffff; --paper2:#f8fafc; --lil:#eff6ff; --ok:#16a34a; --line:#cbd5e1;
+ --sh:0 10px 30px rgba(15,23,42,.10); --sh-soft:0 2px 8px rgba(15,23,42,.06);
+}
+*{box-sizing:border-box}
+html,#tourOv{background:rgba(15,23,42,.42)}
+#tourSvg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+#tourLine{stroke:#ea580c;stroke-width:2.5px;stroke-dasharray:7 7;animation:kDash .9s linear infinite}
+#tourProg{position:fixed;left:18px;bottom:16px;z-index:2;background:#111827;color:#f8fafc;border-radius:6px;padding:5px 12px;font-weight:600;font-size:.8rem;letter-spacing:.04em}
+#tourBub{position:absolute;z-index:1;width:min(340px,88vw);background:#fff;border:1px solid #e5e7eb;border-left:4px solid #ea580c;border-radius:10px;box-shadow:0 16px 40px rgba(15,23,42,.22);padding:14px 16px}
+#tourBub p{margin:0;font-weight:500;font-size:.92rem;line-height:1.55;color:#111827}
+@keyframes kDash{to{stroke-dashoffset:-14}}
+#tourRing{position:absolute;pointer-events:none;border:2px dashed #ea580c;border-radius:10px;background:rgba(234,88,12,.06);box-shadow:0 0 0 4px rgba(234,88,12,.12)}
+#tourBub p{margin:0;font-weight:500;font-size:.92rem;line-height:1.55;color:#111827}
+body{height:100%}
+body{
+ margin:0; font-family:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif; color:var(--ink);
+ background:#f8fafc;
+ overflow-x:hidden;
+}
+.hand{font-family:system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;font-weight:800;letter-spacing:-.3px}
+h1,h2,h3{margin:0}
+button{font:inherit;color:inherit}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:8px}
+
+/* ---------- üst bar ---------- */
+header.k-top{
+ position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+ padding:12px 18px; background:linear-gradient(180deg,#0f172a,#111827); border-bottom:1px solid #1e293b; color:#e2e8f0;
+}
+.k-logo{display:flex;align-items:center;gap:12px;font-weight:800;font-size:1.22rem;margin-right:auto;color:#f8fafc;letter-spacing:-.4px}
+.k-logo .pen{color:var(--pri)}
+
+.k-logo small{font-weight:600;color:#94a3b8;font-size:.7rem;display:block;line-height:1.15}
+.kic{display:inline-flex;vertical-align:-3px;margin-right:.35em}.kic svg{width:100%;height:100%}
+.kbtn{
+ border:1px solid #d1d5db; background:#fff; border-radius:8px; padding:8px 13px; font-weight:600;
+ cursor:pointer; transition:background .15s,border-color .15s;
+ font-size:.88rem; text-decoration:none; display:inline-flex; align-items:center; gap:7px; white-space:nowrap;
+}
+.kbtn:hover{background:#f1f5f9;border-color:#9ca3af}
+header.k-top .kbtn{background:#1e293b;border-color:#334155;color:#e2e8f0;font-weight:600}
+header.k-top .kbtn:hover{background:#334155;border-color:#475569}
+header.k-top .kbtn.pri{background:#2563eb;border-color:#1d4ed8;color:#fff}
+header.k-top .kbtn.acc{background:#1d4ed8;border-color:#1e40af;color:#fff}
+header.k-top .kbtn.mint,header.k-top .kbtn.sun{background:transparent;border-color:#334155;color:#e2e8f0}
+header.k-top .kbtn{box-shadow:none}
+header.k-top .kbtn.pri{box-shadow:0 2px 8px rgba(37,99,235,.35)}
+
+
+.kbtn.pri{background:#2563eb;color:#fff;border-color:#1d4ed8}
+.kbtn.pri:hover{background:#1d4ed8}
+.kbtn.acc{background:#1d4ed8;color:#fff;border-color:#1e40af}
+.kbtn.sun{background:#b45309;color:#fff;border-color:#92400e}
+.kbtn.mint{background:#0f766e;color:#fff;border-color:#115e59}
+.kbtn.sm{padding:5px 10px; font-size:.8rem}
+.kbtn.ghosty{background:transparent;border-color:transparent;color:#94a3b8}
+.kbtn.ghosty:hover{background:#1e293b;color:#e2e8f0}
+.k-count{background:var(--ink);color:#fff;border-radius:999px;font-size:.72rem;padding:1px 8px;margin-left:4px}
+
+/* ---------- ana sahne ---------- */
+main.k-stage{display:flex; gap:18px; padding:18px; max-width:1460px; margin:0 auto; align-items:stretch}
+aside.k-side{
+ width:340px; flex:0 0 340px; background:#fff; border:1px solid #e5e7eb; border-radius:10px;
+ box-shadow:0 6px 24px rgba(15,23,42,.08); display:flex; flex-direction:column; max-height:calc(100vh - 110px); position:sticky; top:78px;
+}
+.k-side-head{padding:12px 15px; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; gap:8px; font-weight:700; font-size:.92rem; letter-spacing:-.2px}
+.k-side-head .k-logobtn{margin-left:auto}
+#kList{list-style:none; margin:0; padding:12px; overflow:auto; display:flex; flex-direction:column; gap:10px}
+.k-item{border:1px solid #e2e8f0; border-radius:8px; background:#fff; overflow:hidden}
+.k-item-h{display:flex; align-items:center; gap:8px; padding:8px 12px; background:#f9fafb; border-bottom:1px solid #eef2f7; font-weight:700; font-size:.86rem}
+.k-item-h .mv{display:flex; flex-direction:column; margin-left:auto; gap:1px}
+.k-item-h .mv button,.k-item-h .del{border:2px solid var(--line); background:#fff; border-radius:8px; line-height:1; padding:2px 6px; cursor:pointer; font-size:.72rem; font-weight:900}
+.k-item-h .del{background:#f1f5f9}
+.k-item-h button:disabled{opacity:.35;cursor:default}
+.k-fields{padding:9px 10px; display:flex; flex-direction:column; gap:7px}
+.k-fields label{font-size:.72rem; font-weight:900; color:#64748b; display:block; margin-bottom:2px}
+.k-fields input,.k-fields textarea{
+ width:100%; border:1px solid #d1d5db; border-radius:8px; padding:7px 10px; font:inherit; font-size:.86rem; background:#fff; resize:vertical;
+}
+.k-fields input:focus,.k-fields textarea:focus{outline:none;border-color:var(--pri);box-shadow:0 0 0 3px #dbeafe}
+.k-cls{display:flex; flex-wrap:wrap; gap:4px; padding:0 10px 10px}
+.k-cls code{background:#f9fafb; border:1px solid #e2e8f0; border-radius:5px; padding:1px 6px; font-size:.68rem; color:#334155; font-weight:600}
+.k-side-foot{padding:10px 14px; border-top:1px solid #e2e8f0; font-size:.78rem; color:#64748b; display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+.k-empty{padding:26px 16px; text-align:center; color:#64748b; font-weight:800}
+.k-empty .big{font-size:2rem; display:block; margin-bottom:6px; color:#94a3b8}
+
+
+/* önizleme */
+section.k-prev{flex:1; min-width:0; background:#fff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 6px 24px rgba(15,23,42,.08); display:flex; flex-direction:column; overflow:hidden; min-height:60vh}
+.k-prev-bar{display:flex; align-items:center; gap:8px; padding:9px 14px; border-bottom:1px solid #e2e8f0; background:#fbfcfe}
+.k-prev-bar b{font-weight:900}
+.k-dev{display:flex; gap:6px; margin-left:auto}
+#iframeWrap{flex:1; display:flex; justify-content:center; background:radial-gradient(#e5e7eb 1px, transparent 1px) 0 0/22px 22px #f9fafb; padding:16px; overflow:auto}
+#kFrame{width:100%; height:100%; min-height:520px; border:1px solid #e2e8f0; border-radius:10px; background:#fff; box-shadow:var(--sh-soft); transition:width .25s}
+#iframeWrap.mob #kFrame{width:396px}
+
+/* FAB */
+#kFab{
+  position:fixed; right:18px; bottom:18px; z-index:55; border:1px solid #111827; border-radius:8px;
+  background:#111827; color:#fff; font-weight:700; font-size:.95rem; padding:14px 20px; cursor:pointer;
+  box-shadow:0 10px 24px rgba(15,23,42,.25); display:flex; align-items:center; gap:8px;
+}
+#kFab:hover{background:#1f2937}
+#kEditFab{
+ position:fixed; right:18px; bottom:92px; z-index:55; border:1px solid #d1d5db; border-radius:8px;
+ background:#fff; color:#111827; font-weight:600; font-size:.86rem; padding:11px 15px; cursor:pointer;
+ box-shadow:0 6px 18px rgba(15,23,42,.12); display:flex; align-items:center; gap:6px;
+}
+#kEditFab:hover{border-color:#9ca3af}
+
+
+
+
+/* ---------- alttan açılan TAM EKRAN offcanvas ---------- */
+#kSheet{
+ position:fixed; inset:0; z-index:80; background:var(--paper); display:flex; flex-direction:column;
+ transform:translateY(103%); transition:transform .38s cubic-bezier(.22,.9,.3,1); visibility:hidden;
+}
+#kSheet.open{transform:translateY(0); visibility:visible}
+.k-sheet-grip{padding:8px; display:flex; justify-content:center; flex:0 0 auto}
+.k-sheet-grip i{width:44px;height:4px;border-radius:4px;background:#d1d5db}
+.k-sheet-head{
+ display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:10px 14px; border-bottom:1px solid #e2e8f0;
+ background:#fff;
+}
+.k-sheet-title{font-weight:900; font-size:1.05rem; display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+.k-pill{background:#f1f5f9; border:1px solid #e2e8f0; border-radius:5px; padding:3px 9px; font-size:.68rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#475569}
+header.k-top .k-pill{background:rgba(255,255,255,.06);border-color:#334155;color:#cbd5e1}
+header.k-top .k-pill.brand{background:transparent;border-color:#854d0e;color:#fbbf24}
+.k-tools{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-left:auto}
+.k-dot{width:22px;height:22px;border-radius:50%;border:1px solid #cbd5e1;cursor:pointer}
+.k-dot.on{outline:3px solid #fff; outline-offset:-3px; transform:scale(1.15)}
+.k-seg{display:flex; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; background:#fff}
+.k-seg button{border:0; background:transparent; padding:6px 10px; font-size:.78rem; font-weight:900; cursor:pointer}
+.k-seg button.on{background:#111827; color:#fff}
+.k-tool-btn{border:1px solid #d1d5db; background:#fff; border-radius:8px; padding:6px 11px; font-weight:600; cursor:pointer; font-size:.84rem}
+.k-tool-btn.on{background:#111827;color:#fff;border-color:#111827}
+.k-tool-btn:hover{border-color:#9ca3af}
+#kCanvasWrap{flex:1; position:relative; overflow:hidden; background:
+ radial-gradient(#EDE6DA 1.5px, transparent 1.6px) 0 0/24px 24px,
+ #FFFEFB}
+#kInk{position:absolute; inset:0; width:100%; height:100%; touch-action:none; cursor:crosshair}
+#kGhosts{position:absolute; inset:0; pointer-events:none}
+.gh{position:absolute; border:1.5px dashed var(--pri); border-radius:10px; background:rgba(108,92,231,.08); pointer-events:auto; animation:pop .3s ease}
+@keyframes pop{from{transform:scale(.85);opacity:0}}
+.gh .tag{position:absolute; top:-13px; left:10px; background:var(--pri); color:#fff; font-size:.72rem; font-weight:900; padding:2px 9px; border-radius:999px; border:2px solid var(--line); white-space:nowrap}
+.gh .ops{position:absolute; top:-13px; right:8px; display:flex; gap:5px}
+.gh .ops button{border:2px solid var(--line); background:#fff; border-radius:8px; font-size:.7rem; font-weight:900; padding:1px 6px; cursor:pointer}
+.gh .bigIco{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:2rem; opacity:.35}
+.gh .gh-img{position:absolute; inset:3px; width:calc(100% - 6px); height:calc(100% - 6px); object-fit:cover; border-radius:8px; border:2px solid rgba(15,23,42,.35); pointer-events:none}
+.gh .gh-cnt{position:absolute; left:8px; bottom:6px; background:var(--ink); color:#fff; font-size:.68rem; font-weight:900; padding:1px 7px; border-radius:999px; pointer-events:none; z-index:1}
+/* sürükle & boyutlandır */
+.gh.gh-parent{border-style:solid; border-color:var(--ok); background:rgba(46,204,113,.12); box-shadow:0 0 0 4px rgba(46,204,113,.28)}
+.gh.gh-parent .tag{background:var(--ok)}
+.gh{cursor:grab; touch-action:none}
+.gh:active{cursor:grabbing}
+.gh .rz{position:absolute; right:-10px; bottom:-10px; width:24px; height:24px; background:var(--sun); border:1px solid #e2e8f0; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:.72rem; font-weight:900; cursor:nwse-resize; box-shadow:2px 2px 0 rgba(15,23,42,.35); z-index:2}
+/* parça paleti */
+.k-pal{display:flex; gap:6px; flex-wrap:wrap; padding:10px 12px; border-bottom:3px dashed #DCD6F5}
+/* tuval içi palet şeridi: yatay kayar, dokunmaya uygun */
+.sheet-pal{flex:0 0 auto; display:flex; gap:6px; align-items:center; overflow-x:auto; overflow-y:hidden; white-space:nowrap;
+ padding:8px 12px; border-bottom:2.5px dashed #DCD6F5; background:var(--paper2); -webkit-overflow-scrolling:touch; scrollbar-height:thin}
+.sheet-pal .k-chip{flex:0 0 auto}
+.sheet-pal .k-pal-lbl{flex:0 0 auto; font-weight:900; font-size:.74rem; color:#64748b}
+.k-chip{border:2px solid var(--line); background:#fff; border-radius:999px; padding:4px 10px; font-size:.74rem; font-weight:800; cursor:pointer; box-shadow:2px 2px 0 rgba(15,23,42,.25); user-select:none}
+.k-chip:hover{background:var(--lil); transform:translate(-1px,-1px)}
+.k-chip:active{cursor:grabbing}
+/* ağaç liste + drag&drop */
+.k-item.dragging{opacity:.45}
+.k-item.drop-hint{outline:3px dashed var(--pri); outline-offset:3px}
+.k-item.nest-hint{outline:3px dashed var(--acc); outline-offset:3px; background:#FFF7FB}
+.k-handle{cursor:grab; font-size:.95rem; color:#64748b; user-select:none; touch-action:none}
+.k-kids{border-top:2px dashed #DCD6F5; background:#FBFAFF; padding:8px 10px; display:flex; flex-direction:column; gap:8px}
+.k-kid{border:2px solid #CDC7EF; border-radius:8px; background:#fff; padding:7px 9px}
+.k-kid-h{display:flex; align-items:center; gap:7px; font-weight:800; font-size:.8rem}
+.k-kid-h .mini{margin-left:auto; display:flex; gap:5px}
+.k-kid-h .mini button{border:2px solid var(--line); background:#fff; border-radius:7px; font-size:.64rem; font-weight:900; padding:1px 6px; cursor:pointer}
+.k-kid .k-fields{padding:7px 0 0}
+.ok-logo{display:inline-flex; vertical-align:-8px; margin-right:8px; filter:drop-shadow(2px 2px 0 rgba(15,23,42,.25))}
+/* proje modalı */
+.k-pj-opt{display:flex; align-items:center; gap:12px; width:100%; text-align:left; padding:14px 16px; margin-bottom:10px}
+.k-pj-opt .em{font-size:1.7rem}
+.k-pj-opt small{display:block; font-weight:700; color:#64748b; font-size:.76rem}
+/* zengin düzenleme modalı */
+.k-net-row{display:flex; gap:10px; align-items:center; margin-bottom:10px; flex-wrap:wrap}
+.k-net-row .grow{flex:1; min-width:150px}
+.k-net-row input:not([type=checkbox]),.k-net-row select{border:2px solid #CDC7EF; border-radius:10px; padding:7px 9px; font:inherit; font-size:.86rem; background:#fff}
+.k-net-row input:focus{outline:none;border-color:var(--pri);box-shadow:0 0 0 3px #dbeafe}
+.ed-big{width:190px;height:124px;object-fit:cover;border-radius:8px;border:1px solid #e2e8f0;display:block;background:#fff}
+.ed-empty{display:flex;align-items:center;justify-content:center;font-size:2.2rem;background:#f8fafc}
+.ed-thumb{position:relative;width:94px;height:68px;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden}
+.ed-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.ed-thumb button{position:absolute;top:2px;right:2px;background:#fff;border:2px solid var(--line);border-radius:7px;font-size:.62rem;font-weight:900;padding:0 5px;cursor:pointer}
+.ed-grid{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.k-net-ico{width:34px;text-align:center;font-size:1.1rem}
+/* site bilgileri kartı */
+.k-site{margin:0 12px 12px; border:1px solid #e2e8f0; border-radius:10px; background:#fffbeb; box-shadow:3px 3px 0 rgba(15,23,42,.15); padding:10px}
+.k-site-h{display:flex; align-items:center; gap:7px; font-weight:900; font-size:.85rem; margin-bottom:8px}
+.k-site-h .kbtn{margin-left:auto}
+.k-site .k-fields{gap:6px}
+/* tur (adım adım anlatım) */
+#tourOv{position:fixed; inset:0; z-index:135}
+
+@keyframes ringPulse{50%{box-shadow:0 0 0 14px rgba(255,199,95,.1)}}
+
+#tourBub .tour-btns{display:flex; gap:8px; justify-content:flex-end; margin-top:10px; flex-wrap:wrap}
+
+/* ayarlar */
+.k-setgrid{display:grid; grid-template-columns:repeat(2,1fr); gap:12px}
+@media (max-width:640px){.k-setgrid{grid-template-columns:1fr}}
+.k-setgrid .full{grid-column:1/-1}
+.k-sheet-foot{
+ display:flex; gap:8px; align-items:center; padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+ border-top:3px solid var(--line); background:var(--paper); flex-wrap:wrap;
+}
+#kCmd{
+ flex:1; min-width:190px; border:1px solid #e2e8f0; border-radius:8px; padding:11px 13px; font:inherit; font-weight:700; font-size:.9rem; background:#fff;
+}
+#kCmd:focus{outline:none; box-shadow:0 0 0 3px #dbeafe}
+#kConvert{position:relative}
+#kConvert:disabled{opacity:.55; cursor:not-allowed}
+
+/* ipucu çekmecesi */
+#kHints{
+ position:absolute; top:0; right:0; height:100%; width:min(340px,88%); background:#FFFCF4; border-left:3px solid var(--line);
+ transform:translateX(105%); transition:transform .3s; z-index:5; overflow:auto; padding:14px; box-shadow:-6px 0 0 rgba(15,23,42,.08);
+}
+#kHints.open{transform:none}
+.k-hint-grid{display:grid; grid-template-columns:auto 1fr; gap:8px 10px; align-items:center; font-size:.84rem; font-weight:700}
+.k-hint-grid .gl{font-family:system-ui,sans-serif; font-size:1.5rem; width:44px; height:44px; display:flex; align-items:center; justify-content:center; background:#fff; border:1px solid #e2e8f0; border-radius:8px; box-shadow:2px 2px 0 rgba(15,23,42,.2)}
+.k-note{background:#fffbeb; border:2px dashed var(--sun); border-radius:8px; padding:9px 11px; font-size:.8rem; font-weight:700; margin:12px 0}
+
+/* hızlı düzenleme popover */
+#kPop{
+ position:absolute; z-index:9; width:min(280px,86vw); background:#fff; border:1px solid #e2e8f0; border-radius:10px;
+ box-shadow:0 6px 24px rgba(15,23,42,.08); padding:11px; display:none;
+}
+#kPop.open{display:block; animation:pop .2s}
+#kPop .k-fields{max-height:38vh; overflow:auto}
+#kPop .rowend{display:flex; gap:8px; justify-content:flex-end; margin-top:9px}
+
+/* ---------- modallar ---------- */
+.k-back{position:fixed; inset:0; z-index:90; background:rgba(15,23,42,.45); display:none; align-items:center; justify-content:center; padding:14px}
+.k-back.open{display:flex}
+.k-modal{background:#fff; border:1px solid #e2e8f0; border-radius:24px; box-shadow:8px 8px 0 rgba(15,23,42,.65); width:min(860px,96vw); max-height:92vh; overflow:auto; animation:pop .25s}
+.k-m-head{display:flex; align-items:center; gap:10px; padding:15px 18px; border-bottom:3px solid var(--line); background:var(--lil); border-radius:8px 20px 0 0; position:sticky; top:0; z-index:2}
+.k-m-head h2{font-size:1.2rem; font-weight:900}
+.k-m-head .x{margin-left:auto}
+.k-m-body{padding:18px}
+.k-m-foot{display:flex; gap:10px; justify-content:flex-end; padding:14px 18px; border-top:3px dashed #DCD6F5; flex-wrap:wrap}
+.k-cards3{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:14px 0}
+.k-step{border:1px solid #e2e8f0; border-radius:8px; padding:14px; background:#FFFEFB; box-shadow:3px 3px 0 rgba(15,23,42,.12); font-weight:700; font-size:.9rem}
+.k-step .n{font-size:1.8rem; display:block; margin-bottom:6px}
+.k-table{width:100%; border-collapse:collapse; font-size:.86rem}
+.k-table th,.k-table td{border:2px solid #E4DEFA; padding:8px 10px; text-align:left; vertical-align:top}
+.k-table th{background:#f8fafc; font-weight:900}
+.k-table .gl{font-family:system-ui,sans-serif; font-size:1.35rem}
+.k-chips{display:flex; flex-wrap:wrap; gap:4px}
+.k-chips code{background:#f8fafc; border:1.5px solid #D6CEF7; border-radius:7px; padding:1px 6px; font-size:.72rem; color:#2563eb; font-weight:700}
+
+
+/* kod modal */
+#kCode{width:100%; height:min(52vh,460px); border:1px solid #e2e8f0; border-radius:8px; padding:12px; font-family:ui-monospace,'Cascadia Code',Consolas,monospace; font-size:.76rem; background:#0f172a; color:#E7E4FF; white-space:pre; overflow:auto; resize:vertical}
+
+/* toast & konfeti */
+#kToasts{position:fixed; top:12px; left:50%; transform:translateX(-50%); z-index:120; display:flex; flex-direction:column; gap:8px; align-items:center; width:min(94vw,480px)}
+.k-toast{background:var(--ink); color:#fff; font-weight:800; padding:10px 16px; border-radius:8px; border:1.5px solid #fff; box-shadow:0 6px 0 rgba(0,0,0,.25); font-size:.88rem; animation:tin .3s ease}
+@keyframes tin{from{transform:translateY(-14px);opacity:0}}
+.k-conf{position:fixed; z-index:125; pointer-events:none; font-size:1.15rem; animation:conf 1s ease-out forwards}
+@keyframes conf{0%{transform:translate(0,0) scale(.6) rotate(0);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(1.25) rotate(240deg);opacity:0}}
+
+/* responsive */
+@media (max-width:1020px){
+ main.k-stage{flex-direction:column}
+ aside.k-side{width:100%; flex:auto; position:static; max-height:none; order:2}
+ section.k-prev{order:1; min-height:62vh}
+}
+@media (max-width:640px){
+ .k-cards3{grid-template-columns:1fr}
+ header.k-top{gap:6px}
+ header.k-top .kbtn{padding:7px 9px; font-size:.8rem}
+ .k-tools{width:100%; margin-left:0}
+ #kFab{right:12px; bottom:12px; padding:13px 16px}
+ #kHints{width:100%; border-left:0; border-top:3px solid var(--line); height:auto; max-height:56%; top:auto; bottom:0; transform:translateY(105%)}
+ #kHints.open{transform:none}
+ .k-logo small{display:none}
+}
+.d-none{display:none !important}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ ÜST BAR ═══════════ -->
+<header class="k-top">
+ <div class="k-logo"><span class="pen"></span>
+ <div><span class="ok-logo"><svg width="34" height="34" viewBox="0 0 48 48" aria-label="Okan Kaplan"><defs><linearGradient id="okg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2563eb"/><stop offset="1" stop-color="#2563eb"/></linearGradient></defs><rect x="2" y="2" width="44" height="44" rx="13" fill="url(#okg)" stroke="#0f172a" stroke-width="3"/><text x="24" y="31" text-anchor="middle" font-family="system-ui,Arial,sans-serif" font-weight="900" font-size="17" fill="#fff">OK</text><path d="M35 13 l4 -4" stroke="#fde68a" stroke-width="3" stroke-linecap="round"/><circle cx="41" cy="7" r="3" fill="#fde68a" stroke="#0f172a" stroke-width="2"/></svg></span><span class="hand" style="font-size:1.4rem">Karala!</span> <span class="k-pill">v4</span> <span class="k-pill brand">BY OKAN KAPLAN</span>
+ <small>Draw → drag → publish · professional builder in one file</small>
+ </div>
+ </div>
+ <button class="kbtn sun" id="btnSim" type="button" data-i18n="hdrSim"><span class="kic" style="width:16px;height:16px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l6 3.5-6 3.5z"/></svg></span>Simülasyon</button>
+ <button class="kbtn mint" id="btnGuide" type="button" data-i18n="hdrGuide"><span class="kic" style="width:16px;height:16px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 9v12"/></svg></span>Şablon &amp; Kısayollar</button>
+ <button class="kbtn" id="btnProject" type="button" data-i18n="prjBtn"><span class="kic" style="width:16px;height:16px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 012-2h4l2 3h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></span>Proje</button>
+ <button class="kbtn" id="btnDemo" type="button" data-i18n="hdrDemo"><span class="kic" style="width:16px;height:16px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.9 2.1L22 19l-2.1.9L19 22l-.9-2.1L16 19l2.1-.9z"/></svg></span>Şablonlar</button>
+ <button class="kbtn" id="btnSettings" type="button" data-i18n="hdrSet"><span class="kic" style="width:16px;height:16px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13a7.5 7.5 0 000-2l2-1.6-2-3.4-2.4 1a7.6 7.6 0 00-1.7-1L14.9 3H9.1l-.4 3a7.6 7.6 0 00-1.7 1l-2.4-1-2 3.4 2 1.6a7.5 7.5 0 000 2l-2 1.6 2 3.4 2.4-1a7.6 7.6 0 001.7 1l.4 3h5.8l.4-3a7.6 7.6 0 001.7-1l2.4 1 2-3.4z"/></svg></span>Ayarlar</button>
+
+ <button class="kbtn acc" id="btnCode" type="button" data-i18n="hdrCode">⟨/⟩ HTML Al</button>
+ <button class="kbtn ghosty" id="btnSnd" type="button" title="Voice guidance on/off"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 010 7M18 6a9 9 0 010 12"/></svg></button>
+  <span class="k-seg" style="display:none" title="Language"><button id="langTR" class="on" type="button">TR</button><button id="langEN" type="button">EN</button></span>
+</header>
+
+<!-- ═══════════ ANA SAHNE ═══════════ -->
+<main class="k-stage">
+ <!-- bileşen paneli -->
+ <aside class="k-side">
+ <div class="k-side-head"><span data-i18n="sideTitle">Sayfa Bileşenleri</span> <span class="k-count" id="kCount">0</span>
+ <button class="kbtn sm ghosty" id="btnGuide2" type="button" title="Shortcuts"></button>
+ </div>
+ <div class="k-pal" id="kPal" title="Click → the canvas opens, the piece drops as a ghost: drag · resize · delete"></div>
+ <div class="k-site" id="kSite">
+ <div class="k-site-h"><span data-i18n="siteH">Site Bilgileri (SEO)</span>
+ <button class="kbtn sm" id="btnToSettings" type="button" data-i18n="siteMore">Tümü </button></div>
+ <div class="k-fields">
+ <input id="s2Title" data-k="title" data-i18n-ph="fTitle" placeholder="Page title">
+ <textarea id="s2Desc" data-k="desc" rows="2" data-i18n-ph="fDesc" placeholder="Açıklama (meta description)"></textarea>
+ <input id="s2Url" data-k="url" data-i18n-ph="fUrl" placeholder="Site adresi (canonical URL)">
+ </div>
+ </div>
+ <ul id="kList"></ul>
+ <div class="k-empty d-none" id="kEmpty">
+ <span class="big"></span>
+ <span data-i18n="emptyT">Henüz bomboş!</span><br><span data-i18n="emptyB"><b>Çiz</b> ile karala ya da paletteki çiplere dokun — gerisi bende! </span>
+ </div>
+ <div class="k-side-foot"><span data-i18n="sideTip">Her parçanın altında kullandığı <b>Bootstrap sınıfları</b> yazar — çizerken öğren!</span><div style="width:100%;text-align:right;font-weight:900"><span style="background:linear-gradient(90deg,#2563eb,#2563eb);-webkit-background-clip:text;background-clip:text;color:transparent">Okan Kaplan</span> </div></div>
+ </aside>
+
+ <!-- canlı önizleme -->
+ <section class="k-prev">
+ <div class="k-prev-bar">
+ <span></span><b data-i18n="prevTitle">Canlı Önizleme</b>
+ <span class="k-pill" style="margin-left:6px">Bootstrap 5</span>
+ <div class="k-dev">
+ <button class="kbtn sm on" id="devDesk" type="button" data-i18n="devDesk">Masaüstü</button>
+ <button class="kbtn sm" id="devMob" type="button" data-i18n="devMob">Telefon</button>
+ </div>
+ </div>
+ <div id="iframeWrap"><iframe id="kFrame" title="Preview" sandbox="allow-scripts"></iframe></div>
+ </section>
+</main>
+
+<!-- FAB -->
+<button id="kEditFab" type="button"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg> Düzenle</button>
+<button id="kFab" type="button"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3l4 4L8 20l-5 1 1-5z"/></svg> Çiz</button>
+
+
+<!-- ═══════════ ALT OFFCANVAS — TAM EKRAN ÇİZİM ═══════════ -->
+<div id="kSheet" role="dialog" aria-label="Çizim alanı">
+ <div class="k-sheet-grip"><i></i></div>
+ <div class="k-sheet-head">
+ <div class="k-sheet-title"><span data-i18n="shtTitle">Çizim Alanı</span> <span class="k-pill" id="kStatus" style="background:#fef3c7;border-color:#fcd34d;color:#92400e;text-transform:none">ready</span></div>
+ <div class="k-tools">
+ <button class="k-dot on" data-col="#0f172a" style="background:#0f172a" title="Ink"></button>
+ <button class="k-dot" data-col="#2563eb" style="background:#2563eb" title="Mor"></button>
+ <button class="k-dot" data-col="#2563eb" style="background:#2563eb" title="Pembe"></button>
+ <button class="k-dot" data-col="#00A8A8" style="background:#00A8A8" title="Turkuaz"></button>
+ <span class="k-seg" title="Pen thickness">
+ <button data-w="3.5">Thin</button><button data-w="6" class="on">Med</button><button data-w="10">Bold</button>
+ </span>
+ <button class="k-tool-btn" id="toolPen" title="Pen"></button>
+ <button class="k-tool-btn" id="toolEraser" title="Eraser"></button>
+ <button class="k-tool-btn" id="btnUndo" title="Undo (Ctrl+Z)">↶</button>
+ <button class="k-tool-btn" id="btnClearInk" title="Clear ink"></button>
+ <button class="k-tool-btn" id="btnHints" type="button" title="Drawing shortcuts" data-i18n="hintsBtn">Şekiller</button>
+ <button class="k-tool-btn" id="sheetClose" type="button" title="Kapat (Esc)" data-i18n="doneBtn">Bitti</button>
+ </div>
+ </div>
+ <div class="sheet-pal" id="kPalSheet" title="Add a part: tap → it lands as a ghost on the canvas"></div>
+ <div id="kCanvasWrap">
+ <canvas id="kInk"></canvas>
+ <div id="kGhosts"></div>
+ <div id="kHints">
+ <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+ <b style="font-weight:900" data-i18n="hintHead">Şekil Kısayolları</b>
+ <button class="kbtn sm ghosty" id="hintsClose" style="margin-left:auto"></button>
+ </div>
+ <div class="k-hint-grid" id="hintGrid"></div>
+ <div class="k-note">Komut da yazabilirsin: <b>menü: Marka | A, B</b> · <b>h1: Merhaba</b> · <b>3 kart: Özellikler</b> · <b>button: Learn more</b> · <b>form:</b> · <b>altbilgi:</b></div>
+ <div class="k-note" style="background:#EDFBF7;border-color:var(--mint)">Aynı hizaya <b>2–3 rectangles</b> next to each other and they become a card row when you build. Wrong spot? Just grab and <b></b> çiz.</div>
+ <div class="k-note" style="background:#FFF0F6;border-color:var(--acc)"><b>Sürükle:</b> move the piece. <b>↘ Corner:</b> drag it to resize. <b>Draw a big box → it becomes a container; anything you draw INSIDE it becomes its child (nested div).</b></div>
+ </div>
+ <!-- hızlı düzenle popover -->
+ <div id="kPop">
+ <b style="font-weight:900" id="kPopTitle">Düzenle</b>
+ <div class="k-fields" id="kPopFields"></div>
+ <button class="kbtn sm mint" id="kPopRich" type="button" style="display:none;width:100%">Medya ekle…</button>
+ <div class="rowend">
+ <button class="kbtn sm" id="kPopDel" type="button">Sil</button>
+ <button class="kbtn sm pri" id="kPopOk" type="button">Tamam </button>
+ </div>
+ </div>
+ </div>
+ <div class="k-sheet-foot">
+ <input id="kCmd" data-i18n-ph="cmdPh" placeholder="Hızlı komut yazın: menü: Marka | A, B · h1: Başlık · button: Learn more …" autocomplete="off">
+ <button class="kbtn mint" id="btnCmd" type="button" data-i18n="cmdAdd">Ekle</button>
+ <button class="kbtn" id="kPeek" type="button" data-i18n="peek">Gözat</button>
+ <button class="kbtn acc" id="kConvert" type="button" disabled data-i18n="convert">Sayfaya Dönüştür</button>
+ </div>
+</div>
+
+<!-- ═══════════ ONBOARDING ═══════════ -->
+<!-- ═══════════ ONBOARDING (English, step-by-step) ═══════════ -->
+<div class="k-back" id="mOnboard">
+ <div class="k-modal" style="width:min(680px,95vw)">
+  <div class="k-m-head"><h2>Welcome to <span class="hand" style="font-size:1.5rem;color:#2563eb">Karala Builder</span></h2>
+   <span class="k-pill" style="margin-left:auto">by Okan Kaplan</span>
+   <button class="kbtn sm ghosty x" data-close="mOnboard">✕</button></div>
+  <div class="k-m-body" style="line-height:1.65">
+   <p style="font-weight:600;font-size:1.02rem;margin:0 0 10px">Draw on a paper-style canvas — get a real, publish-ready Bootstrap page. No coding needed.</p>
+   <ol style="margin:0 0 14px;padding-left:22px;display:grid;gap:8px">
+    <li><b>Draw</b> simple shapes where you want each part: a thin bar = menu, a roof = hero section, boxes = cards, a circle = avatar, a star = features, a wave = divider.</li>
+    <li><b>Build</b> — press <i>Build My Page</i>; every stroke becomes an editable block with clean code.</li>
+    <li><b>Edit</b> — click any block in the left list to change text, links and settings. Watch the live preview.</li>
+    <li><b>Publish</b> — in the code panel: <b>Download HTML</b> to host anywhere, or <b>PDF / Print</b> → “Save as PDF”.</li>
+   </ol>
+   <p style="color:#64748b;font-size:.86rem;margin:0">The guided tour highlights every control with an <b style="color:#ea580c">orange dotted arrow</b> and speaks each step aloud in English. Mute anytime with the speaker button in the top bar.</p>
+  </div>
+  <div class="k-m-foot">
+   <button class="kbtn pri" id="obTour" type="button">Start Guided Tour (with voice)</button>
+   <button class="kbtn" id="obSim2" type="button">Watch Auto Demo</button>
+   <button class="kbtn ghosty" id="obStart" type="button">Just Start Drawing</button>
+  </div>
+ </div>
+</div>
+
+<!-- ═══════════ ŞABLON & KISAYOLLAR & BOOTSTRAP REHBERİ ═══════════ -->
+<div class="k-back" id="mGuide">
+ <div class="k-modal">
+ <div class="k-m-head"><h2 data-i18n="gTitle">Tasarım Şablonu, Kısayollar &amp; Bootstrap Rehberi</h2>
+ <button class="kbtn sm ghosty x" data-close="mGuide"></button></div>
+ <div class="k-m-body">
+ <h3 style="font-weight:900;margin-bottom:8px" data-i18n="g1">1 · Çizim Kısayolları (ekran veya kağıt — aynı alfabe!)</h3>
+ <div class="k-hint-grid" id="guideGrid" style="margin-bottom:16px"></div>
+ <h3 style="font-weight:900;margin:14px 0 8px" data-i18n="g2">2 · Hızlı Komutlar (tuval altındaki satırına yaz)</h3>
+ <table class="k-table">
+ <tr><th>Komut yaz</th><th>You get</th></tr>
+ <tr><td><code>menu: MyBrand | Home, Products, Contact</code></td><td>Navbar (brand before the |)</td></tr>
+ <tr><td><code>h1: Big Title | subtitle</code></td><td>Hero welcome block</td></tr>
+ <tr><td><code>h2: Section name</code> · <code>text: long description…</code></td><td>Heading / paragraph</td></tr>
+ <tr><td><code>button: Buy now</code></td><td>Buton</td></tr>
+ <tr><td><code>3 kart: Özelliklerimiz</code></td><td>Side-by-side cards (1–4)</td></tr>
+ <tr><td><code>img: Product photo</code> · <code>galeri</code></td><td>Image area / 6-tile gallery</td></tr>
+ <tr><td><code>özellik</code> · <code>fiyat</code> · <code>form: Contact us</code></td><td>Features / pricing table / contact form</td></tr>
+ <tr><td><code>ayraç</code> · <code>dalga</code> · <code>altbilgi: © 2026 Biz</code></td><td>Divider / wavy divider / footer</td></tr>
+ <tr><td><code>video: https://youtu.be/...</code></td><td>Video (embedded YouTube player)</td></tr>
+ <tr><td><code>map: Istanbul</code> · <code>whatsapp: 905.. | mesaj</code> · <code>sosyal</code></td><td>Map / WhatsApp button / share buttons</td></tr>
+ <tr><td><code>aside: Title</code> · <code>box: Title</code></td><td>Side panel (&lt;aside&gt;) / container box</td></tr>
+ </table>
+ <h3 style="font-weight:900;margin:16px 0 8px" data-i18n="g3">3 · Bootstrap Bileşen Rehberi (neler kullanılıyor?)</h3>
+ <table class="k-table" id="compTable"></table>
+ <div class="k-note" style="background:#FFF0F6;border-color:var(--acc)"><b>Pro tips:</b> Tuvalde parçayı sürükle, ⤡ köşeden boyutlandır. Kocaman kutu () çizersen İÇİNE çizdiğin buton/görsel/metin/video onun çocuğu olur — gerçek iç içe div yapısı! Sayfaların <code>&lt;header&gt;&lt;nav&gt;&lt;section&gt;&lt;aside&gt;&lt;footer&gt;</code> semantic tags.</div>
+
+ </div>
+ <div class="k-m-foot">
+
+ <button class="kbtn pri" data-close="mGuide" data-i18n="gClose">Got it — let me start</button>
+ </div>
+ </div>
+</div>
+
+<!-- ═══════════ HIZLI ŞABLON MODALI ═══════════ -->
+<div class="k-back" id="mTpl">
+ <div class="k-modal" style="width:min(620px,94vw)">
+ <div class="k-m-head"><h2>Quick Start Templates</h2>
+ <button class="kbtn sm ghosty x" data-close="mTpl"></button></div>
+ <div class="k-m-body">
+ <div class="k-note" data-i18n="tplNote">Pick a template and keep drawing on top of it. In Settings you can switch the output to a print-ready note or message page. </div>
+ <div style="display:grid;gap:10px">
+ <button class="kbtn" data-tpl="web" type="button"><span class="kic" style="width:18px;height:18px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.7 2.7 4 5.7 4 9s-1.3 6.3-4 9c-2.7-2.7-4-5.7-4-9s1.3-6.3 4-9z"/></svg></span><b>Website</b> — full sample: menu, hero, cards, video, map, form</button>
+ <button class="kbtn" data-tpl="not" type="button"><span class="kic" style="width:18px;height:18px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h8"/></svg></span><b>Note page</b> — title + text + divider; fits A4 printing</button>
+ <button class="kbtn" data-tpl="mesaj" type="button"><span class="kic" style="width:18px;height:18px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 01-8 8H4l2-3.2A8 8 0 1121 12z"/></svg></span><b>Message / announcement</b> — greeting + text + one button; printable card</button>
+ <button class="kbtn" data-tpl="personel" type="button"><span class="kic" style="width:18px;height:18px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.7 2.9-5.7 6.5-5.7s6.5 2 6.5 5.7"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14.6c3 .3 5 2 5 5"/></svg></span><b>Team / staff page</b> — SVG icon team cards; download as HTML or PDF</button>
+ <button class="kbtn ghosty" data-tpl="bos" type="button"><span class="kic" style="width:18px;height:18px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 9v6M9 12h6"/></svg></span>Blank canvas — start from scratch</button>
+ </div>
+ </div>
+ </div>
+</div>
+
+<!-- ═══════════ HTML ÇIKTI MODALI ═══════════ -->
+<div class="k-back" id="mCode">
+ <div class="k-modal" style="width:min(860px,96vw)">
+ <div class="k-m-head"><h2 data-i18n="codeTitle">⟨/⟩ Tam HTML Kodun</h2>
+ <button class="kbtn sm ghosty x" data-close="mCode"></button></div>
+ <div class="k-m-body">
+ <div class="k-note" data-i18n="codeNote">Bu dosya tek başına çalışır: Bootstrap 5.3 CDN bağlı, tüm içerik gömülü. Kaydet → yayınla → bitti!</div>
+ <pre id="kCode"></pre>
+ </div>
+ <div class="k-m-foot">
+ <button class="kbtn" id="btnCopy" type="button" data-i18n="copy"><span class="kic" style="width:16px;height:16px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg></span>Kopyala</button>
+ <button class="kbtn sun" id="btnPrint" type="button" data-i18n="cPrint"><span class="kic" style="width:16px;height:16px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8V3h10v5"/><rect x="3" y="8" width="18" height="8" rx="2"/><path d="M7 16h10v5H7z"/></svg></span>PDF / Print</button>
+ <button class="kbtn pri" id="btnDl" type="button" data-i18n="dl"><span class="kic" style="width:16px;height:16px"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M6 11l6 6 6-6"/><path d="M4 21h16"/></svg></span>Download HTML</button>
+ </div>
+ </div>
+</div>
+
+<!-- ═══════════ GÖZAT MODALI (dönüştürmeden draft preview) ═══════════ -->
+<div class="k-back" id="mPeek">
+ <div class="k-modal" style="width:min(1100px,97vw);height:92vh;display:flex;flex-direction:column">
+ <div class="k-m-head"><h2 data-i18n="peekTitle">Gözat — dönüştürmeden önizle</h2>
+ <span class="k-dev" style="margin-left:auto;margin-right:6px">
+ <button class="kbtn sm on" id="peekDesk" type="button" title="Desktop"></button>
+ <button class="kbtn sm" id="peekMob" type="button" title="Telefon"></button>
+ </span>
+ <button class="kbtn sm ghosty x" data-close="mPeek"></button></div>
+ <div class="k-m-body" style="flex:1;display:flex;justify-content:center;overflow:auto;background:repeating-linear-gradient(45deg,#f8fafc,#f8fafc 14px,#eef2f7 14px,#eef2f7 28px);padding:12px">
+ <iframe id="kPeekFrame" title="draft preview" sandbox="allow-scripts" style="width:100%;height:100%;min-height:10px;flex:0 0 auto;border:3px solid var(--ink);border-radius:16px;background:#fff;box-shadow:var(--sh-soft);transition:width .25s"></iframe>
+ </div>
+ <div class="k-m-foot" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+ <span class="k-note" style="margin:0" data-i18n="peekNote">Bu bir TASLAK görünümü — sayfana henüz uygulanmadı.</span>
+ <span style="display:flex;gap:8px;flex-wrap:wrap">
+ <button class="kbtn sm" id="kPeekBack" type="button" data-i18n="peekBack">↩️ Çizmeye devam</button>
+ <button class="kbtn pri" id="kPeekApply" type="button" data-i18n="peekApply">Dönüştür &amp; Uygula</button>
+ </span>
+ </div>
+ </div>
+</div>
+
+<!-- ═══════════ PROJE MODALI (JSON kaydet / aç) ═══════════ -->
+<div class="k-back" id="mProject">
+ <div class="k-modal" style="width:min(520px,96vw)">
+ <div class="k-m-head"><h2 data-i18n="prjTitle">Proje — Kaydet &amp; Aç</h2>
+ <button class="kbtn sm ghosty x" data-close="mProject"></button></div>
+ <div class="k-m-body">
+ <div class="k-note" data-i18n="prjDesc">Çalışmanı <b>.json</b> dosyası olarak indir — sonra başka gün geri açıp kaldığın yerden devam et. İçinde sayfa parçaları ve site ayarları saklanır.</div>
+ <button class="kbtn pri k-pj-opt" id="btnJsonSave" type="button">
+ <span class="em"></span>
+ <span><b data-i18n="prjSave">Projeyi Kaydet (.json)</b><small data-i18n="prjSaveSub">Bilgisayarına/telefonuna iner — müşterine de gönderebilirsin</small></span></button>
+ <button class="kbtn mint k-pj-opt" id="btnJsonOpen" type="button">
+ <span class="em">⬆️</span>
+ <span><b data-i18n="prjOpen">Proje Aç (.json)</b><small data-i18n="prjOpenSub">Önceden kaydedilmiş bir proje dosyasını geri yükle</small></span></button>
+ <div class="k-note" data-i18n="prjNote">Ayrıca her değişiklik bu tarayıcıya otomatik kaydedilir — JSON, taşımak/yedeklemek içindir.</div>
+ </div>
+ </div>
+</div>
+<input type="file" id="fileJson" accept="application/json,.json" class="d-none">
+
+<!-- ═══════════ ZENGİN DÜZENLEME MODALI (medya / link / sosyal) ═══════════ -->
+<div class="k-back" id="mEdit">
+ <div class="k-modal" style="width:min(640px,96vw)">
+ <div class="k-m-head"><h2 id="kEditTitle">Düzenle</h2>
+ <button class="kbtn sm ghosty x" data-close="mEdit"></button></div>
+ <div class="k-m-body" id="kEditBody"></div>
+ <div class="k-m-foot">
+ <button class="kbtn pri" data-close="mEdit" data-i18n="popOkG">Tamam </button>
+ </div>
+ </div>
+</div>
+
+<!-- ═══════════ AYARLAR (SEO + SOSYAL) MODAL ═══════════ -->
+<div class="k-back" id="mSettings">
+ <div class="k-modal">
+ <div class="k-m-head"><h2 data-i18n="setTitle">Site Ayarları &amp; SEO</h2>
+ <button class="kbtn sm ghosty x" data-close="mSettings"></button></div>
+ <div class="k-m-body">
+ <div class="k-setgrid k-fields" style="margin-bottom:16px">
+ <div class="full"><label>Document type — purpose of the output</label>
+ <select id="sDocType" data-k="docType" style="width:100%;padding:.7rem .9rem;border:1.5px solid var(--line);border-radius:10px;font:inherit;background:#fff">
+ <option value="web">Website</option>
+ <option value="not">Note / document page (A4 print-ready)</option>
+ <option value="mesaj">Message / announcement page (printable card)</option>
+ </select>
+ <small style="color:var(--muted);display:block;margin-top:4px" data-i18n="setDocHint">Note and message outputs fit an A4 page; open Print → PDF from the code panel with one click.</small>
+ </div>
+ </div>
+ <h3 style="font-weight:900;margin-bottom:10px" data-i18n="setSeoH">SEO &amp; Genel</h3>
+ <div class="k-setgrid k-fields" style="margin-bottom:16px">
+ <div><label data-i18n="fTitle">Page title (title)</label><input id="sTitle" data-k="title"></div>
+ <div><label data-i18n="fUrl">Site adresi (canonical URL)</label><input id="sUrl" data-k="url" placeholder="https://site-adresin.com"></div>
+ <div class="full"><label data-i18n="fDesc">Açıklama (meta description)</label><textarea id="sDesc" data-k="desc" rows="2"></textarea></div>
+ <div class="full"><label data-i18n="fKeys">Anahtar kelimeler (virgülle)</label><input id="sKeys" data-k="keys"></div>
+ <div><label data-i18n="fOg">OG görsel URL (opsiyonel)</label><input id="sOg" data-k="og" placeholder="https://…/kapak.jpg"></div>
+ <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+ <span><label data-i18n="fFav">Favicon </label><input id="sFav" data-k="fav" maxlength="4"></span>
+ <span><label data-i18n="fTheme">Tema rengi</label><input id="sTheme" data-k="theme" type="color" style="height:36px;padding:2px"></span>
+ <span><label data-i18n="fLang">Sayfa dili</label><input id="sLang" data-k="lang" maxlength="5"></span>
+ </div>
+ </div>
+ <h3 style="font-weight:900;margin-bottom:10px" data-i18n="setSocH">Sosyal &amp; WhatsApp (footer'da çıkar)</h3>
+ <div class="k-setgrid k-fields">
+ <div><label data-i18n="soWhats">WhatsApp (905…)</label><input id="soWhats" data-s="whatsapp" placeholder="905xxxxxxxxx"></div>
+ <div><label data-i18n="soInsta">Instagram</label><input id="soInsta" data-s="instagram" placeholder="kullaniciadi"></div>
+ <div><label data-i18n="soX">X / Twitter</label><input id="soX" data-s="x" placeholder="kullaniciadi"></div>
+ <div><label data-i18n="soFB">Facebook</label><input id="soFB" data-s="facebook" placeholder="sayfaadi"></div>
+ <div><label data-i18n="soYT">▶️ YouTube</label><input id="soYT" data-s="youtube" placeholder="@kanal"></div>
+ <div><label data-i18n="soLI">LinkedIn</label><input id="soLI" data-s="linkedin" placeholder="in/kullanici"></div>
+ <div class="full"><label data-i18n="soMail">E-posta</label><input id="soMail" data-s="email" placeholder="merhaba@site.com"></div>
+ </div>
+ <div class="k-note" data-i18n="setNote">Değişiklikler anında önizlemeye ve HTML çıktısının <code>&lt;head&gt;</code> kısmına (SEO meta + OG etiketleri + favicon) işlenir. Scrollspy menü ve "yukarı çık" düğmesi de otomatik eklenir!</div>
+ </div>
+ <div class="k-m-foot">
+ <button class="kbtn" id="btnReset" type="button" data-i18n="hdrReset" style="margin-right:auto">Sıfırla</button>
+ <button class="kbtn pri" data-close="mSettings" data-i18n="setSave">Kaydet </button>
+ </div>
+ </div>
+</div>
+
+<!-- ═══════════ TUR OVERLAY ═══════════ -->
+<div id="tourOv" class="d-none">
+ <svg id="tourSvg" aria-hidden="true"><defs><marker id="tourArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#ea580c"/></marker></defs><line id="tourLine" x1="0" y1="0" x2="0" y2="0" marker-end="url(#tourArrow)"/></svg>
+ <span id="tourProg"></span>
+ <div id="tourRing"></div>
+ <div id="tourBub"><p id="tourTxt" style="margin:0"></p>
+ <div class="tour-btns">
+ <button class="kbtn sm ghosty" id="tourSkip" data-i18n="tourSkip">Skip</button>
+ <button class="kbtn sm" id="tourBack" data-i18n="tourBack">‹ Back</button>
+ <button class="kbtn sm pri" id="tourNext" data-i18n="tourNext">Next ›</button>
+ </div>
+ </div>
+</div>
+
+<div id="kToasts"></div>
+
+<script>
+/* ╔══════════════════════════════════════════════════════════╗
+ ║ KARALA BUILDER — tüm mantık ║
+ ╚══════════════════════════════════════════════════════════╝ */
+'use strict';
+
+/* ---------------- yardımcılar ---------------- */
+const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+let _id=1; const nid=()=>'c'+(_id++);
+function trMsg(s){if(LANG!=='en')return s;if(GT_EN[s])return GT_EN[s];for(const k in GT_PRE)if(s.startsWith(k))return GT_PRE[k]+s.slice(k.length);return s;}
+function toast(msg,ms=2800){msg=trMsg(msg);const t=document.createElement('div');t.className='k-toast';t.textContent=msg;$('#kToasts').appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .4s';setTimeout(()=>t.remove(),400)},ms);}
+function burst(x,y,n=14){const E=['','','','','',''];for(let i=0;i<n;i++){const s=document.createElement('span');s.className='k-conf';s.textContent=E[i%E.length];s.style.left=x+'px';s.style.top=y+'px';s.style.setProperty('--dx',(Math.random()*220-110)+'px');s.style.setProperty('--dy',(Math.random()*-160-30)+'px');document.body.appendChild(s);setTimeout(()=>s.remove(),1000);}}
+const debounce=(f,ms)=>{let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>f(...a),ms)}};
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+function findItem(id){for(const m of model){if(m.id===id)return m;if(m.children){const c=m.children.find(c=>c.id===id);if(c)return c;}}return null;}
+function findParentOf(id){for(const m of model){if(m.children&&m.children.some(c=>c.id===id))return m;}return null;}
+function detach(id){
+ if(!findItem(id))return null;
+ for(let i=0;i<model.length;i++)if(model[i].id===id)return{item:model.splice(i,1)[0]};
+ for(const m of model)if(m.children){const j=m.children.findIndex(c=>c.id===id);if(j>-1)return{item:m.children.splice(j,1)[0],parent:m};}
+ return null;
+}
+
+/* ═══════════ 1) $1 UNISTROKE TANIYICI (el çizimi şekil tanıma) ═══════════ */
+const R1=(()=>{const N=64,S=250;
+ const P=(x,y)=>({x,y});
+ const plen=ps=>{let d=0;for(let i=1;i<ps.length;i++)d+=Math.hypot(ps[i].x-ps[i-1].x,ps[i].y-ps[i-1].y);return d;};
+ function resample(ps0){const ps=ps0.map(p=>({x:p.x,y:p.y}));const L=plen(ps);if(L===0)return Array.from({length:N},()=>({...ps0[0]}));const I=L/(N-1);let D=0;const out=[{...ps[0]}];
+ for(let i=1;i<ps.length;i++){const a=ps[i-1],b=ps[i],d=Math.hypot(b.x-a.x,b.y-a.y);if(d===0)continue;
+ if(D+d>=I){const t=(I-D)/d;const q=P(a.x+t*(b.x-a.x),a.y+t*(b.y-a.y));out.push(q);ps.splice(i,0,q);D=0;}else D+=d;}
+ while(out.length<N)out.push({...ps[ps.length-1]});return out.slice(0,N);}
+ const cent=ps=>{let x=0,y=0;ps.forEach(p=>{x+=p.x;y+=p.y;});return P(x/ps.length,y/ps.length);};
+ function rotBy(ps,th){const c=cent(ps),cs=Math.cos(th),sn=Math.sin(th);return ps.map(p=>P((p.x-c.x)*cs-(p.y-c.y)*sn+c.x,(p.x-c.x)*sn+(p.y-c.y)*cs+c.y));}
+ const rot0=ps=>{const c=cent(ps);return rotBy(ps,-Math.atan2(c.y-ps[0].y+1e-9,c.x-ps[0].x+1e-9));};
+ function scaleTo(ps){let a=1e9,b=1e9,c=-1e9,d=-1e9;ps.forEach(p=>{a=Math.min(a,p.x);b=Math.min(b,p.y);c=Math.max(c,p.x);d=Math.max(d,p.y);});const w=Math.max(1e-6,c-a),h=Math.max(1e-6,d-b);return ps.map(p=>P(p.x*(S/w),p.y*(S/h)));}
+ const to0=ps=>{const c=cent(ps);return ps.map(p=>P(p.x-c.x,p.y-c.y));};
+ const prep=ps=>to0(scaleTo(rot0(resample(ps))));
+ function dAt(cand,tpl,th){const r=rotBy(cand,th);let s=0;for(let i=0;i<N;i++)s+=Math.hypot(r[i].x-tpl[i].x,r[i].y-tpl[i].y);return s/N;}
+ const PHI=.5*(-1+Math.sqrt(5));
+ function score(cand,tpl){let a=-Math.PI/4,b=Math.PI/4,eps=Math.PI/90;let x1=PHI*a+(1-PHI)*b,f1=dAt(cand,tpl,x1),x2=(1-PHI)*a+PHI*b,f2=dAt(cand,tpl,x2);
+ while(Math.abs(b-a)>eps){if(f1<f2){b=x2;x2=x1;f2=f1;x1=PHI*a+(1-PHI)*b;f1=dAt(cand,tpl,x1);}else{a=x1;x1=x2;f1=f2;x2=(1-PHI)*a+PHI*b;f2=dAt(cand,tpl,x2);}}
+ return 1-(Math.min(f1,f2)/(.5*Math.SQRT2*S));}
+ const TS=[];
+ function add(name,pts){TS.push({name,pts:prep(pts.map(p=>P(p[0],p[1])))});}
+ function cyc(base,name){const n=base.length-1;for(let d=0;d<2;d++)for(let i=0;i<n;i++){let A=base.slice(0,n);if(d)A=A.slice().reverse();const r=A.slice(i).concat(A.slice(0,i));r.push(r[0]);add(name,r);}}
+ cyc([[0,0],[1,0],[1,.62],[0,.62],[0,0]],'rectangle');
+ cyc([[0,0],[1,0],[.5,.87],[0,0]],'triangle');
+ for(let d=0;d<2;d++){const c=[];for(let k=0;k<=24;k++){const a=(d?1:-1)*k/24*2*Math.PI;c.push([.5+.5*Math.cos(a),.5+.5*Math.sin(a)]);}add('circle',c);}
+ add('x',[[0,0],[1,1],[.5,.5],[1,0],[0,1]]); add('x',[[0,0],[1,1],[.5,.5],[0,1],[1,0]]); add('x',[[1,0],[0,1],[.5,.5],[0,0],[1,1]]);
+ add('check',[[0,.6],[.4,1],[1,0]]); add('check',[[0,0],[.6,1],[1,.6]]);
+ add('caret',[[0,1],[.52,0],[1,1]]);
+ add('v',[[0,0],[.5,1],[1,0]]);
+ add('zigzag',[[0,.5],[.14,0],[.28,.5],[.42,0],[.56,.5],[.70,0],[.84,.5],[1,0]]);
+ add('arrow',[[0,.5],[1,.5],[.85,.33],[1,.5],[.85,.67]]);
+ {const st=[[0,-1],[ .224,-.309],[ .951,-.309],[ .363,.118],[ .588,.809],[0,.383],[ -.588,.809],[ -.363,.118],[ -.951,-.309],[ -.224,-.309],[0,-1]];add('star',st.map(p=>[p[0]+1,p[1]+1]));}
+ add('line',[[0,0],[1,0]]);
+ return{prep,score,TS,plen};
+})();
+function classifyStroke(pts){ // pts: normalize koordinatlar (0..1)
+ const bb={x:1e9,y:1e9,xx:-1e9,yy:-1e9};
+ pts.forEach(p=>{bb.x=Math.min(bb.x,p.x);bb.y=Math.min(bb.y,p.y);bb.xx=Math.max(bb.xx,p.x);bb.yy=Math.max(bb.yy,p.y);});
+ bb.w=bb.xx-bb.x;bb.h=bb.yy-bb.y;bb.cx=(bb.x+bb.xx)/2;bb.cy=(bb.y+bb.yy)/2;
+ const len=R1.plen(pts);
+ if(len<0.015||(bb.w<0.012&&bb.h<0.012))return{name:'dot',bb};
+ const straight=Math.hypot(pts[pts.length-1].x-pts[0].x,pts[pts.length-1].y-pts[0].y)/(len||1);
+ if(bb.h<0.028&&bb.w>0.10&&straight>0.86)return{name:'line',bb};
+ if(bb.w<0.028&&bb.h>0.10&&straight>0.86)return{name:'vline',bb};
+ /* dalga / zikzak: dikey yön değişimlerini say */
+ {let dir=0,flips=0;const n=pts.length;
+ for(let i=2;i<n-2;i++){const y0=(pts[i-1].y+pts[i-2].y)/2,y2=(pts[i+1].y+pts[i+2].y)/2,dy=y2-y0;
+ if(Math.abs(dy)>0.012){const d=dy>0?1:-1;if(dir!==0&&d!==dir)flips++;dir=d;}}
+ if(flips>=5&&bb.h>0.05&&bb.w>bb.h*1.4)return{name:'zigzag',bb,score:0.9,wave:true};}
+ const cand=R1.prep(pts);
+ let best={name:'?',score:-1};
+ for(const T of R1.TS){const s=R1.score(cand,T.pts);if(s>best.score)best={name:T.name,score:s};}
+ best.bb=bb;
+ if(best.score<0.58)best.name='?';
+ return best;
+}
+
+/* ═══════════ 2) SVG YER TUTUCULAR (çevrimdışı dostu, gömülü) ═══════════ */
+const IC={
+user:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.2 3.6-6.5 8-6.5s8 2.3 8 6.5"/></svg>',
+users:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.7 2.9-5.7 6.5-5.7s6.5 2 6.5 5.7"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14.6c3 .3 5 2 5 5"/></svg>',
+mail:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>',
+printer:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8V3h10v5"/><rect x="3" y="8" width="18" height="8" rx="2"/><path d="M7 16h10v5H7z"/></svg>',
+dl:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M6 11l6 6 6-6"/><path d="M4 21h16"/></svg>',
+copy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>',
+folder:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 012-2h4l2 3h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>',
+gear:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13a7.5 7.5 0 000-2l2-1.6-2-3.4-2.4 1a7.6 7.6 0 00-1.7-1L14.9 3H9.1l-.4 3a7.6 7.6 0 00-1.7 1l-2.4-1-2 3.4 2 1.6a7.5 7.5 0 000 2l-2 1.6 2 3.4 2.4-1a7.6 7.6 0 001.7 1l.4 3h5.8l.4-3a7.6 7.6 0 001.7-1l2.4 1 2-3.4z"/></svg>',
+spark:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.9 2.1L22 19l-2.1.9L19 22l-.9-2.1L16 19l2.1-.9z"/></svg>',
+globe:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.7 2.7 4 5.7 4 9s-1.3 6.3-4 9c-2.7-2.7-4-5.7-4-9s1.3-6.3 4-9z"/></svg>',
+doc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h8"/></svg>',
+msg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 01-8 8H4l2-3.2A8 8 0 1121 12z"/></svg>',
+plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 9v6M9 12h6"/></svg>',
+play:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l6 3.5-6 3.5z"/></svg>',
+layout:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 9v12"/></svg>'
+};
+IC.img='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5-9 9"/></svg>';
+IC.pin='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>';
+IC.minus='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 12h16"/></svg>';
+IC.code='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6l-5 6 5 6M16 6l5 6-5 6"/></svg>';
+IC.head='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h10"/></svg>';
+IC.pen='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3l4 4L8 20l-5 1 1-5z"/></svg>';
+IC.alert='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>';
+IC.price='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12l-8 8-9-9V4h7z"/><circle cx="7.5" cy="7.5" r="1.3"/></svg>';
+IC.phone='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l1.5 4L8 10a12 12 0 006 6l2-2.5 4 1.5v4a2 2 0 01-2 2A17 17 0 013 6a2 2 0 012-2z"/></svg>';
+function ic(n,sz){return `<span class="kic" style="width:${sz||17}px;height:${sz||17}px">${IC[n]||''}</span>`;}
+const EMO=0;
+function svgIMG(h,label){return `<svg viewBox="0 0 400 220" style="width:100%;height:${h}px;display:block;background:#f1f5f9" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><path d="M0 220 L116 96 L200 220 Z" fill="#e2e8f0"/><path d="M128 220 L228 70 L330 220 Z" fill="#cbd5e1"/><circle cx="326" cy="54" r="20" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="5"/><text x="200" y="204" text-anchor="middle" font-size="15" font-weight="600" fill="#64748b" font-family="system-ui,sans-serif">${esc(label||'Görsel alanı')}</text></svg>`;}
+function svgTile(i){return `<svg viewBox="0 0 300 300" style="width:100%;display:block;background:#f8fafc" aria-hidden="true"><rect x="18" y="18" width="264" height="264" rx="16" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="3" stroke-dasharray="10 8"/><path d="M70 220 L138 128 L190 220 Z" fill="#cbd5e1"/><circle cx="210" cy="96" r="22" fill="#e2e8f0"/><text x="150" y="268" text-anchor="middle" font-size="20" font-weight="600" fill="#94a3b8" font-family="system-ui,sans-serif">Görsel ${i+1}</text></svg>`;}
+function svgAva(sz){return `<svg class="ava" viewBox="0 0 200 200" style="width:${sz}px;height:${sz}px" aria-hidden="true"><circle cx="100" cy="100" r="96" fill="#f1f5f9"/><circle cx="100" cy="100" r="88" fill="#e2e8f0"/><circle cx="100" cy="82" r="30" fill="#94a3b8"/><path d="M50 170 q50 -58 100 0 v10 H50 Z" fill="#94a3b8"/></svg>`;}
+const WAVE='';
+function zigSVG(){return `<svg viewBox="0 0 1440 68" preserveAspectRatio="none" style="width:100%;height:22px;display:block" aria-hidden="true"><path d="M0 30 H1440" stroke="#e2e8f0" stroke-width="4"/></svg>`;}
+function svgMap(){return `<svg viewBox="0 0 640 340" style="width:100%;height:340px;display:block;background:#eef2f7" aria-hidden="true"><path d="M0 120 C120 90 260 150 400 110 S 580 90 640 130" stroke="#ffffff" stroke-width="30" fill="none"/><path d="M120 340 C140 240 200 220 260 340" stroke="#ffffff" stroke-width="22" fill="none"/><path d="M480 0 C470 120 520 180 560 340" stroke="#ffffff" stroke-width="18" fill="none"/><rect x="150" y="180" width="90" height="60" rx="8" fill="#dbeafe"/><rect x="430" y="150" width="120" height="80" rx="8" fill="#dbeafe"/><path d="M320 90 c-28 0 -46 20 -46 43 c0 30 46 77 46 77 s46 -47 46 -77 c0 -23 -18 -43 -46 -43 z" fill="#2563eb"/><circle cx="320" cy="132" r="15" fill="#ffffff"/><text x="320" y="292" text-anchor="middle" font-size="19" font-weight="500" fill="#475569" font-family="system-ui,sans-serif">Konumunuzu Ayarlar'dan yazın</text></svg>`;}
+/* ═══════════ 3) BİLEŞEN KÜTÜPHANESİ (açıklamalı + Bootstrap sınıfları) ═══════════ */
+const CTX={
+ cardT:['Dynamic Content','Modern Design','Easy Management','Flexible Blocks','Fast Publishing'],
+ cardX:['This card was generated from your sketch — edit its text in the left panel.','The shape you drew became a Bootstrap card in seconds.','One drawing, one publish-ready content block.'],
+ feat:[['01','Fast','From sketch to publish in minutes.'],['02','Easy','Draw, drag, edit, publish.'],['03','Clean','Modern, readable, professional output.']],
+ plan:[['Starter','$0',['One page','Core components','Community support']],['Pro','$49',['Unlimited pages','Advanced shape recognition','Priority support']],['Enterprise','$199',['Team usage','Custom domain','Enterprise support']]],
+};
+const COMP={
+ team:{ico:ic('users',14),name:'Team / Staff',desc:'Team cards: name, role, e-mail. SVG avatars and icons; one person per line: Name — Role — email',cls:['<section>','.row','.card'],fields:[['title','Section title'],['people','People (one per line: Name — Role — email)','area']],def:()=>({title:'Our Team',people:'Ayşe Yılmaz — İnsan Kaynakları — ayse@firma.com\nMehmet Demir — Yazılım Mühendisi — mehmet@firma.com\nZeynep Kaya — Ürün Tasarımcısı — zeynep@firma.com'})},
+ navbar:{ico:ic('layout',14),name:'Menu',desc:'Top navigation bar — HTML5 nav with brand and links.',cls:['<nav>','.container','.navbar-brand','.nav-link'],fields:[['brand','Marka'],['links','Bağlantılar (virgülle)']],def:()=>({brand:'My Page',links:'Anasayfa, Özellikler, Galeri, İletişim'})},
+ hero:{ico:ic('play',14),name:'Hero',desc:'Big headline section with badge, subtitle and call-to-action button.',cls:['<header>','.container','.display-5','.lead','.btn-lg'],fields:[['title','Başlık'],['subtitle','Alt başlık','area'],['btn','Buton etiketi']],def:()=>({title:'Harika bir şey çizdin! ',subtitle:'Bu başlığı soldaki panelden düzenleyebilirsin. Çizmeye devam et, sayfa büyüsün!',btn:'Hemen Başla'})},
+ heading:{ico:ic('head',14),name:'Heading',desc:'A section title (h2) with a short accent rule.',cls:['.container','.text-center','.fw-bold'],fields:[['text','Başlık']],def:()=>({text:'Yeni Bölüm'})},
+ paragraph:{ico:ic('doc',14),name:'Paragraph',desc:'Readable body text block.',cls:['.container','.lead'],fields:[['text','Metin','area']],def:()=>({text:'Buraya güzel bir açıklama yaz. Bunu yaşadın mı? Soldan düzenle, düzelt, parlat! '})},
+ button:{ico:ic('plus',14),name:'Button',desc:'A standalone call-to-action button (link).',cls:['.btn','.btn-accent','.btn-lg'],fields:[['text','Etiket']],def:()=>({text:'İncele →'})},
+ card:{ico:ic('plus',14),name:'Card',desc:'One Bootstrap card: image, title, text and button.',cls:['.card','.card-body','.card-title','.card-text'],fields:[['title','Kart başlığı'],['text','Kart metni','area']],def:()=>({title:'Kart Başlığı',text:CTX.cardX[0]})},
+ cards:{ico:ic('layout',14),name:'Card Row',desc:'A row of N cards — responsive grid (row + col-md).',cls:['<section>','.row','.col-md-4','.card'],fields:[['title','Bölüm başlığı'],['n','Kart sayısı (1-4)','num']],def:()=>({title:'Öne Çıkanlar',n:3})},
+ image:{ico:ic('img',14),name:'Image Area',desc:'A real image (upload or URL) or a clean placeholder; rich editor on the gear icon.',cls:['.container','<img>','object-fit:cover'],fields:[['caption','Açıklama']],def:()=>({caption:'Bir görsel alanı',src:'',url:''})},
+ avatar:{ico:ic('user',14),name:'Avatar',desc:'Circular profile picture — placeholder or uploaded photo.',cls:['.rounded-circle','.mx-auto','<img>'],fields:[['caption','İsim / açıklama']],def:()=>({caption:'Takımdan biri',src:'',url:''})},
+ features:{ico:ic('spark',14),name:'Features',desc:'Three feature cells with numbers or icons — product highlights.',cls:['.row','.col-md-4','.text-center','.p-4'],fields:[['title','Bölüm başlığı']],def:()=>({title:'Neden Biz?'})},
+ gallery:{ico:ic('img',14),name:'Gallery',desc:'A responsive grid of images, with optional real photos.',cls:['.row','.col-md-4','<img>'],fields:[['title','Bölüm başlığı']],def:()=>({title:'Galeri',imgs:[]})},
+ pricing:{ico:ic('price',14),name:'Pricing',desc:'Three pricing plans with a highlighted middle card.',cls:['.row','.col-md-4','.card','.text-center'],fields:[['title','Bölüm başlığı']],def:()=>({title:'Fiyatlandırma'})},
+ form:{ico:ic('msg',14),name:'Contact Form',desc:'Bootstrap contact form: name, e-mail, message.',cls:['.form-label','.form-control','.btn-primary'],fields:[['title','Form başlığı']],def:()=>({title:'Bize Yazın'})},
+ alert:{ico:ic('alert',14),name:'Bilgi Kutusu',desc:'An eye-catching notice band — the .alert family (info, warning…).',cls:['.alert','.alert-info'],fields:[['text','Mesaj']],def:()=>({text:'Bu bir bilgi kutusu! Son çizginle eklendi '})},
+ divider:{ico:ic('minus',14),name:'Ayraç',desc:'A thin rule or wavy transition that separates sections (hr).',cls:['hr (stilize)','özel SVG dalga'],fields:[['wave','Dalgalı mı? (evet/hayır)']],def:()=>({wave:'hayır'})},
+ video:{ico:ic('play',14),name:'Video',desc:'Video area — paste a YouTube or MP4 link on the gear icon.',cls:['.container','<video> / <iframe>','aspect-ratio'],fields:[['url','Video linki (YouTube veya mp4)'],['caption','Açıklama']],def:()=>({url:'',caption:'Bir video alanı'})},
+ map:{ico:ic('pin',14),name:'Map',desc:'Google Maps embed driven by your Site Settings address.',cls:['.container','<iframe>','loading=lazy'],fields:[['q','Adres / konum'],['zoom','Yakınlaştırma (3-19)','num']],def:()=>({q:'',zoom:14})},
+ wa:{ico:ic('phone',14),name:'WhatsApp Butonu',desc:'A floating wa.me chat button at bottom-right: type your number, get messages with one tap.',cls:['a.wa-float','wa.me linki','position:fixed'],fields:[['phone','Numara (90… ile)'],['msg','Hazır mesaj']],def:()=>({phone:'905555555555',msg:'Merhaba! Sitenizden yazıyorum '})},
+ share:{ico:ic('users',14),name:'Sosyal Paylaşım',desc:'Share buttons for X, Facebook, WhatsApp, LinkedIn and e-mail — set the address here or in Site Settings.',cls:['.share-row','twitter intent','sharer.php'],fields:[['title','Başlık'],['url','Paylaşım adresi (boş = site adresi)']],def:()=>({title:'Bu sayfayı paylaş:',url:'',items:{x:{on:true,url:''},fb:{on:true,url:''},wa:{on:true,url:''},li:{on:true,url:''},mail:{on:true,url:''}}})},
+ links:{ico:ic('globe',14),name:'Link Butonları',desc:'A row of custom link buttons: label, address, color. PDF, catalog, shop, WhatsApp — anything.',cls:['.share-row','.btn varyantları'],fields:[['title','Başlık (opsiyonel)']],def:()=>({title:'',items:[{label:'Katalog (PDF)',url:'#',style:'sun'},{label:'Mağazam',url:'https://',style:'mint'}]})},
+ html:{ico:ic('code',14),name:'Özel HTML',desc:'Embed your own HTML directly: tables, badges, embeds — anything. Advanced playground!',cls:['.container','ham HTML'],fields:[['code','HTML kodu','area']],def:()=>({code:'<h3 class="sec-title">Özel bölüm</h3>\n<p>Buraya kendi HTML\'ini yaz — sayfaya gömülür!</p>'})},
+ frame:{ico:ic('layout',14),name:'Kapsayıcı Kutu',desc:'The heart of nesting! Pieces drawn inside become its children — a nested div container.',cls:['<section>','.container','iç içe div'],fields:[['title','Kutu başlığı (opsiyonel)']],def:()=>({title:''})},
+ aside:{ico:ic('layout',14),name:'Yan Panel',desc:'Main content with a side note panel: HTML5 <aside> with a col-md-8/4 grid.',cls:['<aside>','.row','.col-md-8','.col-md-4'],fields:[['title','Panel başlığı'],['text','Panel metni','area'],['main','Ana içerik','area']],def:()=>({title:'Yan Not',text:'Aside, ana içeriğin yanında duran destekleyici paneldir. HTML5 anlamsal etiketlerin en sevimlisi! ',main:'Burada ana içerik akar. Karala, çizdiğin sayfayı otomatik olarak anlamsal HTML5 yapısına döker: <header>, <nav>, <section>, <aside> ve <footer>. Tarayıcılar, ekran okuyucular ve arama motorları bunu çok sever!'})},
+ footer:{ico:ic('layout',14),name:'Alt Bilgi',desc:'The closing band — HTML5 footer: brand, text and social area.',cls:['<footer>','.container','.text-center'],fields:[['brand','Marka'],['text','Metin']],def:()=>({brand:'My Page',text:'El çizimiyle üretildi Karala Builder © 2026'})},
+ row:{ico:'',name:'Yan Yana Satır',desc:'Aynı hizaya çizdiğin parçaların birleşimi: .row ızgarası içinde sütunlar.',cls:['.row','.g-4','.col-12','.col-md-*'],fields:[],def:()=>({})},
+};
+const GROUPABLE=['card','image','avatar','button'];
+const HINTS=[['▬','Üstte ince + geniş dikdörtgen','Menü '],['▭','Büyük dikdörtgen','Kart '],['▢','Küçük dikdörtgen','Buton '],['⌃','Çatı işareti','Hero '],['△','Üçgen','Görsel '],['◯','Daire / oval','Avatar '],['','Tik işareti','Buton '],['→','Ok','Bilgi kutusu '],['','Yıldız','Özellikler '],['▾','“V” harfi','Form '],['―','Yatay çizgi','Ayraç '],['〜','Dalga / zikzak','Dalgalı ayraç '],['','Çarpı (parçanın üstüne)','Sil ']];
+
+/* ═══════════ 3b) SITE AYARLARI (SEO + sosyal) — dışa aktarıma işlenir ═══════════ */
+const SITE={title:'My Karala Page',desc:'A page I designed by drawing',keys:'drawing, bootstrap, page builder',url:'https://site-adresin.com',og:'',fav:'',theme:'#2563eb',lang:'en',docType:'web',
+ socials:{whatsapp:'',instagram:'',x:'',facebook:'',youtube:'',linkedin:'',email:''}};
+function socURL(k,v){v=String(v||'').trim().replace(/^@/,'');if(!v)return'';
+ switch(k){case 'whatsapp':return'https://wa.me/'+v.replace(/\D/g,'');case 'instagram':return'https://instagram.com/'+v;
+ case 'x':return'https://x.com/'+v;case 'facebook':return'https://facebook.com/'+v;
+ case 'youtube':return'https://youtube.com/'+v;case 'linkedin':return'https://linkedin.com/'+(v.startsWith('in/')||v.startsWith('company/')?v:'in/'+v);
+ case 'email':return'mailto:'+v;}return'';}
+const SOC_ICON={whatsapp:'',instagram:'',x:'',facebook:'',youtube:'▶️',linkedin:'',email:''};
+
+/* ═══════════ 3c) ÇİFT DİL (TR ⇄ EN) ═══════════ */
+let LANG='en';
+const L={
+tr:{
+ hdrSim:'Simülasyon',hdrGuide:'Şablon & Kısayollar',hdrDemo:'Örnek',hdrSet:'Ayarlar',hdrReset:'Sıfırla',hdrCode:'⟨/⟩ HTML Al',
+ sideTitle:'Sayfa Bileşenleri',sideTip:'Her parçanın altında kullandığı <b>Bootstrap sınıfları</b> yazar — çizerken öğren!',
+ emptyT:'Henüz bomboş!',emptyB:'<b>Çiz</b> ile karala ya da palet çiplerine dokun — gerisi bende! ',
+ prevTitle:'Canlı Önizleme',devDesk:'Masaüstü',devMob:'Telefon',fab:'Çiz',fabEdit:'Yerleşim',
+ shtTitle:'Çizim Alanı',statIdle:'hazır — çizmeye başlayabilirsiniz',
+ cmdPh:'Hızlı komut yazın: menü: Marka | A, B · h1: Başlık · button: Learn more …',cmdAdd:'Ekle',convert:'Sayfaya Dönüştür',
+ hintsBtn:'Şekiller',doneBtn:'Bitti',hintHead:'Şekil Kısayolları',
+ onbSub:'Okan Kaplan\u2019ın el çizimi stüdyosuna hoş geldin! Karalamanı <b>gerçek Bootstrap sitesine</b> çeviririm — dakikalar içinde! Üç yolun var:',
+ onb1:'<b>1 · Ekranda çiz.</b> “Çiz” de, alttan tam ekran tuval açılır. Kutuyu sürükle, köşesinden boyutlandır, başka kutunun içine çiz → <b>iç içe geçer</b>!',
+ onb2:'<b>2 · Parça paleti + hızlı komutlar.</b> Şeritten ya da sol panelden parça ekle; satırına “menü: Markam | A, B” yaz — anında parçaya döner.',
+ onb3:'<b>3 · Yayınla.</b> Canlı önizlemeye bak, metinleri düzenle, <b>tam HTML</b>\u2019i kopyala/indir.',
+ obGuide:'Önce Şablonu Göster',obStart:'Hadi Çizelim ',obTour:'Tur At',
+ gTitle:'Tasarım Şablonu, Kısayollar & Bootstrap Rehberi',g1:'1 · Çizim Kısayolları (ekran veya kağıt — aynı alfabe!)',g2:'2 · Hızlı Komutlar (tuval altındaki satırına yaz)',g3:'3 · Bootstrap Bileşen Rehberi (neler kullanılıyor?)',gClose:'Got it — let me start',
+ codeTitle:'⟨/⟩ Tam HTML (Bootstrap 5)',codeNote:'Bu dosya tek başına çalışır: Bootstrap 5.3 CDN bağlı, SEO meta + sosyal bağlantılar + scrollspy + yukarı çık düğmesi gömülü. Kaydet → yayınla → bitti!',
+ copy:'Kopyala',dl:' site.html indir',
+ setTitle:'Site Ayarları & SEO',setSeoH:'SEO & Genel',setSocH:'Sosyal & WhatsApp (footer\u2019da çıkar)',setSave:'Kaydet ',
+ fTitle:'Page title (title)',fUrl:'Site adresi (canonical URL)',fDesc:'Açıklama (meta description)',fKeys:'Anahtar kelimeler (virgülle)',fOg:'OG görsel URL (opsiyonel)',fFav:'Favicon ',fTheme:'Tema rengi',fLang:'Sayfa dili',siteH:'Site Bilgileri (SEO)',siteMore:'Tümü ',soWhats:'WhatsApp (905…)',soInsta:'Instagram',soX:'X / Twitter',soFB:'Facebook',soYT:'▶️ YouTube',soLI:'LinkedIn',soMail:'E-posta',
+ setNote:'Değişiklikler anında önizlemeye ve HTML çıktısının <code>&lt;head&gt;</code> kısmına (SEO meta + OG etiketleri + favicon) işlenir. Scrollspy menü ve "yukarı çık" düğmesi de otomatik eklenir!',
+ tourSkip:'Atla ',tourBack:'‹ Geri',tourNext:'İleri ›',tourDone:'Bitti ',popOkG:'Tamam ',peek:'Gözat',peekTitle:'Gözat — dönüştürmeden önizle',peekNote:'Bu bir TASLAK görünümü — sayfana henüz uygulanmadı.',peekBack:'↩️ Çizmeye devam',peekApply:'Dönüştür &amp; Uygula',prjBtn:'Proje',prjTitle:'Proje — Kaydet & Aç',prjDesc:'Çalışmanı <b>.json</b> dosyası olarak indir — sonra başka gün geri açıp kaldığın yerden devam et. İçinde sayfa parçaları ve site ayarları saklanır.',prjSave:'Projeyi Kaydet (.json)',prjSaveSub:'Bilgisayarına/telefonuna iner — müşterine de gönderebilirsin',prjOpen:'Proje Aç (.json)',prjOpenSub:'Önceden kaydedilmiş bir proje dosyasını geri yükle',prjNote:'Ayrıca her değişiklik bu tarayıcıya otomatik kaydedilir — JSON, taşımak/yedeklemek içindir.',
+ tour1:'Her şey bu düğmeyle başlar: <b>Çiz</b>. Alttan tam ekran tuval açılır.',
+ tour2:'Burası tuval! Kutu çiz → kart, çatı çiz → hero, tik → buton olur. İstersen <b>Simülasyon</b> ile otomatik çizimi izle!',
+ tour3:'Araç çubuğu: renkler, kalınlık, silgi, ↶ geri al ve Şekiller sözlüğü.',
+ tour4:'Çizim bitince <b>Sayfaya Dönüştür</b>: aynı hizadakiler yan yana, büyük kutunun içindekiler İÇ İÇE yerleşir!',
+ tour5:'Sol panel: sayfanın <b>ağaç listesi</b>. Metinleri düzenle, ⠿ tutamacından sürükle → sırala ya da kutunun İÇİNE bırak!',
+ tour6:'Parça paleti: tıkla → parça tuvalde belirir! tutup sürükle, ⤡ köşesinden çekerek boyutlandır, ile sil. Sonra Sayfaya Dönüştür. Video, Harita, WhatsApp, Paylaşım burada!',
+ tour7:'Canlı önizleme: Bootstrap 5 görünümü. /düğmeleriyle cihaz genişliğini test et.',
+ tour8:'Proje düğmesi: çalışmanı JSON dosyası olarak KAYDET — sonra DOSYADAN AÇ. İşin yarıda kalmaz!',
+ tour9:'Ayarlar: SEO başlığı/açıklaması, site adresi, favicon, tema rengi ve tüm sosyal linkler buradan.',
+ tour10:'⟨/⟩ HTML Al: tek dosyalık, SEO + sosyal + scrollspy + yukarı çık düğmeli siteyi indir. Yayına hazır! ',
+},
+en:{
+ hdrSim:'Simulation',hdrGuide:'Template & Shortcuts',hdrDemo:'Sample',hdrSet:'Settings',hdrReset:'Reset',hdrCode:'⟨/⟩ Get HTML',
+ sideTitle:'Page Components',sideTip:'Each piece lists its <b>Bootstrap classes</b> below — learn while drawing!',
+ emptyT:'All empty!',emptyB:'Draw with <b>Draw</b> or tap the palette chips — I do the rest! ',
+ prevTitle:'Live Preview',devDesk:'Desktop',devMob:'Phone',fab:'Draw',fabEdit:'Layout',
+ shtTitle:'Drawing Canvas',statIdle:'komut pending… draw something!',
+ cmdPh:'Hızlı command: menu: Brand | A, B · h1: Title · button: More …',cmdAdd:'Add',convert:'Convert to Page',
+ hintsBtn:'Shapes',doneBtn:'Done',hintHead:'Hızlı Shapes',
+ onbSub:'Welcome to <b>Okan Kaplan</b>\u2019s sketch studio! it turns your drawings into a <b>publish-ready Bootstrap page</b> — in minutes. Three ways to start:',
+ onb1:'<b>1 · Draw on screen.</b> Hit “Draw”; a fullscreen canvas slides up from the bottom. Drag boxes, resize from the corner, draw inside another box → <b>it nests</b>!',
+ onb2:'<b>2 · Component palette + komut commands.</b> Tap chips from the strip or sidebar; type “menu: My Brand | A, B” in the box — it turns into pieces instantly.',
+ onb3:'<b>3 · Publish.</b> Watch the live preview, edit texts, copy/download the <b>full HTML</b>.',
+ obGuide:'Show Template First',obStart:'Let\u2019s Draw ',obTour:'Take the Tour',
+ gTitle:'Design Template, Shortcuts & Bootstrap Guide',g1:'1 · Drawing Shortcuts (screen or paper — same alphabet!)',g2:'2 · Hızlı Commands (type into the box under the canvas)',g3:'3 · Bootstrap Component Guide',gClose:'Got it, let\u2019s draw! ',
+ codeTitle:'⟨/⟩ Full HTML (Bootstrap 5)',codeNote:'This file works standalone: Bootstrap 5.3 CDN + SEO meta + social links + scrollspy nav + back-to-top button baked in. Save → publish → done!',
+ copy:'Copy',dl:' Download site.html',
+ setTitle:'Site Settings & SEO',setSeoH:'SEO & General',setSocH:'Social & WhatsApp (shown in footer)',setSave:'Save ',
+ fTitle:'Site title',fUrl:'Site address (canonical URL)',fDesc:'Description (meta description)',fKeys:'Keywords (comma separated)',fOg:'OG image URL (optional)',fFav:'Favicon ',fTheme:'Theme color',fLang:'Page language',siteH:'Site Info (SEO)',siteMore:'All ',soWhats:'WhatsApp (90…)',soInsta:'Instagram',soX:'X / Twitter',soFB:'Facebook',soYT:'▶️ YouTube',soLI:'LinkedIn',soMail:'Email',
+ setNote:'Changes instantly apply to the preview and the exported <code>&lt;head&gt;</code> (SEO meta + OG tags + favicon). Scrollspy nav and back-to-top button are added automatically!',
+ tourSkip:'Skip ',tourBack:'‹ Back',tourNext:'Next ›',tourDone:'Done ',popOkG:'Done ',peek:'Peek',peekTitle:'Peek — preview without converting',peekNote:'This is a DRAFT view — not applied to your page yet.',peekBack:'↩️ Back to drawing',peekApply:'Convert &amp; Apply',prjBtn:'Project',prjTitle:'Project — Save & Open',prjDesc:'Download your work as a <b>.json</b> file — reopen it another day and continue where you left off. It stores the page pieces and site settings.',prjSave:'Save Project (.json)',prjSaveSub:'Downloads to your computer/phone — share it with your client too',prjOpen:'Open Project (.json)',prjOpenSub:'Restore a previously saved project file',prjNote:'Every change also auto-saves to this browser — JSON is for moving/backing up.',
+ tour1:'Everything starts with this button: <b>Draw</b>. A fullscreen canvas slides up from the bottom.',
+ tour2:'This is the canvas! Draw a box → card, a roof ⌃ → hero, tick → button. Or watch <b>Simulation</b> auto-draw!',
+ tour3:'Toolbar: colors, thickness, eraser, ↶ undo and the Shapes dictionary.',
+ tour4:'When done, hit <b>Convert to Page</b>: same-line pieces go side by side, items inside a big box get NESTED!',
+ tour5:'Left panel: your page as a <b>tree list</b>. Edit texts, drag by ⠿ → reorder or drop INTO a container!',
+ tour6:'Component palette: click → the piece lands on the canvas! drag it, ⤡ pull the corner to resize, delete it. Then press Convert. Video, Map, WhatsApp, Share live here!',
+ tour7:'Live preview with the Bootstrap 5 look. Test device widths with /.',
+ tour8:'Project button: SAVE your work as a JSON file — OPEN it later. Nothing gets lost!',
+ tour9:'Settings: SEO title/description, site URL, favicon, theme color and all your social links.',
+ tour10:'⟨/⟩ Get HTML: download a single-file site with SEO + social + scrollspy + back-to-top. Ready to publish! ',
+}};
+const T=k=>(L[LANG]&&L[LANG][k])||L.tr[k]||k;
+/* dinamik durum / toast cümleleri (TR/EN çifti) */
+const M={
+ welcome:['Hoş geldiniz. “Çiz” düğmesiyle taslak çizip sayfanızı dakikalar içinde oluşturun.','Welcome. Click “Draw” to sketch and build your page in minutes.'],
+ demo:['Örnek sayfa yüklendi — iç içe kutuya, haritaya ve sosyal butonlara göz at! Her şeyi sürükleyebilirsin ','Sample loaded — see the nested box, map & social buttons! Drag everything '],
+ copy:['Code copied!','Code copied!'],copyfail:['Could not copy — select and copy manually','Could not copy — please select manually '],
+ dl:[' site.html downloaded — SEO + socials + scrollspy included!',' site.html downloaded — SEO + social + scrollspy, ready to publish!'],
+ codeEmpty:['Draw something first, or load a template ','Draw something or load the sample first '],
+ resetDone:['Tertemiz bir tuval!','A fresh clean canvas!'],resetEmpty:['Zaten bomboş ','Already empty '],
+ undoNone:['Geri alınacak bir şey yok ','Nothing to undo '],
+ cmdErr:['Command not understood. E.g. h1: Hello · button: Learn more','Command not understood. e.g. h1: Hello · button: More'],
+ need:['Draw a few shapes first! ','Draw some shapes first! '],
+ pull:['Part lifted out of the box to top level.','⤴ Piece pulled out to top level.'],
+ moved:['taşındı — güzel yer!','moved — nice spot!'],
+ eraseNone:['no stroke found to remove','nothing found to erase'],
+ inkClear:['mürekkep temizlendi (bileşenler duruyor)','ink cleared (components kept)'],
+ xNone:['nothing underneath — left as scribble','nothing underneath — keeping it as scribble'],
+ unknown:['Not recognized — kept as a note. See the shape guide for hints!','Not recognized, kept as scribble. See Shapes!'],
+ popBlock:['Açılır pencere engellendi ','Popup window blocked '],
+ setSaved:['Ayarlar kaydedildi! SEO & sosyal bağlantılar sayfana işlendi ','Settings saved! SEO & social links baked into your page '],
+ noImg:['Önce bir fotoğraf yükle.','Upload a photo first.'],
+};
+const Tm=k=>M[k]?M[k][LANG==='en'?1:0]:k;
+/* COMP türlerinin EN adları */
+const COMP_EN={navbar:'Menu',hero:'Hero',heading:'Section Title',paragraph:'Paragraph',button:'Button',card:'Card',cards:'Card Row',image:'Image',avatar:'Avatar',features:'Features',gallery:'Gallery',pricing:'Pricing',form:'Contact Form',alert:'Notice Box',divider:'Divider',video:'Video',frame:'Container Box',aside:'Side Panel',footer:'Footer',row:'Inline Row',map:'Map',wa:'WhatsApp Button',share:'Social Share',links:'Link Buttons',html:'Custom HTML',team:'Team / Staff'};
+const CN=t=>{const k=typeof t==='string'?t:(t&&t.type);return (LANG==='en'&&COMP_EN[k])?COMP_EN[k]:(COMP[k]?COMP[k].name:k);};
+const HINTS_EN=[['▬','Thin wide box at top','Menu '],['▭','Big rectangle','Card '],['▢','Small rectangle','Button '],['⌃','Roof sign','Hero '],['△','Triangle','Image '],['◯','Circle / oval','Avatar '],['','Tick mark','Button '],['→','Arrow','Notice box '],['','Star','3 Features '],['▾','Letter “V”','Form '],['―','Long horizontal line','Divider '],['〜','Wave / zigzag','Wavy divider '],['','Cross over a piece','Delete ']];
+function hintRows(){const H=LANG==='en'?HINTS_EN:HINTS;return H.map(h=>`<span class="gl">${h[0]}</span><span>${h[1]} <b style="color:#2563eb">→ ${h[2]}</b></span>`).join('');}
+function applyLang(){
+ document.documentElement.lang=LANG;
+ $$('[data-i18n]').forEach(el=>{const k=el.dataset.i18n,v=T(k);
+ if(/Sub|^onb|^setNote|^codeNote|sideTip|DropT|emptyB/.test(k))el.innerHTML=v;else el.textContent=v;});
+ if(!ghostItems().length||true)setStatus(T('statIdle'));
+ $$('[data-i18n-ph]').forEach(el=>{el.placeholder=T(el.dataset.i18nPh);});
+ $('#langTR').classList.toggle('on',LANG==='tr');$('#langEN').classList.toggle('on',LANG==='en');
+ $('#hintGrid').innerHTML=hintRows();$('#guideGrid').innerHTML=hintRows();
+ if(typeof buildPalette==='function')buildPalette();
+ renderAll();
+}
+
+/* ═══════════ 4) BOOTSTRAP-BENZERİ MİNİ CSS (çevrimdışı önizleme) ═══════════ */
+const MINI_BOOT=`
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none}
+body{margin:0;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:#0f172a;line-height:1.65;background:#ffffff;-webkit-font-smoothing:antialiased}
+img,svg,video{max-width:100%}
+a{color:#2563eb}
+.container{width:100%;max-width:1100px;margin:0 auto;padding:0 18px}
+.row{display:flex;flex-wrap:wrap;margin:-12px}
+.row>*{padding:12px;width:100%}
+.col-12{flex:0 0 100%}
+@media(min-width:768px){
+ .col-md-3{flex:0 0 25%;max-width:25%}.col-md-4{flex:0 0 33.3334%;max-width:33.3334%}
+ .col-md-6{flex:0 0 50%;max-width:50%}.col-md-8{flex:0 0 66.6667%;max-width:66.6667%}
+ .col-md-10{flex:0 0 83.3334%;max-width:83.3334%}
+}
+.mx-auto{margin-left:auto;margin-right:auto}
+.text-center{text-align:center}.text-muted{color:#64748b}
+.fw-bold{font-weight:700}
+.lead{font-size:1.18rem;color:#475569}
+.display-5{font-size:clamp(2rem,4.4vw,3.05rem);font-weight:800;line-height:1.16;margin:0 0 .5rem;letter-spacing:-1.2px}
+.my-3{margin-top:1rem;margin-bottom:1rem}.my-4{margin-top:1.5rem;margin-bottom:1.5rem}
+.mb-2{margin-bottom:.5rem}.mb-3{margin-bottom:1rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:1rem}
+.py-3{padding-top:1.4rem;padding-bottom:1.4rem}.py-4{padding-top:2.2rem;padding-bottom:2.2rem}.py-5{padding-top:3.2rem;padding-bottom:3.2rem}
+.p-4{padding:1.5rem}
+.h-100{height:100%}
+.w-100{width:100%}
+.d-flex{display:flex}.align-items-center{align-items:center}.flex-wrap{flex-wrap:wrap}
+.btn{display:inline-block;padding:.7rem 1.4rem;border-radius:8px;font-weight:600;text-decoration:none;cursor:pointer;
+ border:1px solid #d1d5db;background:#fff;color:#0f172a;font-size:.98rem;line-height:1.25;
+ transition:background .15s,border-color .15s,transform .1s;font-family:inherit}
+.btn:hover{background:#f8fafc;border-color:#94a3b8}
+.btn-lg{font-size:1.08rem;padding:.9rem 1.9rem}
+.btn-sm{padding:.42rem .85rem;font-size:.88rem}
+.btn-primary{background:#2563eb;border-color:#1d4ed8;color:#fff}
+.btn-primary:hover{background:#1d4ed8}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;box-shadow:0 1px 2px rgba(15,23,42,.05)}
+.card-body{padding:1.25rem}
+.card-title{margin:0 0 .5rem;font-size:1.1rem;font-weight:700;letter-spacing:-.2px}
+.card-text{margin:0 0 .9rem;color:#475569;font-size:.96rem;line-height:1.65}
+.alert{border:1px solid #e2e8f0;border-radius:12px;padding:1rem 1.2rem;font-weight:500}
+.alert-info{background:#f8fafc;border-left:4px solid #2563eb;color:#1e3a8a}
+.form-label{display:block;font-weight:600;margin-bottom:.35rem;font-size:.92rem}
+.form-control{display:block;width:100%;padding:.75rem 1rem;border:1px solid #cbd5e1;border-radius:10px;font:inherit;font-size:.98rem;background:#fff;color:#0f172a}
+.form-control:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px #dbeafe}
+.nav{display:block}
+`;
+const THEME_CSS=`
+body{background:#ffffff;color:#0f172a;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif}
+.btn-accent{background:#2563eb;color:#fff;border-color:#1d4ed8}
+.btn-accent:hover{background:#1d4ed8;border-color:#1e40af}
+.btn-mint{background:#059669;color:#fff;border-color:#065f46}
+.btn-mint:hover{background:#047857}
+.btn-sun{background:#f59e0b;color:#1f2937;border-color:#b45309}
+.btn-sun:hover{background:#d97706;color:#fff}
+.btn-ghost{background:#fff;color:#0f172a;border-color:#cbd5e1}
+.btn-light{background:#fff;color:#0f172a;border-color:#cbd5e1}
+.cnav{position:sticky;top:0;z-index:5;background:rgba(255,255,255,.92);backdrop-filter:saturate(180%) blur(8px);border-bottom:1px solid #e2e8f0}
+.cnav-in{display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;padding-top:.85rem;padding-bottom:.85rem}
+.navbar-brand{font-size:1.12rem;font-weight:800;color:#0f172a;text-decoration:none;letter-spacing:-.3px}
+.nav-links{display:flex;gap:1.35rem;flex-wrap:wrap}
+.nav-link{color:#475569;text-decoration:none;font-weight:600;font-size:.95rem;padding:.25rem 0;border-bottom:2px solid transparent}
+.nav-link:hover{color:#2563eb}
+.hero{background:linear-gradient(135deg,#0b1220 0%,#111827 60%,#1f2937 100%);color:#f8fafc;position:relative;overflow:hidden}
+.hero-in{position:relative;padding:4.6rem 1rem 5rem;max-width:760px;margin:0 auto}
+.hero-badge{display:inline-block;background:rgba(255,255,255,.07);border:1px solid #334155;color:#93c5fd;padding:.28rem .9rem;border-radius:999px;font-weight:600;margin-bottom:1rem;font-size:.82rem;letter-spacing:.04em}
+.hero .lead{color:#cbd5e1}
+.sec-title{font-size:clamp(1.45rem,2.6vw,2.05rem);font-weight:800;margin:0 0 1.6rem;text-align:center;letter-spacing:-.6px}
+.sec-title::after{content:"";display:block;width:44px;height:4px;margin:.55rem auto 0;border-radius:4px;background:#2563eb}
+.lead-p{font-size:1.05rem;color:#475569;max-width:680px;line-height:1.75}
+.ph-box{border:1.5px dashed #cbd5e1;border-radius:12px;overflow:hidden;background:#f8fafc}
+.ph-cap{margin:.45rem 0 0;text-align:center;color:#94a3b8;font-size:.86rem;font-weight:500}
+.feat{background:#fff;border:1px solid #e2e8f0;border-radius:14px;box-shadow:0 1px 3px rgba(15,23,42,.06)}
+.feat-ico{font-size:1.05rem;font-weight:700;letter-spacing:.06em;width:58px;height:58px;margin:0 auto .9rem;display:flex;align-items:center;justify-content:center;background:#f1f5f9;border:1px solid #e5e7eb;border-radius:12px;color:#0f172a}
+.gal{border-radius:12px;overflow:hidden;border:1px solid #e2e8f0}
+.plan{background:#fff;border:1px solid #e2e8f0;border-radius:16px;box-shadow:0 1px 3px rgba(15,23,42,.06);position:relative;padding:1.6rem 1.2rem;text-align:center;height:100%}
+.plan.pop{border:2px solid #111827;box-shadow:0 10px 24px rgba(15,23,42,.10)}
+.pop-tag{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;border-radius:6px;padding:.12rem .8rem;font-weight:700;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase}
+.price{font-size:2.3rem;font-weight:800;margin:.35rem 0;letter-spacing:-1px}
+.prlist{list-style:none;padding:0;margin:0 0 1.2rem;text-align:left}
+.prlist li{padding:.42rem 0;border-bottom:1px solid #f1f5f9;font-size:.95rem;color:#334155}
+.hr-doodle{border:0;border-top:1px solid #e2e8f0;width:100%;margin:0 auto}
+.f-title{font-size:1.4rem;font-weight:800;margin:0 0 1.1rem;text-align:center;letter-spacing:-.4px}
+.form-card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;box-shadow:0 1px 3px rgba(15,23,42,.06);padding:1.8rem}
+.cfooter{background:#0b1220;color:#aeb9cc;margin-top:0}
+.f-brand{font-weight:800;font-size:1.1rem;color:#f8fafc}
+.cfooter p{margin:.45rem 0 0;opacity:.75}
+.f-social{font-size:1.2rem;letter-spacing:.4rem;margin-top:.6rem}
+.ava{display:block;margin:0 auto;border-radius:50%;border:1px solid #e2e8f0;background:#f1f5f9}
+.kstack{margin:.7rem 0 0}
+.kstack>*+*{margin-top:.7rem}
+.framebox{border:1.5px dashed #cbd5e1;border-radius:14px;background:#fbfcfe;padding:1.1rem}
+.framerow{display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-start}
+.framerow>*{flex:1 1 210px;min-width:190px}
+.vwrap{position:relative;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#0f172a;width:100%;border:1px solid #e2e8f0}
+.aside-panel{background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:1.2rem}
+.ok-credit{display:inline-block;margin:0 0 1.2rem;font-weight:500;font-size:.82rem;color:#94a3b8;text-decoration:none}
+.ok-credit b{color:#2563eb;font-weight:600}
+html{scroll-behavior:smooth}
+[id^=sec-]{scroll-margin-top:78px}
+.nav-link.active{color:#2563eb;font-weight:600;border-bottom-color:#2563eb}
+.to-top{position:fixed;right:20px;bottom:20px;z-index:70;width:42px;height:42px;border-radius:8px;border:1px solid #111827;background:#111827;font-size:1rem;font-weight:700;cursor:pointer;box-shadow:0 8px 20px rgba(15,23,42,.28);opacity:0;pointer-events:none;transform:translateY(8px);transition:.2s;font-family:inherit;color:#fff}
+.to-top.show{opacity:1;pointer-events:auto;transform:none}
+.wa-float{position:fixed;right:20px;bottom:78px;z-index:70;display:inline-flex;align-items:center;gap:.5rem;background:#22c55e;color:#fff;border-radius:999px;padding:.62rem 1.1rem;font-weight:700;text-decoration:none;box-shadow:0 8px 20px rgba(34,197,94,.32);font-family:inherit;font-size:.92rem}
+.wa-float:hover{transform:translateY(-2px)}
+.gmap{width:100%;height:340px;border:0;display:block}
+.mapbox{border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(15,23,42,.06)}
+.share-row{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap}
+.btn.s-x{background:#0f172a;color:#fff;border-color:#0f172a}
+.btn.s-fb{background:#1877F2;color:#fff;border-color:#1360c4}
+.btn.s-wa{background:#22c55e;color:#fff;border-color:#16a34a}
+.btn.s-li{background:#0A66C2;color:#fff;border-color:#0854a3}
+.btn.s-mail{background:#64748b;color:#fff;border-color:#475569}
+/* personel kartları */
+.team-card{transition:box-shadow .15s}
+.team-card:hover{box-shadow:0 8px 24px rgba(15,23,42,.10)}
+.t-avaw{width:88px;height:88px;margin:0 auto 12px;border-radius:50%;overflow:hidden;border:1px solid #e2e8f0;background:#eff6ff}
+.t-role{margin:.1rem 0 .7rem;color:#64748b;font-size:.9rem;font-weight:500}
+.t-mail{display:inline-flex;align-items:center;gap:.4rem;font-size:.87rem;color:#2563eb;text-decoration:none;font-weight:500}
+.t-mail:hover{text-decoration:underline}
+.t-mail svg{flex:none}
+.fsoc{display:inline-block;text-decoration:none;font-size:1.4rem;margin:0 .3rem;transition:transform .15s}
+.fsoc:hover{transform:translateY(-2px)}
+@media (max-width:768px){.nav-links{gap:.8rem}}
+@media print{
+ @page{size:A4;margin:12mm}
+ .cnav{position:static;backdrop-filter:none}
+ .to-top,.wa-float{display:none!important}
+ .hero{background:#fff;border-bottom:none}
+ section{break-inside:avoid}
+ .plan.pop{transform:none}
+ body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+`;
+
+/* scrollspy + yukarı çık: önizleme ve dışa aktarımda ortak */
+const SPY_HTML=`<button class="to-top" id="toTop" title="Back to top ↑" aria-label="Yukarı çık">⬆</button>`;
+const SPY_JS=`<script>(function(){
+ var t=document.getElementById('toTop');if(t){window.addEventListener('scroll',function(){t.classList.toggle('show',window.scrollY>380)},{passive:true});t.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'})});}
+ var links=[].slice.call(document.querySelectorAll('.nav-link[href^="#sec-"]'));
+ if('IntersectionObserver' in window&&links.length){
+ var map={};links.forEach(function(a){var k=a.getAttribute('href').slice(1);(map[k]=map[k]||[]).push(a)});
+ var io=new IntersectionObserver(function(es){es.forEach(function(e){
+ if(e.isIntersecting){links.forEach(function(a){a.classList.remove('active')});var arr=map[e.target.id];if(arr)arr.forEach(function(a){a.classList.add('active')})}
+ })},{rootMargin:'-35% 0px -58% 0px'});
+ links.forEach(function(a){var el=document.getElementById(a.getAttribute('href').slice(1));if(el)io.observe(el)});
+ }})();<\/script>`;
+
+/* ═══════════ 5) SAYFA MODELİ + HTML ÜRETİCİ (önizleme ve dışa aktarım ortak) ═══════════ */
+const model=[]; // {id,type,props,bbox?,children?}
+const history=[]; // geri alma kapanımları
+function pushHist(fn){history.push(fn);if(history.length>40)history.shift();}
+function newItem(type,props,bbox){return{id:nid(),type,props:Object.assign(COMP[type].def(),props||{}),bbox:bbox||null};}
+
+const colFor=n=>n<=1?12:n===2?6:n===3?4:3;
+/* v3: gerçek görsel desteği (yükle / URL) */
+function imgSrc(p){return ((p&&p.src)||'').trim()||((p&&p.url)||'').trim()||'';}
+function mediaImg(p,h){const s=imgSrc(p);return s?`<img src="${esc(s)}" alt="${esc(p.caption||'görsel')}" loading="lazy" style="width:100%;height:${h}px;object-fit:cover;display:block">`:svgIMG(h,p.caption);}
+function avatarImg(p,sz){const s=imgSrc(p);return s?`<img class="ava" src="${esc(s)}" alt="${esc(p.caption||'avatar')}" style="width:${sz}px;height:${sz}px;object-fit:cover">`:svgAva(sz);}
+/* v2: video + iç içe (nested) render yardımcıları */
+function svgPlay(){let holes='';for(let i=0;i<12;i++){holes+='<rect x="'+(8+i*53)+'" y="8" width="26" height="16" rx="3" fill="#ffffff" opacity="0.35"/><rect x="'+(8+i*53)+'" y="336" width="26" height="16" rx="3" fill="#ffffff" opacity="0.35"/>';}
+ return '<svg viewBox="0 0 640 360" style="position:absolute;inset:0;width:100%;height:100%;display:block;background:#0f172a" preserveAspectRatio="xMidYMid slice" aria-hidden="true">'+holes+'<circle cx="320" cy="176" r="52" fill="#2563eb" stroke="#ffffff" stroke-width="6"/><path d="M304 148 l52 28 -52 28 z" fill="#ffffff"/><text x="320" y="285" text-anchor="middle" font-size="22" font-weight="700" fill="#eef2f7">Videon burada oynar </text></svg>';}
+function videoInner(p){const u=(p.url||'').trim();
+ if(!u)return `<div class="vwrap">${svgPlay()}</div>`;
+ const yt=u.match(/(?:youtube\.com\/(?:watch\?[^#]*v=|shorts\/)|youtu\.be\/)([\w-]{6,})/);
+ if(yt)return `<div class="vwrap"><iframe src="https://www.youtube.com/embed/${yt[1]}" title="Video" allowfullscreen loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe></div>`;
+ return `<div class="vwrap"><video controls playsinline src="${esc(u)}" style="position:absolute;inset:0;width:100%;height:100%;background:#000"></video></div>`;}
+function childBlock(ch){const p=ch.props;
+ switch(ch.type){
+ case 'heading':return `<h5 class="card-title">${esc(p.text)}</h5>`;
+ case 'paragraph':return `<p class="card-text" style="margin:0">${esc(p.text)}</p>`;
+ case 'alert':return `<div class="alert alert-info" style="padding:.55rem .9rem">${esc(p.text)}</div>`;
+ case 'divider':return `<hr class="hr-doodle" style="width:100%">`;
+ case 'button':return `<div class="text-center"><a href="#" class="btn btn-accent">${esc(p.text)}</a></div>`;
+ case 'image':return `<div class="ph-box">${mediaImg(p,120)}</div>`;
+ case 'video':return videoInner(p);
+ case 'team':return `<div style="text-align:center"><span style="display:inline-flex;gap:8px;align-items:flex-end">${[0,1,2].map(()=>'<span style="width:42px;height:42px;display:inline-block"><svg viewBox="0 0 96 96" style="width:100%;height:100%"><circle cx="48" cy="48" r="46" fill="#eff6ff"/><circle cx="48" cy="38" r="16" fill="#7ba7e0"/><path d="M20 82 q28 -30 56 0 v6 H20 Z" fill="#7ba7e0"/></svg></span>').join('')}</span><p class="ph-cap">Team cards</p></div>`;
+ case 'avatar':return `<div class="text-center">${avatarImg(p,72)}<p class="ph-cap">${esc(p.caption)}</p></div>`;
+ default:return cellHTML(ch);
+ }
+}
+function childrenHTML(kids){return (kids&&kids.length)?`<div class="kstack">${kids.map(childBlock).join('')}</div>`:'';}
+function cardInner(it,h){const p=it.props;
+ return `<div class="card h-100">${svgIMG(h)}<div class="card-body"><h5 class="card-title">${esc(p.title)}</h5><p class="card-text">${esc(p.text)}</p>${childrenHTML(it.children)}<a href="#" class="btn btn-primary btn-sm">İncele →</a></div></div>`;}
+function cellHTML(ch){ // satır içi hücre
+ const p=ch.props;
+ switch(ch.type){
+ case 'card':return cardInner(ch,120);
+ case 'image':return `<div class="ph-box">${mediaImg(p,170)}</div><p class="ph-cap">${esc(p.caption)}</p>`;
+ case 'video':return videoInner(p);
+ case 'avatar':return `<div class="text-center">${avatarImg(p,120)}<p class="ph-cap">${esc(p.caption)}</p></div>`;
+ case 'button':return `<div class="text-center py-3"><a href="#" class="btn btn-accent btn-lg">${esc(p.text)}</a></div>`;
+ default:return blockHTML(ch);
+ }
+}
+function blockHTML(it){
+ const p=it.props;
+ switch(it.type){
+ case 'navbar':{const links=String(p.links).split(',').map(s=>s.trim()).filter(Boolean).slice(0,5);
+ return `<nav id="top" class="nav navbar cnav"><div class="container cnav-in"><a class="navbar-brand" href="#top">${esc(p.brand)}</a><div class="nav-links">${links.map(l=>`<a class="nav-link" href="#">${esc(l)}</a>`).join('')}</div></div></nav>`;}
+ case 'hero':return `<header class="hero"><div class="hero-in text-center"><span class="hero-badge">El çiziminden doğdu</span><h1 class="display-5 fw-bold">${esc(p.title)}</h1><p class="lead my-4">${esc(p.subtitle)}</p><a href="#" class="btn btn-light btn-lg">${esc(p.btn)}</a></div>${WAVE}</header>`;
+ case 'heading':return `<section class="py-4"><div class="container"><h2 class="sec-title">${esc(p.text)}</h2></div></section>`;
+ case 'paragraph':return `<section class="py-3"><div class="container text-center"><p class="lead-p mx-auto">${esc(p.text)}</p></div></section>`;
+ case 'button':return `<div class="container text-center my-4"><a href="#" class="btn btn-accent btn-lg">${esc(p.text)}</a></div>`;
+ case 'alert':return `<div class="container my-3"><div class="alert alert-info">${esc(p.text)}</div></div>`;
+ case 'card':return `<section class="py-4"><div class="container"><div class="row"><div class="col-12 col-md-8 mx-auto">${cardInner(it,160)}</div></div></div></section>`;
+ case 'team':{let kisiler=String(p.people||'').split('\n').map(s=>s.trim()).filter(Boolean).slice(0,6);if(!kisiler.length)kisiler=['Ad Soyad — Rol — e-posta'];
+ const cl=Math.min(3,kisiler.length);let cells='';
+ kisiler.forEach((s,i)=>{const pr=s.split('—').map(x=>x.trim());const nm=pr[0]||('Kişi '+(i+1));const rl=pr[1]||'';const em=pr[2]||'';
+ cells+=`<div class="col-12 col-md-${colFor(cl)}"><div class="card h-100 team-card"><div class="card-body text-center"><div class="t-avaw"><svg viewBox="0 0 96 96" style="width:100%;height:100%;display:block" aria-hidden="true"><circle cx="48" cy="48" r="46" fill="#eff6ff"/><circle cx="48" cy="38" r="16" fill="#7ba7e0"/><path d="M20 82 q28 -30 56 0 v6 H20 Z" fill="#7ba7e0"/></svg></div><h5 class="card-title">${esc(nm)}</h5>${rl?`<p class="t-role">${esc(rl)}</p>`:''}${em?`<a class="t-mail" href="mailto:${esc(em)}"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg> ${esc(em)}</a>`:''}</div></div></div>`;});
+ return `<section class="py-5"><div class="container"><h2 class="sec-title">${esc(p.title)}</h2><div class="row g-4">${cells}</div></div></section>`;}
+ case 'cards':{const n=Math.min(4,Math.max(1,parseInt(p.n)||3));let cells='';
+ for(let i=0;i<n;i++)cells+=`<div class="col-12 col-md-${colFor(n)}"><div class="card h-100">${svgIMG(140)}<div class="card-body"><h5 class="card-title">${CTX.cardT[i%CTX.cardT.length]}</h5><p class="card-text">${CTX.cardX[i%CTX.cardX.length]}</p><a href="#" class="btn btn-primary btn-sm">İncele →</a></div></div></div>`;
+ return `<section class="py-5"><div class="container"><h2 class="sec-title">${esc(p.title)}</h2><div class="row g-4">${cells}</div></div></section>`;}
+ case 'image':return `<section class="py-4"><div class="container"><div class="${imgSrc(p)?'mapbox':'ph-box'}">${mediaImg(p,240)}</div><p class="ph-cap">${esc(p.caption)}</p></div></section>`;
+ case 'avatar':return `<section class="py-4"><div class="container text-center">${avatarImg(p,150)}<p class="ph-cap">${esc(p.caption)}</p></div></section>`;
+ case 'links':{const items=Array.isArray(p.items)?p.items:[];
+ const CLS={accent:'btn-accent',primary:'btn-primary',mint:'btn-mint',sun:'btn-sun',ghost:'btn-ghost'};
+ const btns=items.filter(b=>b&&(b.label||'').trim()).map(b=>`<a class="btn ${CLS[b.style]||'btn-ghost'}" href="${esc(b.url||'#')}" target="_blank" rel="noopener">${esc(b.label)}</a>`).join('');
+ return `<section class="py-4"><div class="container text-center">${p.title?`<h5 class="card-title mb-3">${esc(p.title)}</h5>`:''}<div class="share-row">${btns||'<span class="ph-cap">Düğme eklemek için düzenle</span>'}</div></div></section>`;}
+ case 'html':return `<section class="py-4"><div class="container">${p.code||''}</div></section>`;
+ case 'features':{const cells=CTX.feat.map(f=>`<div class="col-12 col-md-4"><div class="feat text-center p-4 h-100"><div class="feat-ico">${f[0]}</div><h5 class="card-title">${f[1]}</h5><p class="card-text mb-2">${f[2]}</p></div></div>`).join('');
+ return `<section class="py-5"><div class="container"><h2 class="sec-title">${esc(p.title)}</h2><div class="row g-4">${cells}</div></div></section>`;}
+ case 'gallery':{const imgs=Array.isArray(p.imgs)?p.imgs.filter(Boolean):[];let cells='';
+ if(imgs.length){cells=imgs.map((s,i)=>`<div class="col-12 col-md-4"><div class="gal"><img src="${esc(s)}" alt="galeri ${i+1}" loading="lazy" style="width:100%;height:100%;min-height:180px;object-fit:cover;display:block"></div></div>`).join('');}
+ else{for(let i=0;i<6;i++)cells+=`<div class="col-12 col-md-4"><div class="gal">${svgTile(i)}</div></div>`;}
+ return `<section class="py-5"><div class="container"><h2 class="sec-title">${esc(p.title)}</h2><div class="row g-4">${cells}</div></div></section>`;}
+ case 'pricing':{const cells=CTX.plan.map((pl,i)=>`<div class="col-12 col-md-4"><div class="plan ${i===1?'pop':''}">${i===1?'<span class="pop-tag">POPÜLER </span>':''}<h5 class="card-title">${pl[0]}</h5><div class="price">${pl[1]}</div><ul class="prlist">${pl[2].map(x=>`<li>${x}</li>`).join('')}</ul><a href="#" class="btn ${i===1?'btn-accent':'btn-primary'} w-100">Seç</a></div></div>`).join('');
+ return `<section class="py-5"><div class="container"><h2 class="sec-title">${esc(p.title)}</h2><div class="row g-4 align-items-center">${cells}</div></div></section>`;}
+ case 'form':return `<section class="py-5"><div class="container" style="max-width:640px"><form class="form-card" onsubmit="event.preventDefault();var b=this.querySelector('button');b.textContent='Gönderildi ';this.reset();setTimeout(function(){b.textContent='Gönder '},2200)"><h2 class="f-title">${esc(p.title)}</h2><div class="mb-3"><label class="form-label">Adın</label><input class="form-control" placeholder="Adını yaz"></div><div class="mb-3"><label class="form-label">E-posta</label><input type="email" class="form-control" placeholder="ornek@posta.com"></div><div class="mb-3"><label class="form-label">Mesajın</label><textarea class="form-control" rows="4" placeholder="Merhaba! "></textarea></div><button class="btn btn-primary w-100" type="submit">Gönder </button></form></div></section>`;
+ case 'video':return `<section class="py-4"><div class="container" style="max-width:780px">${videoInner(p)}<p class="ph-cap">${esc(p.caption)}</p></div></section>`;
+ case 'map':{const q=(p.q||'').trim();const inner=q?`<iframe class="gmap" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Harita" src="https://www.google.com/maps?q=${encodeURIComponent(q)}&z=${clamp(parseInt(p.zoom)||14,3,19)}&output=embed"></iframe>`:svgMap();
+ return `<section class="py-4"><div class="container"><div class="mapbox">${inner}</div></div></section>`;}
+ case 'wa':{const digits=String(p.phone||'').replace(/\D/g,'')||'905555555555';
+ return `<a class="wa-float" href="https://wa.me/${digits}?text=${encodeURIComponent(p.msg||'')}" target="_blank" rel="noopener">WhatsApp</a>`;}
+ case 'share':{const u=encodeURIComponent((p.url||'').trim()||SITE.url||'https://ornek.com'),t=encodeURIComponent(SITE.title||'Karala');
+ const NET={x:['𝕏 Paylaş','s-x',v=>`https://twitter.com/intent/tweet?url=${v}&text=${t}`],fb:['Facebook','s-fb',v=>`https://www.facebook.com/sharer/sharer.php?u=${v}`],wa:['WhatsApp','s-wa',v=>`https://wa.me/?text=${t}%20${v}`],li:['LinkedIn','s-li',v=>`https://www.linkedin.com/sharing/share-offsite/?url=${v}`],mail:['E-posta','s-mail',v=>`mailto:?subject=${t}&body=${v}`]};
+ const I=Object.assign({},COMP.share.def().items,(p.items&&typeof p.items==='object')?p.items:{});
+ const btns=Object.keys(NET).filter(k=>I[k]&&I[k].on!==false).map(k=>{const c=(I[k].url||'').trim();return`<a class="btn btn-sm ${NET[k][1]}" target="_blank" rel="noopener" href="${esc(c||NET[k][2](u))}">${NET[k][0]}</a>`;}).join('');
+ return `<section class="py-4"><div class="container text-center"><h5 class="card-title mb-3">${esc(p.title)}</h5><div class="share-row">${btns}</div></div></section>`;}
+ case 'frame':{const kids=(it.children&&it.children.length)?it.children.map(childBlock).join(''):'<p class="ph-cap" style="width:100%">İçine parçalar çiz ya da listeden sürükle — yuva boş!</p>';
+ return `<section class="py-4"><div class="container"><div class="framebox">${p.title?`<div class="f-title" style="text-align:left;margin:0 0 .9rem">${esc(p.title)}</div>`:''}<div class="framerow">${kids}</div></div></div></section>`;}
+ case 'aside':return `<section class="py-5"><div class="container"><div class="row g-4"><div class="col-12 col-md-8"><p class="lead-p" style="max-width:none">${esc(p.main)}</p></div><aside class="col-12 col-md-4"><div class="aside-panel h-100"><h5 class="card-title">${esc(p.title)}</h5><p class="card-text" style="margin:0">${esc(p.text)}</p></div></aside></div></div></section>`;
+ case 'divider':return (p.wave==='evet'||p.wave===true)?`<div class="container py-3">${zigSVG()}</div>`:`<div class="container my-4"><hr class="hr-doodle"></div>`;
+ case 'row':{const n=it.children.length;const cells=it.children.map(c=>`<div class="col-12 col-md-${colFor(n)}">${cellHTML(c)}</div>`).join('');
+ return `<section class="py-5"><div class="container"><div class="row g-4 align-items-center">${cells}</div></div></section>`;}
+ case 'footer':{const links=Object.keys(SOC_ICON).map(k=>{const u=socURL(k,SITE.socials[k]);return u?`<a class="fsoc" href="${esc(u)}" target="_blank" rel="noopener" title="${k}">${SOC_ICON[k]}</a>`:'';}).filter(Boolean).join('')||'';
+ return `<footer class="cfooter text-center"><div class="container py-4"><div class="f-brand">${esc(p.brand)}</div><p>${esc(p.text)}</p><div class="f-social">${links}</div></div></footer>`;}
+ }
+ return '';
+}
+function orderedItems(){
+ const fin=model.filter(i=>!i.bbox);
+ const ink=model.filter(i=>i.bbox).slice().sort((a,b)=>a.bbox.cy-b.bbox.cy);
+ const all=fin.concat(ink);
+ return all.slice().sort((a,b)=>((a.type==='navbar')?0:1)-((b.type==='navbar')?0:1)||all.indexOf(a)-all.indexOf(b));
+}
+const slugish=s=>String(s||'').toLowerCase().replace(/ç/g,'c').replace(/ğ/g,'g').replace(/ı/g,'i').replace(/ö/g,'o').replace(/ş/g,'s').replace(/ü/g,'u').replace(/[^a-z0-9]+/g,' ').trim();
+function titleOf(it){const p=it.props||{};
+ switch(it.type){case 'hero':return p.title;case 'heading':return p.text;
+ case 'cards':case 'features':case 'gallery':case 'pricing':case 'form':case 'frame':case 'aside':case 'share':case 'team':return p.title;
+ default:return '';}}
+function rewriteNavLinks(html,titles){
+ return html.replace(/<a class="nav-link" href="#">([\s\S]*?)<\/a>/g,(m,txt)=>{
+ const s=slugish(txt);let id=titles[s];
+ if(!id)for(const k in titles){if(k&&s&&(k.includes(s)||s.includes(k))){id=titles[k];break;}}
+ if(!id&&/^(anasayfa|home|start|giris|top)/.test(s))id='top';
+ return `<a class="nav-link" href="${id?'#'+id:'#'}">${txt}</a>`;
+ });
+}
+function buildPageHTML(){
+ const its=orderedItems();
+ if(!its.length)return `<section class="py-5"><div class="container text-center" style="padding:6rem 1rem"><div style="font-size:3.4rem"></div><h2 class="sec-title" style="margin-top:1rem">${esc(T('emptyT'))}</h2><p class="lead-p mx-auto">ile çiz ya da Parçalar şeridinden ekle — sürükle, boyutlandır, yayınla!</p></div></section>`;
+ /* scrollspy: her bloğa sec-N kimliği, menü bağlantılarını başlıklarla eşleştir */
+ const idOf={};let n=0;
+ its.forEach(it=>{if(it.type!=='navbar'){n++;idOf[it.id]='sec-'+n;}});
+ const titles={};its.forEach(it=>{const t=slugish(titleOf(it));if(t&&idOf[it.id])titles[t]=idOf[it.id];});
+ return its.map(it=>{
+ let html=blockHTML(it);
+ if(it.type==='navbar')html=rewriteNavLinks(html,titles);
+ if(idOf[it.id])html=html.replace(/^<(\w+)/,'<$1 id="'+idOf[it.id]+'"');
+ return html;
+ }).join('\n')+`\n<div class="container text-center" style="padding-bottom:1.4rem"><a class="ok-credit" href="#" onclick="return false">Karala Builder ile çizildi · <b>Okan Kaplan</b></a></div>`;
+}
+
+/* ═══════════ 6) ÖNİZLEME + LİSTE PANELİ ═══════════ */
+const frame=$('#kFrame');
+function previewDoc(){return `<!DOCTYPE html><html lang="${esc(SITE.lang||'tr')}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Önizleme</title><style>${MINI_BOOT}\n${THEME_CSS}\n.btn-primary{background:${esc(SITE.theme||'#2563eb')};border-color:#0f172a;color:#fff}</style></head><body>${buildPageHTML()}${SPY_HTML}${SPY_JS}</body></html>`;}
+const renderPreview=debounce(()=>{frame.srcdoc=previewDoc();},70);
+
+const fieldLabel=(t,n)=>`<label>${esc(t)}</label>`;
+function fieldsHTML(it,scope){ // scope: 'list' | 'pop'
+ const meta=COMP[it.type];if(!meta)return '';
+ return meta.fields.map((f,i)=>{
+ const[k,lab,tp]=f;const val=it.props[k]??'';
+ if(tp==='area')return `<div>${fieldLabel(lab)}<textarea rows="2" data-scope="${scope}" data-id="${it.id}" data-k="${k}">${esc(val)}</textarea></div>`;
+ if(tp==='num')return `<div>${fieldLabel(lab)}<input type="number" min="1" max="4" value="${esc(val)}" data-scope="${scope}" data-id="${it.id}" data-k="${k}"></div>`;
+ return `<div>${fieldLabel(lab)}<input value="${esc(val)}" data-scope="${scope}" data-id="${it.id}" data-k="${k}"></div>`;
+ }).join('');
+}
+function kidHTML(ch){
+ const m=COMP[ch.type];
+ return `<div class="k-kid" data-iid="${ch.id}" draggable="true">
+ <div class="k-kid-h"><span class="k-handle" title="Drag">⠿</span>└ ${m.ico} ${CN(ch.type)}
+ <span class="mini">${RICH_TYPES.includes(ch.type)?`<button data-rich="${ch.id}" title="Edit "></button>`:''}<button data-out="${ch.id}" title="Lift out of the box">⤴ dışa</button><button data-del="${ch.id}" title="Sil"></button></span></div>
+ <div class="k-fields">${fieldsHTML(ch,'list')}</div></div>`;
+}
+function renderList(){
+ const ul=$('#kList');const its=orderedItems();
+ $('#kCount').textContent=its.length;
+ $('#kEmpty').classList.toggle('d-none',its.length>0);
+ ul.innerHTML=its.map((it,idx)=>{
+ const meta=COMP[it.type]||COMP.row;
+ const inkTag=it.bbox?' <span title="bound to canvas" style="font-size:.7rem"></span>':'';
+ const isCont=['frame','card'].includes(it.type);
+ let body;
+ if(it.type==='row'){
+ body=`<div class="k-fields"><div style="font-size:.8rem;font-weight:800;color:#64748b">${it.children.length} parça yan yana: ${it.children.map(c=>COMP[c.type].name).join(' + ')}</div><button class="kbtn sm" data-ungroup="${it.id}" type="button">Satırı çöz (tek tek düzenle)</button></div><div class="k-kids">${it.children.map(kidHTML).join('')}</div>`;
+ }else{
+ const kids=(it.children&&it.children.length)?`<div class="k-kids">${it.children.map(kidHTML).join('')}</div>`
+ :(isCont?`<div class="k-kids"><div style="font-size:.74rem;font-weight:800;color:#9a94c4">Buraya parça sürükle → içine yuvalansın!</div></div>`:'');
+ body=`<div class="k-fields">${fieldsHTML(it,'list')}</div>${kids}`;
+ }
+ return `<li class="k-item" data-iid="${it.id}" draggable="true">
+ <div class="k-item-h"><span class="k-handle" title="Drag to reorder / drop into a box">⠿</span>${meta.ico} ${CN(it.type)}${inkTag}${it.children&&it.children.length?` <span class="k-count" title="nested">${it.children.length}▾</span>`:''}
+ <span class="mv"><button data-mv="${it.id}|-1" ${idx===0?'disabled':''} title="Move up">▲</button><button data-mv="${it.id}|1" ${idx===its.length-1?'disabled':''} title="Move down">▼</button></span>
+ ${RICH_TYPES.includes(it.type)?`<button class="del" style="background:#dbeafe" data-rich="${it.id}" title="Edit media / links "></button>`:''}
+ <button class="del" data-del="${it.id}" title="Sil"></button>
+ </div>
+ ${body}
+ <div class="k-cls">${meta.cls.map(c=>`<code>${c}</code>`).join('')}</div>
+ </li>`;
+ }).join('');
+}
+function renderAll(){renderPreview();renderList();renderGhosts();saveState();}
+
+/* liste olayları (delegasyon) */
+$('#kList').addEventListener('input',e=>{
+ const el=e.target;if(!el.dataset.id)return;
+ const it=findItem(el.dataset.id);if(!it)return;
+ it.props[el.dataset.k]=el.value;renderPreview();renderGhosts();
+});
+$('#kList').addEventListener('click',e=>{
+ const t=e.target.closest('button');if(!t)return;
+ if(t.dataset.del){removeItem(t.dataset.del,true);}
+ else if(t.dataset.mv){const[id,d]=t.dataset.mv.split('|');moveItem(id,parseInt(d));}
+ else if(t.dataset.ungroup){ungroupRow(t.dataset.ungroup);}
+ else if(t.dataset.out){pullOut(t.dataset.out);}
+ else if(t.dataset.rich){richOpen(t.dataset.rich);}
+});
+/* — listede sürükle & bırak: sıralama + kutuya yuvalama (nested) — */
+let listDrag=null;
+function clearDropHints(){$$('#kList .drop-hint,#kList .nest-hint').forEach(x=>x.classList.remove('drop-hint','nest-hint'));}
+$('#kList').addEventListener('dragstart',e=>{
+ const li=e.target.closest('[data-iid]');if(!li)return;
+ listDrag={id:li.dataset.iid,parent:findParentOf(li.dataset.iid)?1:null};
+ li.classList.add('dragging');
+ try{e.dataTransfer.setData('text/plain',listDrag.id);e.dataTransfer.effectAllowed='move';}catch(_){}
+});
+$('#kList').addEventListener('dragover',e=>{
+ if(!listDrag)return;e.preventDefault();clearDropHints();
+ const li=e.target.closest('[data-iid]');
+ if(!li||li.dataset.iid===listDrag.id||li.dataset.pid)return;
+ const t=findItem(li.dataset.iid),me=findItem(listDrag.id);if(!t||!me)return;
+ const r=li.getBoundingClientRect(),rel=e.clientY-r.top;
+ const canNest=['frame','card'].includes(t.type)&&me.type!=='frame'&&me.type!=='card'&&me.type!=='row'&&!(me.children&&me.children.length)&&rel>46;
+ li.classList.add(canNest?'nest-hint':'drop-hint');
+});
+$('#kList').addEventListener('drop',e=>{
+ if(!listDrag)return;e.preventDefault();
+ const li=e.target.closest('[data-iid]');
+ if(!li||li.dataset.iid===listDrag.id){ if(!li&&listDrag.parent)pullOut(listDrag.id); }
+ else if(li.classList.contains('nest-hint'))nestInto(listDrag.id,li.dataset.iid);
+ else{const r=li.getBoundingClientRect();moveRelative(listDrag.id,li.dataset.iid,(e.clientY-r.top)>r.height/2);}
+ clearDropHints();listDrag=null;
+});
+$('#kList').addEventListener('dragend',()=>{clearDropHints();$$('#kList .dragging').forEach(x=>x.classList.remove('dragging'));listDrag=null;});
+function moveRelative(id,targetId,after){
+ if(id===targetId)return;
+ const d=detach(id);if(!d)return;
+ const tIdx=model.findIndex(i=>i.id===targetId);
+ if(tIdx>-1){model.splice(tIdx+(after?1:0),0,d.item);}
+ else{const p=findParentOf(targetId);if(p){const j=p.children.findIndex(c=>c.id===targetId);p.children.splice(j+(after?1:0),0,d.item);}else model.push(d.item);}
+ renderAll();
+}
+function nestInto(id,parentId){
+ if(id===parentId)return;
+ const parent=findItem(parentId),d=detach(id);
+ if(!parent||!d||!['frame','card'].includes(parent.type)){if(d&&!findItem(id))model.push(d.item);return;}
+ d.item.bbox=null;parent.children=parent.children||[];parent.children.push(d.item);
+ renderAll();burst(innerWidth/2,140,8);
+ toast(`“${CN(d.item.type)}” artık “${CN(parent.type)}” içinde — iç içe div! `);
+}
+function pullOut(id){
+ const parent=findParentOf(id);
+ const d=detach(id);if(!d)return;
+ if(parent){const i=model.indexOf(parent);model.splice(i+1,0,d.item);}
+ else model.push(d.item);
+ renderAll();toast('Part lifted out of the box to top level.');
+}
+function moveItem(id,d){
+ const fin=model.filter(i=>!i.bbox),ink=model.filter(i=>i.bbox);
+ const idx=fin.findIndex(i=>i.id===id);if(idx<0)return;
+ const j=idx+d;if(j<0||j>=fin.length)return;
+ const [it]=fin.splice(idx,1);fin.splice(j,0,it);
+ model.length=0;model.push(...fin,...ink);renderAll();
+}
+function removeItem(id,withHist){
+ const parent=findParentOf(id);
+ const d=detach(id);if(!d)return;
+ if(withHist)pushHist(()=>{
+ if(parent&&findItem(parent.id)){const p=findItem(parent.id);p.children=p.children||[];p.children.push(d.item);}
+ else model.push(d.item);
+ renderAll();
+ });
+ renderAll();toast(''+CN(d.item.type)+' removed');
+}
+/* ═══════════ ZENGİN DÜZENLEYİCİ: tıkla → modal'da medya/link/sosyal düzenle ═══════════ */
+const RICH_TYPES=['image','avatar','gallery','share','links'];
+let editId=null;
+function readImgFile(f,cb){
+ if(!f||!f.type||!f.type.startsWith('image/')){toast(LANG==='en'?'Not an image file':'Bu bir görsel dosyası değil');return;}
+ if(f.size>2*1048576){toast(LANG==='en'?'Over 2 MB — pick a smaller image (keeps the page light)!':'2 MB üstü — daha küçük bir görsel dene (sayfa hafif kalsın)!');return;}
+ const r=new FileReader();r.onload=()=>cb(r.result);r.readAsDataURL(f);
+}
+function richOpen(id){const it=findItem(id);if(!it||!RICH_TYPES.includes(it.type))return;editId=id;
+ $('#kEditTitle').textContent=(COMP[it.type].ico||'')+' '+CN(it.type)+(LANG==='en'?' — edit':' — düzenle');
+ drawRich(it);openModal('mEdit');
+}
+function drawRich(it){
+ const p=it.props||{};let h='';
+ if(it.type==='image'||it.type==='avatar'){
+ const s=imgSrc(p);
+ h=`<div class="k-net-row" style="align-items:flex-start">
+ ${s?`<img class="ed-big" src="${esc(s)}" alt="">`:'<div class="ed-big ed-empty"></div>'}
+ <div class="k-fields grow" style="min-width:210px">
+ <div><label>${LANG==='en'?'Image URL (or upload)':'Görsel URL (ya da yükle)'}</label><input id="edUrl" value="${esc(p.url||'')}" placeholder="https://…"></div>
+ <button class="kbtn mint" id="edUploadB" type="button">${LANG==='en'?'Upload file':'Dosya yükle'} <small>(≤2MB)</small></button>
+ ${s?`<button class="kbtn sm" id="edClear" type="button">${LANG==='en'?'Remove image':'Görseli kaldır'}</button>`:''}
+ <input type="file" id="edFile" accept="image/*" class="d-none">
+ </div></div>
+ <div class="k-note">${LANG==='en'?'Yüklenen görseller HTML dosyasının İÇİNE gömülür (tek dosya!) — internet bağımsız çalışır.':'Yüklenen görseller HTML dosyasının İÇİNE gömülür (tek dosya!) — internetsiz de çalışır.'}</div>`;
+ }else if(it.type==='gallery'){
+ const imgs=Array.isArray(p.imgs)?p.imgs:[];
+ h=`<b style="font-weight:900">${LANG==='en'?'Photos (click to remove)':'Fotoğraflar (kaldırmak için )'}</b>
+ <div class="ed-grid">${imgs.length?imgs.map((s,i)=>`<div class="ed-thumb"><img src="${esc(s)}" alt=""><button type="button" data-gdel="${i}"></button></div>`).join(''):'<span class="ph-cap">'+(LANG==='en'?'No photos yet — emoji placeholders show':'Henüz fotoğraf yok — emoji yer tutucular görünür')+'</span>'}</div>
+ <button class="kbtn mint" id="edGalB" type="button">${LANG==='en'?'Add photos (multi-select)':'Fotoğraf ekle (çoklu seçim)'}</button>
+ <input type="file" id="edGalF" accept="image/*" multiple class="d-none">`;
+ }else if(it.type==='share'){
+ const I=Object.assign({},COMP.share.def().items,(p.items&&typeof p.items==='object')?p.items:{});
+ const NETS=[['x','𝕏','X / Twitter'],['fb','','Facebook'],['wa','','WhatsApp'],['li','','LinkedIn'],['mail','','E-posta']];
+ h=`<b style="font-weight:900">${LANG==='en'?'Social buttons — tick to show, write your own link (blank = auto share link)':'Sosyal butonlar — işaretle göster, kendi linkini yaz (boş = otomatik paylaşım linki)'}</b><div style="height:8px"></div>`+
+ NETS.map(k=>`<div class="k-net-row"><input type="checkbox" data-net="${k[0]}" ${I[k[0]]&&I[k[0]].on!==false?'checked':''}><span class="k-net-ico">${k[1]}</span><b style="min-width:88px;font-size:.82rem">${k[2]}</b><input class="grow" data-neturl="${k[0]}" value="${esc(I[k[0]]?I[k[0]].url||'':'')}" placeholder="https://…"></div>`).join('')
+ +`<div class="k-note">${LANG==='en'?'Boş bırakırsan site adresinle (%u) otomatik paylaşım bağlantısı üretirim.':'Boş bırakırsan site adresinle otomatik paylaşım bağlantısı üretirim.'}</div>`;
+ }else if(it.type==='links'){
+ const items=Array.isArray(p.items)?p.items:[];
+ const STYLES=[['accent','Pembe'],['primary','Mor'],['mint','Turkuaz'],['sun','Sarı'],['ghost','Beyaz']];
+ h=`<b style="font-weight:900">${LANG==='en'?'Buttons':'Düğmeler'}</b><div style="height:8px"></div>`+
+ items.map((b,i)=>`<div class="k-net-row"><input style="width:150px" data-lk="${i}|label" value="${esc(b.label||'')}" placeholder="Etiket"><input class="grow" data-lk="${i}|url" value="${esc(b.url||'')}" placeholder="https://…"><select data-lk="${i}|style">${STYLES.map(s=>`<option value="${s[0]}" ${b.style===s[0]?'selected':''}>${s[1]}</option>`).join('')}</select><button class="kbtn sm" data-lmv="${i}|-1" ${i===0?'disabled':''} title="▲">▲</button><button class="kbtn sm" data-lmv="${i}|1" ${i===items.length-1?'disabled':''} title="▼">▼</button><button class="kbtn sm" data-ldel="${i}" title="Sil"></button></div>`).join('')
+ +`<button class="kbtn mint" id="edLAdd" type="button">${LANG==='en'?'Add button':'Düğme ekle'}</button>`;
+ }
+ $('#kEditBody').innerHTML=h;
+ wireRich(it);
+}
+function wireRich(it){
+ const p=it.props||{};
+ const refresh=()=>{renderPreview();renderList();renderGhosts();saveState();};
+ const redraw=()=>{drawRich(findItem(editId));};
+ const u=$('#edUrl');if(u)u.addEventListener('input',()=>{p.url=u.value;refresh();});
+ const ub=$('#edUploadB');if(ub)ub.addEventListener('click',()=>$('#edFile').click());
+ const uf=$('#edFile');if(uf)uf.addEventListener('change',e=>{const f=e.target.files[0];readImgFile(f,src=>{p.src=src;p.url='';refresh();redraw();toast(LANG==='en'?'Image embedded into the page!':'Görsel sayfaya gömüldü!');});e.target.value='';});
+ const uc=$('#edClear');if(uc)uc.addEventListener('click',()=>{p.src='';p.url='';refresh();redraw();});
+ const gb=$('#edGalB');if(gb)gb.addEventListener('click',()=>$('#edGalF').click());
+ const gf=$('#edGalF');if(gf)gf.addEventListener('change',e=>{
+ p.imgs=p.imgs||[];const files=[...e.target.files];let left=files.length;if(!left)return;
+ files.forEach(f=>readImgFile(f,src=>{p.imgs.push(src);if(--left===0){refresh();redraw();toast(LANG==='en'?`${p.imgs.length} photos in gallery`:`Galeride ${p.imgs.length} fotoğraf`);}}));
+ e.target.value='';});
+ $$('#kEditBody [data-gdel]').forEach(b=>b.addEventListener('click',()=>{p.imgs.splice(parseInt(b.dataset.gdel),1);refresh();redraw();}));
+ $$('#kEditBody [data-net]').forEach(c=>c.addEventListener('change',()=>{p.items=p.items||{};const k=c.dataset.net;p.items[k]=p.items[k]||{on:true,url:''};p.items[k].on=c.checked;refresh();}));
+ $$('#kEditBody [data-neturl]').forEach(iEl=>iEl.addEventListener('input',()=>{p.items=p.items||{};const k=iEl.dataset.neturl;p.items[k]=p.items[k]||{on:true,url:''};p.items[k].url=iEl.value;refresh();}));
+ $$('#kEditBody [data-lk]').forEach(el=>el.addEventListener('input',()=>{const[i,k]=el.dataset.lk.split('|');p.items=Array.isArray(p.items)?p.items:[];if(p.items[i]){p.items[i][k]=el.value;refresh();}}));
+ $$('#kEditBody [data-ldel]').forEach(b=>b.addEventListener('click',()=>{p.items.splice(parseInt(b.dataset.ldel),1);refresh();redraw();}));
+ $$('#kEditBody [data-lmv]').forEach(b=>b.addEventListener('click',()=>{const[i,d]=b.dataset.lmv.split('|').map(Number);const it2=p.items.splice(i,1)[0];p.items.splice(i+d,0,it2);refresh();redraw();}));
+ const la=$('#edLAdd');if(la)la.addEventListener('click',()=>{p.items=Array.isArray(p.items)?p.items:[];p.items.push({label:'Yeni link',url:'https://',style:'accent'});refresh();redraw();});
+}
+function ungroupRow(id){
+ const idx=model.findIndex(i=>i.id===id);if(idx<0||model[idx].type!=='row')return;
+ const row=model[idx];model.splice(idx,1,...row.children.map(c=>({...c,bbox:null})));
+ renderAll();toast('Row resolved — each piece is editable now');
+}
+
+/* ═══════════ 7) ÇİZİM MOTORU (tam ekran alt offcanvas) ═══════════ */
+const sheet=$('#kSheet'),wrap=$('#kCanvasWrap'),cv=$('#kInk'),ctx=cv.getContext('2d'),ghosts=$('#kGhosts');
+let strokes=[],cur=null,tool='pen',penCol='#0f172a',penW=6,pointerDownAt=0;
+function setStatus(t){$('#kStatus').textContent=trMsg(t);}
+function resizeCanvas(){
+ const r=wrap.getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1);
+ cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);
+ ctx.setTransform(dpr,0,0,dpr,0,0);redrawInk();renderGhosts();
+}
+const ro=new ResizeObserver(resizeCanvas);ro.observe(wrap);
+function openSheet(){sheet.classList.add('open');document.body.style.overflow='hidden';setTimeout(resizeCanvas,60);setStatus(T('statIdle'));}
+function closeSheet(){sheet.classList.remove('open');document.body.style.overflow='';closePop();}
+function smartCloseSheet(){ if(ghostItems().length){$('#kConvert').click();} else {closeSheet();renderAll();} }
+$('#kFab').addEventListener('click',()=>{burst(innerWidth-70,innerHeight-70,10);openSheet();});
+$('#sheetClose').addEventListener('click',smartCloseSheet);
+function drawStroke(st){
+ ctx.lineJoin='round';ctx.lineCap='round';ctx.strokeStyle=st.col;ctx.lineWidth=st.w;
+ const r=wrap.getBoundingClientRect();const pts=st.pts;if(pts.length<2){ctx.beginPath();ctx.arc(pts[0].x*r.width,pts[0].y*r.height,st.w/2,0,7);ctx.fillStyle=st.col;ctx.fill();return;}
+ ctx.beginPath();ctx.moveTo(pts[0].x*r.width,pts[0].y*r.height);
+ for(let i=1;i<pts.length-1;i++){const mx=(pts[i].x+pts[i+1].x)/2*r.width,my=(pts[i].y+pts[i+1].y)/2*r.height;ctx.quadraticCurveTo(pts[i].x*r.width,pts[i].y*r.height,mx,my);}
+ const l=pts[pts.length-1];ctx.lineTo(l.x*r.width,l.y*r.height);ctx.stroke();
+}
+function redrawInk(){ctx.clearRect(0,0,cv.width,cv.height);strokes.forEach(drawStroke);if(cur)drawStroke(cur);}
+function norm(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height};}
+cv.addEventListener('pointerdown',e=>{
+ cv.setPointerCapture(e.pointerId);const p=norm(e);pointerDownAt=performance.now();
+ cur={pts:[p],col:tool==='eraser'?'rgba(0,0,0,0)':penCol,w:penW,erase:tool==='eraser'};redrawInk();
+});
+cv.addEventListener('pointermove',e=>{
+ if(!cur)return;const p=norm(e);const l=cur.pts[cur.pts.length-1];
+ if(Math.hypot(p.x-l.x,p.y-l.y)<0.003)return;cur.pts.push(p);redrawInk();
+});
+cv.addEventListener('pointerup',e=>{
+ if(!cur)return;const st=cur;cur=null;redrawInk();
+ const dt=performance.now()-pointerDownAt;
+ const len=R1.plen(st.pts);
+ if(st.erase){eraseAt(st.pts);return;}
+ if(len<0.02&&dt<450){handleTap(st.pts[0],e);return;}
+ finishStroke(st);
+});
+function eraseAt(pts){
+ const gone=[];
+ strokes=strokes.filter(st=>{const hit=st.pts.some(q=>pts.some(p=>Math.hypot(p.x-q.x,p.y-q.y)<0.035));if(hit)gone.push(st);return !hit;});
+ if(gone.length){pushHist(()=>{strokes.push(...gone);redrawInk();});setStatus(''+gone.length+' stroke(s) removed');redrawInk();}
+ else setStatus('no stroke found to remove');
+}
+let unknownNotified=false;
+/* çok-darbeli jest birleştirme: ok çizimi (şaft + küçük okucu vuruşları) */
+let pendShaft=null;
+function bbOf(pts){let x0=1,y0=1,x1=0,y1=0;pts.forEach(p=>{if(p.x<x0)x0=p.x;if(p.x>x1)x1=p.x;if(p.y<y0)y0=p.y;if(p.y>y1)y1=p.y;});
+ const bb={w:x1-x0,h:y1-y0,cx:(x0+x1)/2,cy:(y0+y1)/2,x:x0,y:y0};return bb;}
+function endDist(a,b){const ends=[[a[0],b[0]],[a[0],b[b.length-1]],[a[a.length-1],b[0]],[a[a.length-1],b[b.length-1]]];
+ let m=9;ends.forEach(([p,q])=>{const d=Math.hypot(p.x-q.x,p.y-q.y);if(d<m)m=d;});return m;}
+function commitShaft(pl,withArrow){
+ if(pendShaft!==pl)return;pendShaft=null;
+ const i=strokes.indexOf(pl.st);if(i>-1)strokes.splice(i,1);redrawInk();
+ if(withArrow){
+  let bb={...pl.bb};pl.tips.forEach(tp=>{const b2=bbOf(tp);bb.x=Math.min(bb.x,b2.x);bb.y=Math.min(bb.y,b2.y);});
+  let x1=pl.bb.x+pl.bb.w,y1=pl.bb.y+pl.bb.h;pl.tips.forEach(tp=>{const b2=bbOf(tp);x1=Math.max(x1,b2.x+b2.w);y1=Math.max(y1,b2.y+b2.h);});
+  const BB={w:Math.max(.16,x1-bb.x),h:Math.max(.06,y1-bb.y)};
+  BB.cx=bb.x+BB.w/2;BB.cy=bb.y+BB.h/2;BB.x=bb.x;BB.y=bb.y;
+  const it=newItem('alert',{title:'Notice'},BB);model.push(it);
+  pushHist(()=>{const j=model.indexOf(it);if(j>-1)model.splice(j,1);renderAll();});
+  setStatus('arrow → notice box');toast('Arrow → notice box');
+  unknownNotified=false;renderAll();return;
+ }
+ finishStrokeCore(pl.st);
+}
+function finishStroke(st){
+ /* bekleyen şaft varsa: bu darbe okun ucundan mı? */
+ if(pendShaft&&st.pts.length>2){
+  const b2=bbOf(st.pts);
+  const tiny=b2.w<=.16&&b2.h<=.10;
+  const near=endDist(pendShaft.st.pts,st.pts)<.085;
+  if(tiny&&near&&pendShaft.tips.length<2){
+   pendShaft.tips.push(st.pts);strokes.push(st);redrawInk();
+   clearTimeout(pendShaft.timer);
+   pendShaft.timer=setTimeout(()=>commitShaft(pendShaft,true),540);
+   setStatus('arrowhead… lifting? keep going or wait a beat');
+   return;
+  }
+  const pl=pendShaft;clearTimeout(pl.timer);commitShaft(pl,false);
+ }
+ const pre=classifyStroke(st.pts);
+ /* uzun ince yatay çizgi = potansiyel ok şaftı */
+ if(pre.name==='line'&&pre.bb.w>.22&&pre.bb.h<.07){
+  strokes.push(st);redrawInk();
+  const pl={st,bb:pre.bb,tips:[],timer:setTimeout(()=>commitShaft(pl,false),620)};
+  pendShaft=pl;setStatus('line… (draw the arrowhead now, or wait to make a divider)');
+  return;
+ }
+ finishStrokeCore(st);
+}
+function finishStrokeCore(st){
+ const res=classifyStroke(st.pts);const bb=res.bb;
+ /* X → sil */
+ if(res.name==='x'){
+ const hit=hitGhost(bb.cx,bb.cy);
+ if(hit){removeItem(hit.id,true);setStatus(''+(COMP[hit.type]?.name||'parça')+' removed');return;}
+ setStatus('nothing underneath — left as scribble');strokes.push(st);redrawInk();return;
+ }
+ const map=gestureToComponent(res,bb);
+ if(map){
+ const it=newItem(map.type,map.props||{},bb);model.push(it);
+ pushHist(()=>{const i=model.indexOf(it);if(i>-1)model.splice(i,1);renderAll();});
+ setStatus(map.msg);toast(map.msg);
+ const r=wrap.getBoundingClientRect();burst(r.left+bb.cx*r.width,r.top+bb.cy*r.height-20,8);
+ unknownNotified=false;renderAll();return;
+ }
+ strokes.push(st);pushHist(()=>{strokes.pop();redrawInk();});redrawInk();
+ setStatus('not recognized — kept as scribble');
+ if(!unknownNotified){unknownNotified=true;toast('Not recognized — kept as a note. See the shape guide for hints!');}
+}
+function gestureToComponent(res,bb){
+ const G=(type,props,msg)=>({type,props,msg});
+ switch(res.name){
+ case 'rectangle':
+ if(bb.h<0.11&&bb.w>0.5&&bb.cy<0.28)return G('navbar',null,'Menu captured! It will sit on top.');
+ if((bb.w*bb.h)>0.28&&bb.w>0.6)return G('frame',null,'Big box → container! Draw parts inside it and I will nest them.');
+ if(bb.w<0.34&&bb.h<0.15)return G('button',null,'Small box → Button!');
+ return G('card',null,'Card is born! Draw 2–3 side by side and they line up as a row. Draw inside to nest.');
+ case 'triangle':return G('image',null,'Triangle → image area!');
+ case 'circle':return G('avatar',null,'Circle → avatar!');
+ case 'check':return G('button',null,'Check mark → Button!');
+ case 'caret':return G('hero',null,'You drew a roof → hero section!');
+ case 'v':return G('form',null,'“V” → iletişim formu!');
+ case 'star':return G('features',null,'Yıldız → 3 özellik bloğu!');
+ case 'zigzag':return G('divider',{wave:'evet'},'Dalga ayırıcı!');
+ case 'line':return G('divider',null,'Ayraç ekledim.');
+ case 'vline':return G('divider',null,'Ayraç (dik çizgi yakaladım).');
+ case 'arrow':return G('alert',null,'Ok → bilgi kutusu!');
+ default:return null;
+ }
+}
+
+/* hayalet katman (bileşen önizleme kutuları) */
+function ghostItems(){return model.filter(i=>i.bbox);}
+function renderGhosts(){
+ const ink=ghostItems();
+ $('#kConvert').disabled=!ink.length;
+ ghosts.innerHTML=ink.map(it=>{
+ const b=it.bbox,m=COMP[it.type],p=it.props||{};
+ let media='',count='';
+ if(it.type==='image'||it.type==='avatar'){const s=imgSrc(p);if(s)media=`<img class="gh-img" src="${esc(s)}" alt="" draggable="false">`;}
+ else if(it.type==='gallery'){const g=Array.isArray(p.imgs)?p.imgs.filter(Boolean):[];if(g.length){media=`<img class="gh-img" src="${esc(g[0])}" alt="" draggable="false">`;if(g.length>1)count=`<span class="gh-cnt">+${g.length-1} </span>`;}}
+ else if(it.type==='video'){const u=(p.url||'').trim();const yt=u.match(/(?:youtube\.com\/(?:watch\?[^#]*v=|shorts\/)|youtu\.be\/)([\w-]{6,})/);if(yt){media=`<img class="gh-img" src="https://i.ytimg.com/vi/${yt[1]}/hqdefault.jpg" alt="" draggable="false" onerror="this.remove()">`;count='<span class="gh-cnt">▶</span>';}}
+ return `<div class="gh" data-gh="${it.id}" style="left:${b.x*100}%;top:${b.y*100}%;width:${b.w*100}%;height:${b.h*100}%">
+ ${media}
+ <span class="tag">${m.ico} ${CN(it.type)}${it.type==='frame'?' ▸ kapsayıcı':''}</span>
+ <span class="ops"><button data-popedit="${it.id}" title="Düzenle"></button><button data-ghdel="${it.id}" title="Sil"></button></span>
+ ${media?count:`<span class="bigIco">${m.ico}</span>`}<i class="rz" data-rz="${it.id}" title="Köşeden çek: boyutlandır">⤡</i></div>`;
+ }).join('');
+}
+/* — AKILLI NESTED: sürüklerken hangi kapsayıcıya girecek? — */
+const NEST_CONT=['frame','card'];
+const NEST_OK=t=>['button','image','avatar','video','paragraph','heading','alert','divider'].includes(t);
+function nestTarget(it,b){ /* composeInk ile birebir aynı geometri kuralları */
+ if(!it||!b||NEST_CONT.includes(it.type)||!NEST_OK(it.type))return null;
+ let best=null,bestA=1e9;
+ for(const o of ghostItems()){
+ if(o===it||!o.bbox||!NEST_CONT.includes(o.type))continue;
+ const inside=b.cx>o.bbox.x+0.005&&b.cx<o.bbox.xx-0.005&&b.cy>o.bbox.y+0.005&&b.cy<o.bbox.yy-0.005;
+ if(inside&&(b.w*b.h)<(o.bbox.w*o.bbox.h)*0.8){const a=o.bbox.w*o.bbox.h;if(a<bestA){bestA=a;best=o;}}
+ }
+ return best;
+}
+function flashParent(id,ms=1100){const el=ghosts.querySelector('.gh[data-gh="'+id+'"]');if(!el)return;el.classList.add('gh-parent');setTimeout(()=>{if(el)el.classList.remove('gh-parent');},ms);}
+function clearParentGlow(){$$('.gh-parent').forEach(g=>g.classList.remove('gh-parent'));}
+
+/* — ghost'ları SÜRÜKLE (taşı) ve köşeden BOYUTLANDIR — */
+let ghDrag=null;
+ghosts.addEventListener('pointerdown',e=>{
+ if(e.target.closest('button'))return;
+ const gh=e.target.closest('.gh');if(!gh)return;
+ const it=findItem(gh.dataset.gh);if(!it||!it.bbox)return;
+ e.preventDefault();
+ try{gh.setPointerCapture(e.pointerId);}catch(_){}
+ ghDrag={gh,it,mode:e.target.classList.contains('rz')?'resize':'move',
+ sx:e.clientX,sy:e.clientY,b:{...it.bbox},moved:false,cur:{...it.bbox}};
+});
+ghosts.addEventListener('pointermove',e=>{
+ if(!ghDrag)return;
+ const r=wrap.getBoundingClientRect();
+ const dx=(e.clientX-ghDrag.sx)/r.width,dy=(e.clientY-ghDrag.sy)/r.height;
+ if(Math.abs(dx)+Math.abs(dy)>0.003)ghDrag.moved=true;
+ const b={...ghDrag.b};
+ if(ghDrag.mode==='move'){b.x=clamp(b.x+dx,0,1-b.w);b.y=clamp(b.y+dy,0,1-b.h);}
+ else{b.w=clamp(b.w+dx,0.055,1-b.x);b.h=clamp(b.h+dy,0.05,1-b.y);}
+ b.xx=b.x+b.w;b.yy=b.y+b.h;b.cx=b.x+b.w/2;b.cy=b.y+b.h/2;
+ ghDrag.cur=b;
+ ghDrag.gh.style.left=b.x*100+'%';ghDrag.gh.style.top=b.y*100+'%';
+ ghDrag.gh.style.width=b.w*100+'%';ghDrag.gh.style.height=b.h*100+'%';
+ if(ghDrag.mode==='move'){
+ const pt=nestTarget(ghDrag.it,b);
+ if((pt&&pt.id)!==(ghDrag.parent&&ghDrag.parent.id)){
+ ghDrag.parent=pt||null;
+ $$('.gh').forEach(g=>g.classList.toggle('gh-parent',!!(pt&&g.dataset.gh===pt.id)));
+ if(pt)setStatus(LANG==='en'?'Drop inside → it will NEST in '+CN(pt.type)+'!':'İçine bırak → '+CN(pt.type)+' YUVALANACAK!');
+ }
+ }
+});
+function ghFinish(){
+ if(!ghDrag)return;
+ const{it,b,cur,moved,mode,parent}=ghDrag;ghDrag=null;
+ if(!moved){clearParentGlow();openPop(it.id);return;}
+ pushHist(()=>{Object.assign(it.bbox,b);renderAll();});
+ Object.assign(it.bbox,cur);renderAll();
+ if(mode==='move'&&parent){
+ setStatus(''+CN(it.type)+' → '+CN(parent.type)+(LANG==='en'?' will NEST — converts it!':' YUVALANACAK — ile uygula!'));
+ flashParent(parent.id);
+ toast(''+CN(it.type)+' → '+CN(parent.type)+(LANG==='en'?' (nests on )':' (ile yuvalanır)'));
+ }else setStatus(mode==='move'?Tm('moved'):'boyutlandı '+Math.round(cur.w*100)+'% × '+Math.round(cur.h*100)+'%');
+}
+ghosts.addEventListener('pointerup',ghFinish);
+ghosts.addEventListener('pointercancel',()=>{ghDrag=null;clearParentGlow();});
+ghosts.addEventListener('click',e=>{
+ const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.ghdel){removeItem(b.dataset.ghdel,true);}
+ else if(b.dataset.popedit){openPop(b.dataset.popedit);}
+ e.stopPropagation();
+});
+function hitGhost(nx,ny){
+ const ink=ghostItems().filter(it=>nx>=it.bbox.x-0.02&&nx<=it.bbox.xx+0.02&&ny>=it.bbox.y-0.02&&ny<=it.bbox.yy+0.02);
+ ink.sort((a,b)=>(a.bbox.w*a.bbox.h)-(b.bbox.w*b.bbox.h));return ink[0]||null;
+}
+function handleTap(p,e){
+ const hit=hitGhost(p.x,p.y);
+ if(hit)openPop(hit.id);
+ else{closePop();}
+}
+
+/* hızlı düzenle popover */
+const pop=$('#kPop');let popId=null;
+function openPop(id){
+ const it=findItem(id);if(!it||it.type==='row')return;
+ popId=id;const m=COMP[it.type];
+ $('#kPopTitle').textContent=m.ico+' '+CN(it.type)+' '+(LANG==='en'?'edit':'düzenle');
+ $('#kPopFields').innerHTML=fieldsHTML(it,'pop');
+ const rb=$('#kPopRich');
+ if(RICH_TYPES.includes(it.type)){
+ rb.style.display='';
+ const LBL={image:{tr:'Görsel yükle / yapıştır…',en:'Upload / paste image…'},
+ avatar:{tr:'Fotoğraf yükle…',en:'Upload a photo…'},
+ gallery:{tr:'Fotoğraflar ekle…',en:'Add photos…'},
+ share:{tr:'Sosyal linkleri düzenle…',en:'Edit social links…'},
+ links:{tr:'Düğmeleri düzenle…',en:'Edit buttons…'}};
+ rb.textContent=(LBL[it.type]||LBL.image)[LANG==='en'?'en':'tr'];
+ }else rb.style.display='none';
+ const r=wrap.getBoundingClientRect(),b=it.bbox;
+ pop.style.left=Math.min(r.width-290,Math.max(8,(b.x+b.w/2)*r.width-140))+'px';
+ pop.style.top=Math.min(r.height-240,Math.max(36,b.yy*r.height+10))+'px';
+ pop.classList.add('open');
+}
+function closePop(){pop.classList.remove('open');popId=null;}
+$('#kPopOk').addEventListener('click',closePop);
+$('#kPopDel').addEventListener('click',()=>{if(popId)removeItem(popId,true);closePop();});
+$('#kPopRich').addEventListener('click',()=>{const id=popId;closePop();if(id)richOpen(id);});
+$('#kPopFields').addEventListener('input',e=>{
+ const el=e.target;if(!el.dataset.id)return;
+ const it=findItem(el.dataset.id);if(!it)return;
+ it.props[el.dataset.k]=el.value;renderAll();
+});
+
+/* araç çubuğu */
+$$('.k-dot').forEach(d=>d.addEventListener('click',()=>{$$('.k-dot').forEach(x=>x.classList.remove('on'));d.classList.add('on');penCol=d.dataset.col;setTool('pen');}));
+$$('.k-seg button').forEach(b=>b.addEventListener('click',()=>{$$('.k-seg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');penW=parseFloat(b.dataset.w);}));
+function setTool(t){tool=t;$('#toolPen').classList.toggle('on',t==='pen');$('#toolEraser').classList.toggle('on',t==='eraser');cv.style.cursor=t==='eraser'?'cell':'crosshair';}
+$('#toolPen').addEventListener('click',()=>setTool('pen'));
+$('#toolEraser').addEventListener('click',()=>setTool('eraser'));
+setTool('pen');
+$('#btnUndo').addEventListener('click',()=>{const f=history.pop();if(f){f();setStatus(LANG==='en'?'↶ undone':'↶ geri aldım');}else toast(Tm('undoNone'));});
+$('#btnClearInk').addEventListener('click',()=>{
+ if(!strokes.length){setStatus('zaten temiz ');return;}
+ const gone=strokes;strokes=[];pushHist(()=>{strokes=gone;redrawInk();});redrawInk();setStatus('mürekkep temizlendi (bileşenler duruyor)');
+});
+$('#btnHints').addEventListener('click',()=>$('#kHints').classList.toggle('open'));
+$('#hintsClose').addEventListener('click',()=>$('#kHints').classList.remove('open'));
+$('#hintGrid').innerHTML=hintRows();
+$('#guideGrid').innerHTML=hintRows();
+
+/* ═══════════ 8) “SAYFAYA DÖNÜŞTÜR” — iç-içe yuvalama + satır birleştirici ═══════════ */
+function composeInk(){
+ let ink=ghostItems();
+ if(!ink.length)return null;
+ ink=ink.slice().sort((a,b)=>a.bbox.cy-b.bbox.cy);
+ /* model'de kalıcı (tuvale bağlı olmayan) öğeleri önceden ayıkla */
+ const inkIds=new Set(ink.map(i=>i.id));
+ const fin=model.filter(i=>!inkIds.has(i.id));
+ /* 1) NESTED: büyük kutu (frame/card) içindeki parçalar çocuk olur */
+ const CONT=['frame','card'];
+ const CHILDOk=t=>['button','image','avatar','video','paragraph','heading','alert','divider'].includes(t);
+ const conts=ink.filter(i=>CONT.includes(i.type)).sort((a,b)=>(a.bbox.w*a.bbox.h)-(b.bbox.w*b.bbox.h));
+ let nestedCount=0;
+ for(const c of conts){
+ c.children=c.children||[]; /* düzenleme akışından gelen mevcut çocuklar korunur */
+ ink=ink.filter(o=>{
+ if(o===c||CONT.includes(o.type)||!CHILDOk(o.type))return true;
+ const inside=o.bbox.cx>c.bbox.x+0.005&&o.bbox.cx<c.bbox.xx-0.005&&o.bbox.cy>c.bbox.y+0.005&&o.bbox.cy<c.bbox.yy-0.005;
+ if(inside&&(o.bbox.w*o.bbox.h)<(c.bbox.w*c.bbox.h)*0.8){
+ o._oy=o.bbox.cy;o._ox=o.bbox.cx;o.bbox=null;c.children.push(o);nestedCount++;return false;
+ }
+ return true;
+ });
+ c.children.sort((a,b)=>(a._oy||0)-(b._oy||0)||(a._ox||0)-(b._ox||0)); /* hayalet çocuklar varsa yukarıya dizilir */
+ c.children.forEach(o=>{delete o._oy;delete o._ox;});
+ }
+ /* 2) geri kalanlar: aynı hizadakiler yan yana .row olur */
+ ink=ink.slice().sort((a,b)=>a.bbox.cy-b.bbox.cy);
+ const rowOK=i=>GROUPABLE.includes(i.type)&&!(i.children&&i.children.length);
+ const rows=[];let curRow=null;
+ const rng=r=>[Math.min(...r.map(i=>i.bbox.y)),Math.max(...r.map(i=>i.bbox.yy))];
+ for(const it of ink){
+ if(curRow&&rowOK(it)&&curRow.every(rowOK)&&curRow.length<4){
+ const[t0,t1]=rng(curRow);const ov=Math.min(t1,it.bbox.yy)-Math.max(t0,it.bbox.y);
+ if(ov>0.45*Math.min(it.bbox.h,Math.min(...curRow.map(c=>c.bbox.h)))){curRow.push(it);continue;}
+ }
+ curRow=[it];rows.push(curRow);
+ }
+ const out=[];
+ for(const r of rows){
+ if(r.length===1){const it=r[0];it.bbox=null;out.push(it);}
+ else{r.sort((a,b)=>a.bbox.cx-b.bbox.cx);out.push({id:nid(),type:'row',props:{},bbox:null,children:r.map(c=>{c.bbox=null;return c;})});}
+ }
+ model.length=0;model.push(...fin,...out);
+ /* tekilleştir: tuvalden gelen yeni Menü/Alt bilgi, eskisinin yerini alır (çift header önlenir) */
+ ['navbar','footer'].forEach(t=>{
+ const twins=model.filter(m=>m.type===t);
+ if(twins.length>1){
+ const fromInk=twins.filter(m=>inkIds.has(m.id));
+ const keep=fromInk.length?fromInk[fromInk.length-1]:twins[0];
+ twins.forEach(m=>{if(m!==keep)removeItem(m.id);});
+ const i=model.indexOf(keep);model.splice(i,1);
+ if(t==='navbar')model.unshift(keep);else model.push(keep);
+ }
+ });
+ strokes=[];redrawInk();
+ return{n:out.length,nested:nestedCount};
+}
+$('#kConvert').addEventListener('click',()=>{
+ const r=composeInk();
+ if(!r){toast('Draw a few shapes first! ');return;}
+ renderAll();burst(innerWidth/2,innerHeight/2,22);
+ toast(`${r.n} ${LANG==='en'?'pieces placed':'parça yerleşti'}${r.nested?(LANG==='en'?` — ${r.nested} nested into containers `:` — ${r.nested} tanesi yuvasına girdi `):''}${LANG==='en'?'! Edit texts in the left panel.':'! Metinleri soldaki panelden düzenle.'}`,3600);
+ setTimeout(closeSheet,650);
+});
+
+/* — GÖZAT: dönüştürmeden draft preview — */
+function peekInk(){
+ /* durum fotoğrafı (model + mürekkep + site) */
+ const snapM=JSON.stringify(model), snapS=JSON.stringify(strokes), snapSite=JSON.stringify(SITE);
+ const hasInk=ghostItems().length>0;
+ if(hasInk)composeInk(); /* bir kopya üzerinde gibi davranır ama son içeriği istiyoruz */
+ let doc='';
+ try{doc=previewDoc();}catch(e){}
+ /* her şeyi geri sar: hayaletler, çizimler, site ayarları tıpatıp eskisi gibi */
+ try{
+ const pm=JSON.parse(snapM);model.length=0;pm.forEach(m=>model.push(m));
+ const ps=JSON.parse(snapS);strokes.length=0;ps.forEach(s=>strokes.push(s));
+ const st=JSON.parse(snapSite);Object.keys(SITE).forEach(k=>{if(k!=='socials'&&st[k]!=null)SITE[k]=st[k];});Object.assign(SITE.socials,st.socials||{});
+ }catch(e){}
+ redrawInk();renderAll();
+ if(!doc){toast(LANG==='en'?'Could not build preview':'Önizleme kurulamadı');return;}
+ const fr=$('#kPeekFrame');fr.srcdoc=doc;
+ $('#peekDesk').classList.add('on');$('#peekMob').classList.remove('on');fr.style.width='100%';
+ openModal('mPeek');
+ if(!hasInk)toast(LANG==='en'?'Peeking at your current page — draw or add pieces to draft more!':'Mevcut sayfana göz atıyorsun — çiz ya da parça ekle, taslak büyüsün!');
+}
+$('#kPeek').addEventListener('click',peekInk);
+$('#kPeekBack').addEventListener('click',()=>{closeModal('mPeek');});
+$('#kPeekApply').addEventListener('click',()=>{closeModal('mPeek');$('#kConvert').click();});
+$('#peekDesk').addEventListener('click',()=>{$('#kPeekFrame').style.width='100%';$('#peekDesk').classList.add('on');$('#peekMob').classList.remove('on');});
+$('#peekMob').addEventListener('click',()=>{$('#kPeekFrame').style.width='396px';$('#peekMob').classList.add('on');$('#peekDesk').classList.remove('on');});
+
+/* komut satırı */
+function addFromCommand(){
+ const txt=$('#kCmd').value.trim();if(!txt)return;
+ const items=parseCommands(txt);
+ if(!items.length){toast('Command not understood. E.g. h1: Hello · button: Learn more');return;}
+ let y=maxInkY()+0.04;
+ items.forEach(it=>{if(sheet.classList.contains('open')){it.bbox={x:0.08,y:y,xx:0.92,yy:Math.min(0.97,y+0.09),w:0.84,h:0.09,cx:0.5,cy:y+0.045};y=Math.min(0.94,y+0.11);}model.push(it);});
+ $('#kCmd').value='';renderAll();toast(''+items.length+' part(s) added from command!');
+}
+const maxInkY=()=>{const ink=ghostItems();return ink.length?Math.max(...ink.map(i=>i.bbox.yy)):0.02;};
+$('#btnCmd').addEventListener('click',addFromCommand);
+$('#kCmd').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addFromCommand();}});
+/* — PARÇA PALETİ: tıkla-ekle + tuval açıksa sürükle-bırak — */
+const PAL_ORDER=['navbar','hero','heading','paragraph','button','card','image','video','map','avatar','team','features','gallery','pricing','form','alert','divider','frame','aside','links','share','wa','html','footer'];
+function buildPalette(){
+ const htmlChips=PAL_ORDER.map(t=>`<button class="k-chip" type="button" data-add="${t}" draggable="true" title="${CN(t)}">${COMP[t].ico} ${CN(t)}</button>`).join('');
+ $('#kPal').innerHTML=htmlChips;
+ const sp=$('#kPalSheet');if(sp)sp.innerHTML=`<span class="k-pal-lbl">${LANG==='en'?'Add:':'Parçalar:'}</span>`+htmlChips;
+}
+buildPalette();
+const palClick=e=>{const b=e.target.closest('[data-add]');if(!b)return;addChip(b.dataset.add);};
+const palDrag=e=>{const b=e.target.closest('[data-add]');if(!b)return;try{e.dataTransfer.setData('text/pal',b.dataset.add);}catch(_){}};
+$('#kPal').addEventListener('click',palClick);
+$('#kPal').addEventListener('dragstart',palDrag);
+const kPalSheet=$('#kPalSheet');if(kPalSheet){kPalSheet.addEventListener('click',palClick);kPalSheet.addEventListener('dragstart',palDrag);}
+function mkB(x,y,w,h){h=Math.min(h,0.97-y);return{x,y,xx:x+w,yy:y+h,w,h,cx:x+w/2,cy:y+h/2};}
+/* — YERLEŞİM DÜZENLEME: sayfadaki parçaları tuvale geri indir — */
+const EDIT_H={navbar:.085,hero:.22,heading:.07,paragraph:.09,button:.08,divider:.05,image:.2,video:.22,avatar:.14,features:.15,gallery:.2,pricing:.2,form:.18,alert:.07,map:.2,wa:.06,share:.08,links:.08,html:.1,frame:.3,aside:.2,footer:.09,row:.18,card:.18,cards:.2};
+function editBBoxFor(it){const h=EDIT_H[it.type]||.16;
+ if(it.type==='navbar')return mkB(.04,.03,.92,h);
+ return mkB(.06,0,h>0.95?.9:.88,h); /* y sonra verilir */}
+function startLayoutEdit(){
+ if(ghostItems().length){openSheet();setStatus(LANG==='en'?'Drafts on canvas — keep editing, applies':'Tuvalde taslaklar var — devam et, uygular');return;}
+ if(!model.length){openSheet();toast(LANG==='en'?'No pieces yet — draw or add from the palette first! ':'Henüz parça yok — önce çiz ya da paletten ekle! ');return;}
+ /* düzenleme hayaletleri: sırayla alt alta diz */
+ let total=0;model.forEach(it=>{const t=it.type==='navbar'?.085:(EDIT_H[it.type]||.16);total+=t+.02;});
+ const scale=total>0.94?0.94/total:1;
+ let y=0.02;
+ model.forEach(it=>{
+ const h=((it.type==='navbar'?.085:EDIT_H[it.type])||.16)*scale;
+ it.bbox=mkB(it.type==='navbar'?0.04:0.06,Math.max(0.012,Math.min(y,0.985-h)),it.type==='navbar'?0.92:0.88,h);
+ y=it.bbox.yy+0.02*scale;
+ });
+ const keep=model.slice();
+ pushHist(()=>{keep.forEach(it=>{it.bbox=null;});renderAll();});
+ renderAll();openSheet();
+ const txt=LANG==='en'?`Layout edit: ${model.length} pieces on canvas — drag, ⤡ resize, delete, then Apply`:`Yerleşim: ${model.length} parça tuvalde — taşı, ⤡ boyutlandır, sil, sonra Uygula`;
+ setStatus(txt);toast(txt.substring(0,90)+(txt.length>90?'…':''),4200);
+}
+$('#kEditFab').addEventListener('click',startLayoutEdit);
+function ghostBBoxFor(t){const y=Math.min(0.72,maxInkY()+0.03);
+ switch(t){
+ case 'navbar':return mkB(.05,.03,.9,.085);
+ case 'hero':return mkB(.06,Math.min(.5,y),.88,.25);
+ case 'frame':return mkB(.08,y,.84,.36);
+ case 'button':return mkB(.3,y,.34,.09);
+ case 'image':case 'video':return mkB(.18,y,.64,.21);
+ case 'team':return mkB(.08,y,.84,.4);
+ case 'avatar':return mkB(.3,y,.4,.16);
+ case 'aside':case 'pricing':return mkB(.1,y,.8,.24);
+ default:return mkB(.16,y,.62,.17);
+ }}
+function addChip(type){
+ /* SOL PALET → TUVAL: pallete tıklanan parça her zaman HAYALET olarak tuvale düşer.
+ Böylece çizilenlerle birebir aynı haklara sahip olur: sürükle, ⤡ boyutlandır, sil. */
+ if(!sheet.classList.contains('open'))openSheet();
+ const it=newItem(type);it.bbox=ghostBBoxFor(type);
+ model.push(it);
+ pushHist(()=>{const i=model.indexOf(it);if(i>-1)model.splice(i,1);renderAll();});
+ renderAll();
+ const lbl=COMP[type].ico+' '+CN(type);
+ if(LANG==='en'){
+ setStatus(lbl+' landed on the canvas — drag it, ⤡ resize from the corner, to delete!');
+ toast(lbl+' dropped on canvas ');
+ }else{
+ setStatus(lbl+' dropped on canvas — drag it, resize from the corner, X deletes');
+ toast(lbl+' dropped on canvas ');
+ }
+}
+wrap.addEventListener('dragover',e=>{if(sheet.classList.contains('open'))e.preventDefault();});
+wrap.addEventListener('drop',e=>{
+ const t=e.dataTransfer&&e.dataTransfer.getData('text/pal');if(!t)return;
+ e.preventDefault();
+ const r=wrap.getBoundingClientRect();
+ const nx=(e.clientX-r.left)/r.width,ny=(e.clientY-r.top)/r.height;
+ const base=ghostBBoxFor(t);const bw=base.w,bh=base.h;
+ const it=newItem(t);it.bbox=mkB(clamp(nx-bw/2,0,1-bw),clamp(ny-bh/2,0,1-bh),bw,bh);
+ model.push(it);pushHist(()=>{const i=model.indexOf(it);if(i>-1)model.splice(i,1);renderAll();});
+ renderAll();
+ const pt=nestTarget(it,it.bbox);
+ if(pt){setStatus(''+CN(t)+' → '+CN(pt.type)+(LANG==='en'?' will NEST — converts!':' YUVALANACAK — ile uygula!'));flashParent(pt.id,1400);}
+ else setStatus(COMP[t].ico+' '+CN(t)+(LANG==='en'?' dropped! drag, ⤡ resize.':' bırakıldı! sürükle, ⤡ boyutlandır.'));
+ toast(COMP[t].ico+' '+CN(t)+(pt?(LANG==='en'?' → nests into '+CN(pt.type)+'! ':' → '+CN(pt.type)+' içine yuvalanır! '):(LANG==='en'?' dropped on canvas!':' tuvale bırakıldı!')));
+});
+
+/* ════ 9) KOMUT AYRICAŞTIRICI ════ */
+function parseCommands(text){
+ const lines=String(text).split(/\r?\n/).map(s=>s.trim()).filter(s=>s.length>1);
+ const items=[];let heroDone=model.some(i=>i.type==='hero');
+ for(let ln of lines){
+ ln=ln.replace(/[•·*]\s*/,'');
+ let m;
+ const num=l=>parseInt(l,10);
+ if(m=ln.match(/^(menü|menu|nav|navbar)\s*[:：=]?\s*(.*)$/i)){const pay=m[2]||'';const[brand,rest]=pay.split('|').map(s=>(s||'').trim());
+ items.push(newItem('navbar',{brand:brand||'My Page',links:rest||'Home, About, Contact'}));continue;}
+ if(m=ln.match(/^(h1|hero|karşılama|karsilama|ana\s*başlık|ana\s*baslik|başlık|baslik|title)\s*[:：=]\s*(.+)$/i)){const[t,sub]=(m[2]||'').split('|').map(s=>(s||'').trim());
+ items.push(newItem('hero',{title:t||'Başlık',subtitle:sub||'Karala ile üretildi '}));heroDone=true;continue;}
+ if(m=ln.match(/^(h2|bölüm|bolum|alt\s*başlık|altbaslik|subtitle)\s*[:：=]\s*(.+)$/i)){items.push(newItem('heading',{text:m[2]}));continue;}
+ if(m=ln.match(/^(metin|paragraf|p|text|açıklama|aciklama|yazı|yazi)\s*[:：=]\s*(.+)$/i)){items.push(newItem('paragraph',{text:m[2]}));continue;}
+ if(m=ln.match(/^(buton|btn|button|düğme|dugme)\s*[:：=]\s*(.+)$/i)){items.push(newItem('button',{text:m[2]}));continue;}
+ if(m=ln.match(/^(\d{1})\s*(x\s*)?(kart|card)\w*\s*[:：]?\s*(.*)$/i)){items.push(newItem('cards',{n:Math.min(4,Math.max(1,num(m[1]))),title:(m[4]||'').trim()||'Öne Çıkanlar'}));continue;}
+ if(m=ln.match(/^(kart|card)\w*\s+x\s*(\d{1})\s*[:：]?\s*(.*)$/i)){items.push(newItem('cards',{n:Math.min(4,Math.max(1,num(m[2]))),title:(m[3]||'').trim()||'Öne Çıkanlar'}));continue;}
+ if(m=ln.match(/^(kart|card)\w*\s*[:：]\s*(.*)$/i)){items.push(newItem('cards',{n:3,title:(m[2]||'').trim()||'Öne Çıkanlar'}));continue;}
+ if(m=ln.match(/^(görsel|gorsel|resim|fotoğraf|fotograf|foto|image|img)\s*[:：]?\s*(.*)$/i)){items.push(newItem('image',{caption:m[2]||'Bir görsel alanı'}));continue;}
+ if(m=ln.match(/^(avatar|profil|üye|uye)\s*[:：]?\s*(.*)$/i)){items.push(newItem('avatar',{caption:m[2]||'Takımdan biri'}));continue;}
+ if(m=ln.match(/^(özellik|ozellik|feature|avantaj)\w*\s*[:：]?\s*(.*)$/i)){items.push(newItem('features',{title:m[2]||'Neden Biz?'}));continue;}
+ if(m=ln.match(/^(galeri|gallery|grid|koleksiyon)\s*[:：]?\s*(.*)$/i)){items.push(newItem('gallery',{title:m[2]||'Galeri'}));continue;}
+ if(m=ln.match(/^(fiyat|pricing|plan|ücret|ucret|paket)\w*\s*[:：]?\s*(.*)$/i)){items.push(newItem('pricing',{title:m[2]||'Fiyatlandırma'}));continue;}
+ if(m=ln.match(/^(form|iletişim|iletisim|contact|mesaj)\s*[:：]?\s*(.*)$/i)){items.push(newItem('form',{title:m[2]||'Bize Yazın'}));continue;}
+ if(m=ln.match(/^(bilgi|alert|not|uyarı|uyari|duyuru)\s*[:：=]\s*(.+)$/i)){items.push(newItem('alert',{text:m[2]}));continue;}
+ if(m=ln.match(/^(dalga|wave)\s*[:：]?\s*$/i)){items.push(newItem('divider',{wave:'evet'}));continue;}
+ if(m=ln.match(/^(ayraç|ayrac|hr|divider|çizgi|cizgi)\s*[:：]?\s*$/i)){items.push(newItem('divider',{}));continue;}
+ if(m=ln.match(/^(altbilgi|footer|alt\s*bilgi)\s*[:：]?\s*(.*)$/i)){items.push(newItem('footer',{text:m[2]||'El çizimiyle üretildi ',brand:'My Page'}));continue;}
+ if(m=ln.match(/^(video|film)\s*[:：=]\s*(.+)$/i)){items.push(newItem('video',{url:m[2]}));continue;}
+ if(ln.match(/^(video|film)\s*[:：]?\s*$/i)){items.push(newItem('video',{}));continue;}
+ if(m=ln.match(/^(yan\s*panel|aside|kenar|not\s*paneli)\s*[:：=]?\s*(.*)$/i)){items.push(newItem('aside',{title:(m[2]||'').trim()||'Yan Not'}));continue;}
+ if(m=ln.match(/^(kutu|kap|kapsayıcı|kapsayici|frame|section|bölme|bolme)\s*[:：]?\s*(.*)$/i)){items.push(newItem('frame',{title:(m[2]||'').trim()}));continue;}
+ if(m=ln.match(/^(harita|map|konum)\s*[:：=]\s*(.+)$/i)){items.push(newItem('map',{q:m[2]}));continue;}
+ if(ln.match(/^(harita|map)\s*[:：]?\s*$/i)){items.push(newItem('map',{}));continue;}
+ if(m=ln.match(/^(whatsapp|wa|wp)\s*[:：=]\s*(.+)$/i)){const[num,msg]=(m[2]||'').split('|').map(s=>(s||'').trim());items.push(newItem('wa',{phone:num||'905555555555',msg:msg||undefined}));continue;}
+ if(m=ln.match(/^(sosyal|paylaş|paylas|share|social)\s*[:：]?\s*(.*)$/i)){items.push(newItem('share',{title:(m[2]||'').trim()||'Bu sayfayı paylaş:'}));continue;}
+ if(m=ln.match(/^(linkler|links|düğmeler|dugmeler|butonlar)\s*[:：]?\s*(.*)$/i)){items.push(newItem('links',{title:(m[2]||'').trim()}));continue;}
+ /* komutsuz düz satır: akıllı tahmin */
+ if(!heroDone&&ln.length<=64){items.push(newItem('hero',{title:ln,subtitle:'Karala ile üretildi '}));heroDone=true;}
+ else if(ln.length<=34)items.push(newItem('heading',{text:ln}));
+ else items.push(newItem('paragraph',{text:ln}));
+ }
+ return items;
+}
+
+/* ═════ Modal motoru: aç/kapat + arka planla & ile kapat ═════ */
+function openModal(id){const m=$('#'+id);if(m)m.classList.add('open');}
+function closeModal(id){const m=$('#'+id);if(m)m.classList.remove('open');}
+$$('.k-back').forEach(m=>{
+ m.addEventListener('click',e=>{
+ const b=e.target.closest('[data-close]');
+ if(b){closeModal(b.dataset.close);return;}
+ if(e.target===m)m.classList.remove('open');
+ });
+});
+
+/* ═══════════ 11) REHBER MODALI (kısayollar + komutlar + Bootstrap rehberi) ═══════════ */
+function openGuide(){
+ $('#compTable').innerHTML='<tr><th>Bileşen</th><th>Nedir?</th><th>Bootstrap sınıfları</th></tr>'+
+ ['navbar','hero','heading','paragraph','button','card','cards','image','video','avatar','features','gallery','pricing','form','alert','divider','frame','aside','links','share','wa','map','html','footer','row'].map(k=>{
+ const c=COMP[k];return `<tr><td><b>${c.ico} ${CN(k)}</b></td><td>${c.desc}</td><td><span class="k-chips">${c.cls.map(x=>`<code>${x}</code>`).join('')}</span></td></tr>`;
+ }).join('');
+ openModal('mGuide');
+}
+$('#btnGuide').addEventListener('click',openGuide);
+$('#btnGuide2').addEventListener('click',openGuide);
+/* ═══════════ 12) HTML DIŞA AKTAR ═══════════ */
+function buildExport(){
+ const ogImg=SITE.og?`\n<meta property="og:image" content="${esc(SITE.og)}">`:'';
+ const socialJson=Object.keys(SOC_ICON).map(k=>socURL(k,SITE.socials[k])).filter(Boolean);
+ const fav='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2288%22>'+encodeURIComponent(SITE.fav||'')+'</text></svg>';
+ const DT=SITE.docType||'web';
+ const DOC_CSS=(DT==='not')
+ ?`.container{max-width:830px}.hero{border-bottom:none}
+@media print{.cnav,.cfooter{display:none!important}}`
+ :(DT==='mesaj')
+ ?`.container{max-width:660px}.hero{border-bottom:none}
+@media print{.cnav,.cfooter{display:none!important}}`:'';
+ const PRINT_BTN=(DT!=='web')?`<button type="button" onclick="window.print()" class="k-prnt-btn" style="position:fixed;left:16px;bottom:16px;z-index:80;padding:.6rem 1rem;border:1px solid #cbd5e1;border-radius:10px;background:#fff;font:600 .88rem system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 14px rgba(15,23,42,.14)">Yazdır / PDF</button>`:'';
+ return `<!DOCTYPE html>
+<html lang="${esc(SITE.lang||'tr')}">
+<head>
+<!-- Karala Builder ile el çiziminden üretildi · Okan Kaplan -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${esc(SITE.title)}</title>
+<meta name="description" content="${esc(SITE.desc)}">
+<meta name="keywords" content="${esc(SITE.keys)}">
+<meta name="generator" content="Karala Builder — Okan Kaplan">
+<meta name="theme-color" content="${esc(SITE.theme)}">
+<link rel="canonical" href="${esc(SITE.url)}">
+<link rel="icon" href="${fav}">
+<meta property="og:type" content="website">
+<meta property="og:title" content="${esc(SITE.title)}">
+<meta property="og:description" content="${esc(SITE.desc)}">
+<meta property="og:url" content="${esc(SITE.url)}">${ogImg}
+<meta name="twitter:card" content="summary_large_image">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+${THEME_CSS}
+.btn-primary{background:${esc(SITE.theme)};border-color:#0f172a;color:#fff}
+@media (max-width:768px){ .nav-links{gap:.7rem} .hero-in{padding:3rem 1rem 4.2rem} }
+@media print{ .k-prnt-btn{display:none!important} }
+${DOC_CSS}
+</style>
+${socialJson.length?`<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"${esc(SITE.title)}","url":"${esc(SITE.url)}"${socialJson.length?`,"sameAs":${JSON.stringify(socialJson)}`:''}}<\/script>`:''}
+</head>
+<body class="doc-${DT}">
+${buildPageHTML()}
+${SPY_HTML}
+${PRINT_BTN}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"><\/script>
+${SPY_JS}
+</body>
+</html>`;
+}
+$('#btnCode').addEventListener('click',()=>{
+ if(!orderedItems().length){toast('Draw something first, or load a template ');return;}
+ $('#kCode').textContent=buildExport();openModal('mCode');
+});
+$('#btnPrint').addEventListener('click',()=>{
+ const doc=buildExport().replace('</body>',`<script>addEventListener('load',()=>setTimeout(()=>print(),400))<\/script></body>`);
+ window.open(URL.createObjectURL(new Blob([doc],{type:'text/html'})),'_blank');
+ toast('Print dialog opened — choose “Save as PDF” to download your PDF.');
+});
+$('#btnCopy').addEventListener('click',async()=>{
+ const code=$('#kCode').textContent;
+ try{await navigator.clipboard.writeText(code);toast('Code copied!');}
+ catch(e){
+ const ta=document.createElement('textarea');ta.value=code;document.body.appendChild(ta);ta.select();
+ try{document.execCommand('copy');toast('Code copied!');}catch(_){toast('Could not copy — select and copy manually');}
+ ta.remove();
+ }
+});
+$('#btnDl').addEventListener('click',()=>{
+ const blob=new Blob([$('#kCode').textContent],{type:'text/html;charset=utf-8'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='karala-page.html';a.click();
+ setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast(' karala-page.html downloaded — ready to publish!');
+});
+
+/* ═══════════ 13) ÖRNEK SAYFA + SIFIRLA ═══════════ */
+function loadDemo(){
+ model.length=0;strokes=[];redrawInk();
+ [['navbar',{brand:'Okan Kaplan'}],['hero',{title:'Hello, meet Karala',subtitle:'A fully working sample site that started as a pen sketch in Karala Builder.',btn:'How it works'}],
+ ['features',null],['cards',{title:'Selected Work',n:3}],['gallery',{title:'Mini Gallery'}],['video',{caption:'Intro video (paste a link on the gear icon)'}],['map',{q:'İstanbul, Türkiye'}],['aside',null],['pricing',null],['form',null],['links',null],['share',null],['wa',null],['footer',{brand:'Okan Kaplan'}]
+ ].forEach(([t,p])=>model.push(newItem(t,p)));
+ const fr=newItem('frame',{title:'Nested Box'});
+ fr.children=[newItem('avatar',{caption:'Takım Lideri'}),newItem('paragraph',{text:'Bu üç parça kocaman kutunun İÇİNDE — HTML\'de iç içe div\'ler oldular!'}),newItem('button',{text:'Merhaba de '})];
+ model.splice(6,0,fr);
+ renderAll();toast('Sample page loaded — try the nested box and video. Everything is draggable.');
+}
+function loadTemplate(kind){
+ closeModal('mTpl');
+ if(kind==='web'||kind==='bos'){
+ if(kind==='web'){SITE.docType='web';loadDemo();}
+ else{model.length=0;renderALL();toast('Blank canvas ready — start drawing.');}
+ return;
+ }
+ model.length=0;strokes=[];redrawInk();
+ if(kind==='personel'){
+ Object.assign(SITE,{docType:'web',title:'Ekibimiz',fav:''});
+ [['navbar',{brand:'Our Team'}],['heading',{title:'Ekibimiz'}],['paragraph',{text:'Meet our team. Reach out anytime — we are happy to help.'}],['team',null],['divider',null],['footer',{brand:'Our Team'}]
+ ].forEach(([t,p])=>model.push(newItem(t,p)));
+ renderALL();toast('Team page ready — click it in the left list to edit names, then download HTML or PDF.');return;
+ }
+ if(kind==='not'){
+ Object.assign(SITE,{docType:'not',title:'Toplantı Notları',fav:''});
+ [['heading',{title:'Toplantı Notları'}],['paragraph',null],['alert',null],['paragraph',null],['divider',null],['paragraph',null]
+ ].forEach(([t,p])=>model.push(newItem(t,p)));
+ }else{
+ Object.assign(SITE,{docType:'mesaj',title:'Sana Bir Mesajım Var ',fav:''});
+ [['heading',{title:'Merhaba! '}],['paragraph',{text:'Bu sayfayı Karala ile dakikalar içinde çizerek tasarladım: el çizimim → baskıya hazır bir mesaj kartı. Sen de istersen yazdırabilir ya da PDF kaydedebilirsin.'}],['button',null],['divider',null],['paragraph',{text:'Sevgilerle — Karala kullanıcısı '}]
+ ].forEach(([t,p])=>model.push(newItem(t,p)));
+ }
+ renderALL();
+ toast(kind==='not'?'Note template loaded — draw on top of it.':'Message template loaded — draw on top of it.');
+}
+$$('#mTpl [data-tpl]').forEach(b=>b.addEventListener('click',()=>loadTemplate(b.dataset.tpl)));
+$('#btnDemo').addEventListener('click',()=>openModal('mTpl'));
+$('#btnReset').addEventListener('click',()=>{
+ if(!model.length&&!strokes.length){toast(Tm('resetEmpty'));return;}
+ if(confirm(LANG==='en'?'Delete the whole page and all drawings?':'Tüm sayfa ve çizimler silinsin mi?')){model.length=0;strokes=[];history.length=0;try{localStorage.removeItem('karala_state_v2')}catch(_){}redrawInk();renderAll();toast(Tm('resetDone'));}
+});
+
+/* ═══════════ 14) MASKOT, KLAVYE, ONBOARDING, BAŞLANGIÇ ═══════════ */
+document.addEventListener('keydown',e=>{
+ const typing=/INPUT|TEXTAREA/.test(e.target.tagName);
+ if(e.key==='Escape'){closePop();if(sheet.classList.contains('open')){smartCloseSheet();}else $$('.k-back.open').forEach(m=>m.classList.remove('open'));return;}
+ if(typing)return;
+ if((e.key==='d'||e.key==='D')&&!e.ctrlKey&&!e.metaKey){sheet.classList.contains('open')?closeSheet():openSheet();}
+ if((e.ctrlKey||e.metaKey)&&e.key==='z'&&sheet.classList.contains('open')){e.preventDefault();const f=history.pop();if(f){f();setStatus(LANG==='en'?'↶ undone':'↶ geri aldım');}}
+ if(e.key==='?')openGuide();
+ if((e.key==='p'||e.key==='P')&&sheet.classList.contains('open'))peekInk();
+});
+
+$('#obStart').addEventListener('click',()=>{closeModal('mOnboard');openSheet();});
+$('#obSim2').addEventListener('click',()=>{closeModal('mOnboard');document.getElementById('btnSim').click();});
+
+
+/* cihaz görünümü */
+$('#devDesk').addEventListener('click',()=>{$('#iframeWrap').classList.remove('mob');$('#devDesk').classList.add('on');$('#devMob').classList.remove('on');});
+$('#devMob').addEventListener('click',()=>{$('#iframeWrap').classList.add('mob');$('#devMob').classList.add('on');$('#devDesk').classList.remove('on');});
+
+/* ═══════════ 15) ÇEVİRİ SÖZLÜKLERİ · AYARLAR · DİL · TUR · SİMÜLASYON · KAYIT ═══════════ */
+const GT_EN={
+ 'Menü yakaladım! Tepede duracak.':'Menu spotted! It stays on top.',
+ 'Kocaman kutu → kapsayıcı! İçine parçalar çiz, yuvalarına yerleştireyim.':'Huge box → container! Draw pieces inside, I will nest them.',
+ 'Minik kutu → Buton!':'Tiny box → Button!',
+ 'Kart doğdu! Aynı hizaya 2-3 tane çizersen yan yana dizilir. İçine parça çizersen çocuğu olur!':'A card is born! Draw 2-3 in a line → they line up. Draw inside → it nests!',
+ 'Üçgen → görsel alanı!':'Triangle → image area!','Yuvarlak → avatar!':'Circle → avatar!',
+ 'Tik → Buton!':'Tick → Button!','Çatı çizdin → Hero bölümü!':'Roof drawn → Hero section!',
+ '“V” → iletişim formu!':'“V” → contact form!','Yıldız → 3 özellik bloğu!':'Star → 3-feature block!',
+ 'Dalga ayırıcı!':'Wavy divider!','Ayraç ekledim.':'Divider added.',
+ 'Ayraç (dik çizgi yakaladım).':'Divider (caught a vertical line).','Ok → bilgi kutusu!':'Arrow → notice box!',
+ 'not recognized — kept as scribble':'unknown, kept as scribble',
+};
+const GT_PRE={'boyutlandı ':'resized '};
+
+/* — otomatik kayıt (tarayıcı) + PROJE (JSON dosya) — */
+function projSnapshot(){return {app:'karala-builder',version:3,savedAt:new Date().toISOString(),lang:LANG,site:SITE,model};}
+function applyProjectData(s){
+ if(!s||typeof s!=='object')return false;
+ if(s.site&&typeof s.site==='object'){
+ Object.keys(SITE).forEach(k=>{if(k!=='socials'&&s.site[k]!=null)SITE[k]=s.site[k];});
+ if(s.site.socials)Object.assign(SITE.socials,s.site.socials);
+ }
+ model.length=0;
+ if(Array.isArray(s.model))s.model.forEach(m=>{if(m&&COMP[m.type]){m.bbox=null;model.push(m);}});
+ model.forEach(m=>{const mi=parseInt(String(m.id).slice(1));if(mi>=_id)_id=mi+1;(m.children||[]).forEach(c=>{const ci=parseInt(String(c.id).slice(1));if(ci>=_id)_id=ci+1;});});
+ return true;
+}
+function saveState(){try{localStorage.setItem('karala_state_v2',JSON.stringify({model,site:SITE}));}catch(_){}}
+function loadState(){
+ let s=null;try{s=JSON.parse(localStorage.getItem('karala_state_v2')||'null');}catch(_){}
+ if(s)applyProjectData(s);
+}
+$('#btnProject').addEventListener('click',()=>openModal('mProject'));
+$('#btnJsonSave').addEventListener('click',()=>{
+ try{
+ const d=new Date();
+ const tag=d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'-'+String(d.getHours()).padStart(2,'0')+String(d.getMinutes()).padStart(2,'0');
+ const blob=new Blob([JSON.stringify(projSnapshot(),null,2)],{type:'application/json'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='karala-proje-'+tag+'.json';a.click();
+ setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+ toast(LANG==='en'?'Project saved as JSON — keep it safe!':'Project saved as JSON — keep it safe!');
+ }catch(e){toast(LANG==='en'?'Could not save':'Kaydedemedim');}
+});
+$('#btnJsonOpen').addEventListener('click',()=>$('#fileJson').click());
+$('#fileJson').addEventListener('change',e=>{
+ const f=e.target.files[0];e.target.value='';if(!f)return;
+ const r=new FileReader();
+ r.onload=()=>{
+ let ok=false;
+ try{
+ const data=JSON.parse(r.result);
+ if(data&&Array.isArray(data.model)){ok=applyProjectData(data);}
+ }catch(_){}
+ if(ok){
+ if(sheet.classList.contains('open'))closeSheet();
+ fillSettings();fillSiteCard();renderAll();saveState();closeModal('mProject');
+ burst(innerWidth/2,innerHeight/2,18);
+ toast(LANG==='en'?'Project opened — welcome back!':'Project opened — welcome back!');
+ }else toast(LANG==='en'?'Not a valid Karala project file':'Not a valid Karala project file');
+ };
+ r.readAsText(f);
+});
+
+/* — ayarlar modalı — */
+function fillSettings(){$$('#mSettings [data-k]').forEach(el=>{el.value=SITE[el.dataset.k]??'';});$$('#mSettings [data-s]').forEach(el=>{el.value=SITE.socials[el.dataset.s]??'';});}
+function fillSiteCard(){$$('#kSite [data-k]').forEach(el=>{if(document.activeElement!==el)el.value=SITE[el.dataset.k]??'';});}
+$('#kSite').addEventListener('input',e=>{
+ const el=e.target;if(!el.dataset.k)return;
+ SITE[el.dataset.k]=el.value;
+ const twin=$('#mSettings [data-k="'+el.dataset.k+'"]');if(twin)twin.value=el.value;
+ renderPreview();saveState();
+});
+$('#btnToSettings').addEventListener('click',()=>{fillSettings();openModal('mSettings');});
+$('#mSettings').addEventListener('input',e=>{
+ const el=e.target;
+ if(el.dataset.k){SITE[el.dataset.k]=el.value;const twin=$('#kSite [data-k="'+el.dataset.k+'"]');if(twin)twin.value=el.value;}
+ else if(el.dataset.s){SITE.socials[el.dataset.s]=el.value;}
+ else return;
+ renderPreview();saveState();
+});
+$('#btnSettings').addEventListener('click',()=>{fillSettings();openModal('mSettings');});
+$('#mSettings').addEventListener('click',e=>{if(e.target.closest('[data-close]')){toast(Tm('setSaved'));}});
+
+$('#btnSnd').addEventListener('click',()=>{
+ SND=!SND;try{if(!SND)speechSynthesis.cancel()}catch(_){}
+ const b=document.getElementById('btnSnd');b.style.opacity=SND?'1':'.45';
+ toast(SND?'Voice guidance ON':'Voice guidance OFF');});
+/* — dil anahtarı — */
+function setLang(l){LANG=l;applyLang();toast('UI language: English');}
+$('#langTR').addEventListener('click',()=>setLang('tr'));
+$('#langEN').addEventListener('click',()=>setLang('en'));
+
+/* — GUIDED TOUR: step-by-step guide with orange dotted arrows + English voice narration — */
+let SND=true;
+function sayAsync(t){return new Promise(res=>{
+ if(!SND)return res();
+ try{
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(t);u.lang='en-GB';u.rate=1.03;u.pitch=0.9;
+  const v=pickVoice('en');if(v)u.voice=v;
+  u.onend=()=>res();u.onerror=()=>res();
+  const guard=setTimeout(res,9000);const r2=res;res=()=>{clearTimeout(guard);r2();};
+  speechSynthesis.speak(u);
+ }catch(_){res();}
+});}
+function pickVoice(lang){
+ try{
+  const vs=(speechSynthesis.getVoices()||[]).filter(v=>v.lang&&(lang?v.lang.indexOf(lang)===0:v.lang.indexOf('en')===0));
+  if(!vs.length)return null;
+  const male=/male|daniel|david|james|george|alex|fred|guy|thomas|brian|ravi|prabhat|arthur|aaron|reed|rocko/i;
+  return vs.find(v=>male.test(v.name))||vs.find(v=>/google uk english male|microsoft (david|mark|guy|george|james)/i.test(v.name))||vs.find(v=>v.name.toLowerCase().includes('english'))||vs[0];
+ }catch(_){return null;}
+}
+function say(t){
+ if(!SND)return;
+ try{
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(t);u.lang='en-GB';u.rate=1.0;u.pitch=0.9;
+  const v=pickVoice('en');if(v)u.voice=v; speechSynthesis.speak(u);
+ }catch(_){}
+}
+const TOUR=[
+ {sel:'#kFab',txt:'<b>Step 1 of 8 — Start with a pencil.</b> Click <b>Draw</b>. A full-screen paper canvas slides up: sketch your page exactly like on paper.',say:'Step one. Click the Draw button. A full screen paper canvas opens, where you sketch your page like on real paper.'},
+ {sel:'#kCanvasWrap',sheet:true,txt:'<b>Step 2 — Draw where things belong.</b> Put a <i>thin bar</i> on top for the menu, a <i>roof</i> for the hero, <i>boxes</i> for cards, a <i>circle</i> for an avatar, a <i>star</i> for features, a <i>wavy line</i> for a divider. I recognize each shape.',say:'Step two. Draw simple shapes exactly where you want them. A thin bar becomes the menu. Boxes become cards. A circle becomes an avatar. A star becomes features. A wave becomes a divider.'},
+ {sel:'.k-tools',sheet:true,txt:'<b>Step 3 — Pen tools.</b> Pick the ink color and thickness here. A shape legend sits nearby if you need a hint.',say:'Step three. Pick your ink color and thickness with these pen tools.'},
+ {sel:'#kConvert',sheet:true,txt:'<b>Step 4 — Build the page.</b> Press <b>Build My Page</b>. Every stroke becomes a real Bootstrap block — instantly.',say:'Step four. Press Build My Page and watch every stroke turn into a real Bootstrap block, instantly.'},
+ {sel:'aside.k-side',txt:'<b>Step 5 — Edit without code.</b> Click any block in this list to change its text, links and settings. Drag to reorder — nesting works too.',say:'Step five. Click any block in the left list to edit its text and settings. No coding needed.'},
+ {sel:'section.k-prev',txt:'<b>Step 6 — Live preview.</b> Your page updates here in real time. Use the phone icon to check the mobile view.',say:'Step six. This is the live preview. Use the phone icon to check the mobile view.'},
+ {sel:'#btnProject',txt:'<b>Step 7 — Save and reopen.</b> Projects save as JSON files — download and reopen anytime; autosave guards your browser too.',say:'Step seven. Save projects as files and reopen them anytime. Your browser also autosaves.'},
+ {sel:'#btnCode',txt:'<b>Step 8 — Publish.</b> The code panel gives the finished site: <b>Download HTML</b> to host anywhere, or press <b>PDF / Print</b> and choose “Save as PDF”. That is everything — you are a builder now.',say:'Step eight. From the code panel, download the HTML file to publish your site, or press PDF Print and choose save as PDF. That is all. You are a builder now.'}];
+let tourI=-1;
+function endTour(){try{speechSynthesis.cancel()}catch(_){}
+ document.getElementById('tourOv').classList.add('d-none');
+ if(sheet.classList.contains('open'))closeSheet();tourI=-1;}
+function drawArrow(tgt,bub){
+ const L=document.getElementById('tourLine');if(!L)return;
+ const r=tgt.getBoundingClientRect(),b=bub.getBoundingClientRect();
+ L.setAttribute('x1',b.left+b.width/2);L.setAttribute('y1',b.top+b.height/2);
+ L.setAttribute('x2',r.left+r.width/2);L.setAttribute('y2',r.top+r.height/2);
+}
+function tourGo(d){
+ tourI+=d;
+ if(tourI>=TOUR.length){endTour();toast('Tour complete — press Auto Demo to watch a full build, or Draw to start your own page.');return;}
+ if(tourI<0)tourI=0;
+ const s=TOUR[tourI];
+ if(s.sheet&&!sheet.classList.contains('open'))openSheet();
+ if(!s.sheet&&sheet.classList.contains('open'))closeSheet();
+ const el=document.querySelector(s.sel);if(!el){tourGo(d);return;}
+ document.getElementById('tourOv').classList.remove('d-none');
+ setTimeout(()=>{
+  el.scrollIntoView({block:'center',behavior:'smooth'});
+  const r=el.getBoundingClientRect(),R=document.getElementById('tourRing');
+  R.style.left=(r.left-8)+'px';R.style.top=(r.top-8)+'px';R.style.width=(r.width+16)+'px';R.style.height=(r.height+16)+'px';
+  document.getElementById('tourProg').textContent=(tourI+1)+' / '+TOUR.length;
+  document.getElementById('tourTxt').innerHTML=s.txt;
+  const B=document.getElementById('tourBub');
+  const low=r.top>innerHeight*.5;
+  const bx=Math.min(Math.max(16,r.left+r.width/2-170),Math.max(16,innerWidth-372));
+  let by=low?Math.max(16,r.top-300):Math.min(innerHeight-220,r.bottom+26);
+  B.style.left=bx+'px';B.style.top=by+'px';
+  requestAnimationFrame(()=>drawArrow(el,B));
+  document.getElementById('tourBack').disabled=tourI===0;
+  document.getElementById('tourNext').textContent=tourI===TOUR.length-1?'Finish':'Next ›';
+  say(s.say);
+ },s.sheet?430:150);
+}
+function startTour(){$$('.k-back.open').forEach(m=>m.classList.remove('open'));tourI=-1;tourGo(1);}
+$('#tourNext').addEventListener('click',()=>tourGo(1));
+$('#tourBack').addEventListener('click',()=>tourGo(-1));
+$('#tourSkip').addEventListener('click',endTour);
+$('#tourOv').addEventListener('click',e=>{if(e.target.id==='tourOv')endTour();});
+$('#obTour').addEventListener('click',startTour);
+
+/* — SIMÜLASYON: otomatik çizim gösterisi — */
+let simRun=false;const wait=ms=>new Promise(r=>setTimeout(r,ms));
+function genRect(x,y,w,h,per=12){const pts=[];for(let k=0;k<per;k++)pts.push({x:x+w*k/per,y:y});for(let k=0;k<per;k++)pts.push({x:x+w,y:y+h*k/per});for(let k=0;k<per;k++)pts.push({x:x+w-w*k/per,y:y+h});for(let k=0;k<per;k++)pts.push({x:x,y:y+h-h*k/per});pts.push({x,y});return pts;}
+function genPoly(arr,steps=12){const out=[];for(let i=0;i<arr.length-1;i++){const a=arr[i],b=arr[i+1];for(let k=0;k<steps;k++){const t=k/steps;out.push({x:a[0]+(b[0]-a[0])*t,y:a[1]+(b[1]-a[1])*t});}}out.push({x:arr[arr.length-1][0],y:arr[arr.length-1][1]});return out;}
+function genWave(x,y,w,humps,amp,per=90){const pts=[];for(let k=0;k<=per;k++){const t=k/per;pts.push({x:x+w*t,y:y+Math.sin(t*humps*Math.PI)*amp});}return pts;}
+/* jest üreteçleri (akıllı demo için ek şekiller) */
+function genCircle(cx,cy,r){const pts=[];for(let k=0;k<=36;k++){const a=k/36*2*Math.PI;pts.push({x:cx+r*Math.cos(a),y:cy+r*Math.sin(a)});}return pts;}
+function genStar(cx,cy,r){const pts=[];for(let k=0;k<10;k++){const rr=k%2?r*0.45:r;const a=-Math.PI/2+k*Math.PI/5;pts.push({x:cx+rr*Math.cos(a),y:cy+rr*Math.sin(a)});}pts.push({...pts[0]});return pts;}
+function genArrow(x,y,w){return genPoly([[x,y],[x+w,y],[x+w-w*.28,y-.033],[x+w,y],[x+w-w*.28,y+.033]]);}
+/* — EKSİKSİZ SAYFA DEMOSU: 12 çizim jesti + 7 palet ekleme, adım adım & yavaşça — */
+const SIM_STEPS=[
+ {k:'draw',g:()=>genRect(.06,.02,.88,.08),tr:'üstte ince kutu ▭ → Menü olacak ',en:'thin bar on top ▭ → becomes the Menu '},
+ {k:'draw',g:()=>genPoly([[.36,.19],[.5,.115],[.64,.19]]),tr:'çatı çiziyorum ⌃ → Hero bölümü',en:'a roof ⌃ → Hero section'},
+ {k:'draw',g:()=>genRect(.05,.215,.25,.17),tr:'1. kart ▭',en:'card 1 ▭'},
+ {k:'draw',g:()=>genRect(.375,.215,.25,.17),tr:'2. kart ▭ (hizalar elde olacak)',en:'card 2 ▭ (will line up)'}, 
+ {k:'draw',g:()=>genRect(.70,.215,.25,.17),tr:'3. kart ▭ → 3 sütunlu satır!',en:'card 3 ▭ → 3-col row!'},
+ {k:'draw',g:()=>genPoly([[.06,.62],[.18,.45],[.30,.62],[.06,.62]]),tr:'üçgen △ → Görsel alanı',en:'triangle △ → Image area'},
+ {k:'draw',g:()=>genCircle(.48,.535,.058),tr:'yuvarlak ◯ → Avatar',en:'circle ◯ → Avatar'},
+ {k:'draw',g:()=>genStar(.88,.535,.06),tr:'yıldız → 3 Özellik bloğu',en:'star → Features block'},
+ {k:'draw',g:()=>genArrow(.07,.71,.22),tr:'ok → Bilgi kutusu',en:'arrow → Notice box'},
+ {k:'draw',g:()=>genRect(.30,.58,.62,.48),tr:'büyük kutu ▭ — içine mini parça yuvalayacağım! ',en:'big card ▭ — will nest a mini piece inside! '},
+ {k:'draw',g:()=>genRect(.45,.72,.12,.07),tr:'İÇİNE mini kutu ▭ → ÇOCUK olacak ',en:'tiny box INSIDE ▭ → becomes its CHILD '},
+ {k:'draw',g:()=>genWave(.05,.865,.90,6,.028),tr:'dalga ∿ → süslü ayraç',en:'wave ∿ → fancy divider'},
+ {k:'add',t:'gallery',b:[.05,.922,.42,.06],tr:'şeritten Galeri ekliyorum ',en:'adding Gallery from the strip '},
+ {k:'add',t:'map',b:[.53,.922,.42,.06],tr:'şeritten Harita ekliyorum ',en:'adding a Map from the strip '},
+ {k:'add',t:'links',b:[.05,.985,.30,.06],tr:'Link Butonları ',en:'Link Buttons '},
+ {k:'add',t:'share',b:[.39,.985,.30,.06],tr:'Sosyal Paylaşım ',en:'Social Share '},
+ {k:'add',t:'wa',b:[.73,.985,.22,.06],tr:'WhatsApp butonu ',en:'WhatsApp button '},
+ {k:'add',t:'footer',b:[.73,1.02,.22,.06],tr:'ve Footer ile kapatıyorum ',en:'and closing with the Footer '},
+];
+async function runSim(){
+ if(simRun)return;
+ if(model.some(i=>i.bbox)){if(!confirm(LANG==='en'?'Canvas already has pieces — clear them and watch the full auto demo?':'Tuvalde parçalar var — temizleyip eksiksiz demoyu izleyelim mi?'))return;
+ model=model.filter(i=>!i.bbox);renderAll();}
+ simRun=true;openSheet();
+ const N=SIM_STEPS.length;
+ for(let s=0;s<N;s++){
+ if(!simRun)break;
+ const st=SIM_STEPS[s];
+ setStatus('Auto demo · step '+(s+1)+'/'+N+' — '+st.en);
+ if(st.k==='add'){
+ const it=newItem(st.t);it.bbox=mkB(st.b[0],st.b[1],st.b[2],st.b[3]);
+ model.push(it);renderAll();
+ await wait(1000);continue;
+ }
+ if(SND)await sayAsync(st.en);const pts=st.g();const ink={pts:[],col:'#ea580c',w:7};cur=ink;
+ for(let i=0;i<pts.length;i+=2){if(!simRun)break;ink.pts.push(pts[i]);redrawInk();await wait(32);}
+ if(!simRun)break;
+ cur=null;finishStroke({pts:pts,col:penCol,w:7});
+ await wait(820); /* tanıma mesajını okumak için sabırlı duraksa */
+ }
+ if(simRun){
+ setStatus('Final — converting everything into your page…');
+ await wait(750);$('#kConvert').click();
+ }else{
+ setStatus('Demo stopped.');
+ toast('Demo stopped — press Auto Demo anytime to rewatch it.');
+ }
+ simRun=false;
+}
+$('#btnSim').addEventListener('click',runSim);
+cv.addEventListener('pointerdown',()=>{if(simRun){simRun=false;cur=null;}},true);
+
+/* başlangıç */
+loadState();
+if(!localStorage.getItem('karala_seen')){openModal('mOnboard');}
+localStorage.setItem('karala_seen','1');
+applyLang();
+fillSettings();
+fillSiteCard();
+renderAll();
+setStatus(T('statIdle'));
+setTimeout(()=>toast(M.welcome[LANG==='en'?1:0],3800),600);
+</script>
+</body>
+</html>
