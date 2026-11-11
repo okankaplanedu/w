@@ -1,0 +1,2094 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TerraSculpt PRO | OKAN KAPLAN</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap');
+
+:root {
+  --ac: #00f5c8;
+  --bg: #06070a;
+  --panel: rgba(7,9,13,0.98);
+  --border: rgba(0,245,200,0.13);
+  --text: #c8d0e0;
+  --dim: #4a5568;
+  --danger: #ff4757;
+  --gold: #ffd32a;
+  --water: #0984e3;
+  --sw: 320px;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:'Space Mono',monospace;color:var(--text);user-select:none;-webkit-user-select:none;}
+#cv{position:fixed;inset:0;z-index:0;}
+
+/* ── TOPBAR ── */
+#bar{
+  position:fixed;top:0;left:0;right:0;height:46px;
+  background:rgba(6,7,10,0.96);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:5px;padding:0 10px;z-index:700;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  overflow-x:auto;overflow-y:hidden;
+}
+#bar::-webkit-scrollbar{display:none;}
+#logo{font-family:'Syne',sans-serif;font-weight:800;font-size:13px;color:var(--ac);letter-spacing:3px;white-space:nowrap;flex-shrink:0;}
+.sep{width:1px;height:20px;background:var(--border);flex-shrink:0;margin:0 3px;}
+.sp{flex:1;min-width:4px;}
+.tb{
+  background:rgba(0,245,200,0.06);border:1px solid var(--border);color:var(--ac);
+  font-family:'Space Mono',monospace;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  padding:5px 9px;border-radius:5px;cursor:pointer;transition:all .18s;white-space:nowrap;flex-shrink:0;
+}
+.tb:hover{background:rgba(0,245,200,0.14);border-color:var(--ac);color:#fff;}
+.tb.on{background:var(--ac)!important;color:#000!important;border-color:var(--ac)!important;}
+.tb.gld{border-color:var(--gold);color:var(--gold);}
+.tb.gld:hover{background:var(--gold);color:#000;}
+.tb.grn{border-color:var(--ac);color:var(--ac);}
+.tb.grn:hover{background:var(--ac);color:#000;}
+.tb.red{border-color:var(--danger);color:var(--danger);}
+
+/* ── MODE PILL ── */
+#pill{
+  position:fixed;top:54px;left:50%;transform:translateX(-50%);
+  background:rgba(0,245,200,0.07);border:1px solid var(--ac);
+  color:var(--ac);letter-spacing:2px;padding:3px 13px;border-radius:20px;
+  z-index:600;pointer-events:none;white-space:nowrap;font-size:10px;
+}
+
+/* ── OFFCANVAS ── */
+.oc{
+  position:fixed;top:46px;height:calc(100% - 70px);
+  width:var(--sw);background:var(--panel);border:1px solid var(--border);
+  z-index:650;display:flex;flex-direction:column;
+  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+  transition:transform .36s cubic-bezier(.4,0,.2,1);
+}
+#loc{left:0;}
+#loc.hide{transform:translateX(-100%);}
+#roc{right:0;transform:translateX(100%);}
+#roc.show{transform:translateX(0);}
+
+.och{
+  padding:11px 14px 9px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+}
+.oct{font-family:'Syne',sans-serif;font-weight:800;font-size:10px;color:var(--ac);letter-spacing:2px;text-transform:uppercase;}
+.ocx{background:none;border:none;color:var(--text);font-size:14px;cursor:pointer;padding:2px 5px;border-radius:3px;transition:color .15s;}
+.ocx:hover{color:var(--danger);}
+
+.ocb{flex:1;overflow-y:auto;padding:10px 11px 18px;}
+.ocb::-webkit-scrollbar{width:3px;}
+.ocb::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+/* ── PANEL TABS (left) ── */
+.ptabs{display:flex;gap:0;border-bottom:1px solid var(--border);flex-shrink:0;background:rgba(0,0,0,0.3);}
+.ptab{
+  background:none;border:none;color:var(--dim);
+  font-family:'Space Mono',monospace;font-weight:700;font-size:8px;
+  letter-spacing:1px;text-transform:uppercase;
+  padding:8px 10px;cursor:pointer;transition:all .18s;
+  border-bottom:2px solid transparent;margin-bottom:-1px;flex:1;
+}
+.ptab:hover{color:var(--text);}
+.ptab.on{color:var(--ac);border-bottom-color:var(--ac);}
+.ptp{display:none;}
+.ptp.on{display:block;}
+
+/* ── BRUSH TOOL TABS ── */
+.btabs{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:4px;
+  padding:8px 11px;border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.btab{
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);
+  color:var(--dim);font-family:'Space Mono',monospace;font-weight:700;
+  font-size:7px;letter-spacing:.5px;text-transform:uppercase;
+  padding:7px 3px;border-radius:5px;cursor:pointer;transition:all .18s;text-align:center;
+  display:flex;flex-direction:column;gap:3px;align-items:center;
+}
+.btab .bticon{font-size:14px;}
+.btab:hover{border-color:var(--ac);color:var(--text);}
+.btab.on{background:var(--ac)!important;color:#000!important;border-color:var(--ac)!important;}
+.btpanel{display:none;padding:10px 11px;}
+.btpanel.on{display:block;}
+
+/* ── ACCORDION ── */
+.acc{border:1px solid rgba(255,255,255,.06);border-radius:8px;overflow:hidden;margin-bottom:8px;background:rgba(255,255,255,.015);}
+.acch{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 13px;cursor:pointer;user-select:none;font-weight:700;
+  font-size:8px;letter-spacing:1.5px;text-transform:uppercase;
+  background:rgba(255,255,255,.02);transition:background .15s;
+}
+.acch:hover{background:rgba(255,255,255,.04);}
+.accic{transition:.25s;color:var(--dim);font-size:10px;}
+.accb{max-height:0;overflow:hidden;transition:max-height .35s ease,padding .35s ease;padding:0 13px;}
+.accb.open{max-height:600px;padding:12px 13px;}
+.acch.active .accic{transform:rotate(180deg);}
+
+/* ── SLIDERS ── */
+.sr{margin:6px 0;}
+.sl{display:flex;justify-content:space-between;font-size:8px;text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px;}
+.sl b{color:var(--ac);}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;
+  width:100%;height:3px;background:rgba(0,245,200,.09);border-radius:2px;cursor:pointer;outline:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:11px;height:11px;border-radius:50%;
+  background:var(--ac);border:2px solid #06070a;box-shadow:0 0 5px rgba(0,245,200,.45);
+}
+
+/* ── BUTTONS ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin:7px 0;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin:7px 0;}
+.btn{
+  border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.025);
+  color:var(--dim);font-family:'Space Mono',monospace;font-weight:700;
+  font-size:7px;letter-spacing:.7px;text-transform:uppercase;
+  padding:8px 4px;border-radius:4px;cursor:pointer;transition:all .18s;text-align:center;
+}
+.btn:hover{border-color:var(--ac);color:var(--text);background:rgba(0,245,200,.05);}
+.btn.on{background:var(--ac)!important;color:#000!important;border-color:var(--ac)!important;}
+.btn.wide{grid-column:1/-1;}
+.btn.ok{border-color:var(--ac);color:var(--ac);background:rgba(0,245,200,.06);}
+.btn.ok:hover{background:var(--ac);color:#000;}
+.btn.gld{border-color:var(--gold);color:var(--gold);}
+.btn.gld:hover{background:var(--gold);color:#000;}
+.btn.red{border-color:var(--danger);color:var(--danger);}
+.btn.red:hover{background:var(--danger);color:#fff;}
+
+/* ── SECTION TITLE ── */
+.stt{font-size:8px;font-weight:700;color:var(--ac);letter-spacing:1.8px;text-transform:uppercase;margin-bottom:9px;display:flex;align-items:center;gap:5px;}
+.stt::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* ── OBJECT GRID ── */
+.og{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin:7px 0;}
+.oc2{
+  background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);
+  border-radius:5px;padding:7px 3px;text-align:center;
+  cursor:pointer;transition:all .18s;position:relative;
+}
+.oc2:hover{border-color:var(--ac);}
+.oc2.sel{border-color:var(--ac);background:rgba(0,245,200,.07);}
+.oc2 .ic{font-size:18px;display:block;margin-bottom:2px;pointer-events:none;}
+.oc2 .nm{font-size:6.5px;letter-spacing:.7px;text-transform:uppercase;pointer-events:none;}
+.oc2 .dx{position:absolute;top:1px;right:3px;font-size:7px;color:var(--danger);background:none;border:none;cursor:pointer;display:none;z-index:2;}
+.oc2:hover .dx{display:block;}
+.oc2.bi .dx{display:none!important;}
+
+/* ── FILE DROP ── */
+.fd{border:1px dashed var(--border);border-radius:5px;padding:10px;text-align:center;cursor:pointer;font-size:7px;letter-spacing:.7px;transition:border-color .18s;}
+.fd:hover{border-color:var(--ac);color:var(--text);}
+
+/* ── PRINT INFO ── */
+.pi{background:rgba(255,211,42,.04);border:1px solid rgba(255,211,42,.18);border-radius:3px;padding:6px 8px;color:var(--gold);font-size:7px;letter-spacing:.7px;margin:5px 0;}
+
+/* ── IMPORT ZONE ── */
+.iz{border:1px dashed rgba(0,245,200,.18);border-radius:7px;padding:13px;text-align:center;margin:7px 0;}
+.iz p{font-size:7px;letter-spacing:.7px;margin:3px 0;}
+
+/* ── RIGHT TABS ── */
+.rtabs{display:flex;gap:0;border-bottom:1px solid var(--border);flex-shrink:0;}
+.rtab{
+  background:none;border:none;color:var(--dim);
+  font-family:'Space Mono',monospace;font-weight:700;font-size:8px;
+  letter-spacing:1px;text-transform:uppercase;
+  padding:8px 12px;cursor:pointer;transition:all .18s;
+  border-bottom:2px solid transparent;margin-bottom:-1px;
+}
+.rtab:hover{color:var(--text);}
+.rtab.on{color:var(--ac);border-bottom-color:var(--ac);}
+.rtp{display:none;}
+.rtp.on{display:block;}
+
+/* ── PLUGIN CARD ── */
+.plugcard{
+  border:1px solid rgba(255,255,255,.07);border-radius:6px;
+  padding:10px 12px;margin-bottom:7px;background:rgba(255,255,255,.02);
+  cursor:pointer;transition:all .18s;
+}
+.plugcard:hover{border-color:var(--ac);background:rgba(0,245,200,.03);}
+.plugcard.active{border-color:var(--ac);background:rgba(0,245,200,.06);}
+.plugcard-h{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+.plugcard-ic{font-size:18px;}
+.plugcard-name{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ac);}
+.plugcard-desc{font-size:7px;color:var(--dim);letter-spacing:.5px;line-height:1.6;}
+.plugcard-badge{
+  margin-left:auto;font-size:6px;padding:2px 6px;border-radius:10px;
+  border:1px solid var(--ac);color:var(--ac);letter-spacing:.5px;
+}
+.plugcard.active .plugcard-badge{background:var(--ac);color:#000;}
+
+/* ── MESH EDITOR ── */
+.me-toolbar{display:flex;gap:4px;flex-wrap:wrap;padding:8px 11px;border-bottom:1px solid var(--border);}
+.me-btn{
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);
+  color:var(--dim);font-family:'Space Mono',monospace;font-weight:700;
+  font-size:7px;letter-spacing:.5px;text-transform:uppercase;
+  padding:5px 8px;border-radius:4px;cursor:pointer;transition:all .18s;
+}
+.me-btn:hover{border-color:var(--ac);color:var(--ac);}
+.me-btn.on{background:var(--ac);color:#000;border-color:var(--ac);}
+.me-prop{display:flex;flex-direction:column;gap:5px;padding:10px 11px;}
+.me-row{display:flex;align-items:center;gap:8px;}
+.me-lbl{font-size:7px;letter-spacing:.7px;text-transform:uppercase;color:var(--dim);width:50px;flex-shrink:0;}
+.me-inp{
+  flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  color:var(--text);font-family:'Space Mono',monospace;font-size:8px;
+  padding:4px 7px;border-radius:3px;outline:none;
+}
+.me-inp:focus{border-color:var(--ac);}
+
+/* ── STATUS BAR ── */
+#sb{
+  position:fixed;bottom:0;left:0;right:0;height:24px;
+  background:rgba(6,7,10,.92);border-top:1px solid var(--border);
+  display:flex;align-items:center;padding:0 13px;gap:16px;
+  z-index:700;backdrop-filter:blur(8px);
+}
+.si{font-size:7px;letter-spacing:.7px;text-transform:uppercase;white-space:nowrap;}
+.si span{color:var(--ac);}
+
+/* ── TOAST ── */
+#toast{
+  position:fixed;bottom:32px;left:50%;
+  transform:translateX(-50%) translateY(40px);
+  background:rgba(0,245,200,.12);border:1px solid var(--ac);
+  color:var(--ac);font-size:8.5px;letter-spacing:1px;
+  padding:6px 18px;border-radius:20px;z-index:900;
+  transition:transform .28s,opacity .28s;opacity:0;pointer-events:none;white-space:nowrap;
+}
+#toast.on{transform:translateX(-50%) translateY(0);opacity:1;}
+
+/* ── DRAG OVERLAY ── */
+#dov{
+  position:fixed;inset:0;background:rgba(0,245,200,.04);border:2px dashed var(--ac);
+  z-index:999;display:none;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-size:20px;color:var(--ac);letter-spacing:4px;pointer-events:none;
+}
+#dov.on{display:flex;}
+
+input[type=color]{width:100%;height:26px;border:1px solid var(--border);border-radius:3px;cursor:pointer;background:none;padding:2px;margin-top:3px;}
+.colorRow{display:flex;gap:6px;align-items:center;margin:5px 0;}
+.colorRow label{font-size:7px;letter-spacing:.7px;text-transform:uppercase;color:var(--dim);flex:1;}
+
+/* ── TEMPLATE CARDS ── */
+.tcard{
+  border:1px solid rgba(255,255,255,.06);border-radius:5px;
+  padding:8px 10px;margin-bottom:5px;cursor:pointer;
+  transition:all .18s;background:rgba(255,255,255,.015);
+}
+.tcard:hover{border-color:var(--ac);background:rgba(0,245,200,.04);}
+.tcard-name{font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ac);margin-bottom:3px;}
+.tcard-desc{font-size:6.5px;color:var(--dim);letter-spacing:.5px;line-height:1.6;}
+.tcard-preview{font-size:10px;margin-bottom:4px;}
+
+/* ── OBJ DETAIL (mesh editor selected) ── */
+#meDetail{padding:10px 11px;border-top:1px solid var(--border);}
+.meDetailRow{display:flex;gap:4px;align-items:center;margin-bottom:5px;}
+.meDetailLbl{font-size:7px;letter-spacing:.5px;color:var(--dim);width:40px;}
+.xyz-group{display:flex;gap:3px;flex:1;}
+.xyz-inp{
+  flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  color:var(--text);font-family:'Space Mono',monospace;font-size:7px;
+  padding:3px 5px;border-radius:3px;outline:none;text-align:center;
+}
+.xyz-inp:focus{border-color:var(--ac);}
+
+/* scrollable height for ptp panels */
+.ptp{ overflow-y:auto; }
+#ptpTerrain{ max-height: calc(100vh - 200px); }
+#ptpObjects{ max-height: calc(100vh - 200px); }
+#ptpPlugins{ max-height: calc(100vh - 200px); }
+
+.pluginPanel{
+  border:1px solid rgba(0,245,200,.15);border-radius:6px;
+  margin-top:8px;overflow:hidden;
+}
+.pluginPanelHead{
+  background:rgba(0,245,200,.06);padding:8px 12px;
+  font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ac);
+}
+.pluginPanelBody{padding:10px 12px;}
+
+/* note label */
+.note{font-size:6.5px;color:var(--dim);letter-spacing:.5px;line-height:1.6;margin:4px 0;}
+</style>
+</head>
+<body>
+
+<div id="dov">DROP JSON</div>
+<div id="cv"></div>
+
+<!-- ═══ TOP BAR ═══ -->
+<div id="bar">
+  <div id="logo">TERRA<wbr>SCULPT</div>
+  <span style="font-size:6.5px;letter-spacing:2px;flex-shrink:0;color:var(--dim)">PRO</span>
+  <div class="sep"></div>
+  <button class="tb on" id="ltb" onclick="toc('l')">◀ ARAÇLAR</button>
+  <button class="tb" id="rtb" onclick="toc('r')">OBJELER ▶</button>
+  <div class="sep"></div>
+  <button class="tb" id="bm-raise"  onclick="sMode('raise')">⬆ YÜKSELT</button>
+  <button class="tb" id="bm-lower"  onclick="sMode('lower')">⬇ ALÇALT</button>
+  <button class="tb" id="bm-smooth" onclick="sMode('smooth')">〰 YUMUŞAT</button>
+  <button class="tb" id="bm-paint"  onclick="sMode('paint')">🖌 BOYA</button>
+  <button class="tb" id="bm-place"  onclick="sMode('place')">📌 OBJ.YERLEŞTİR</button>
+  <div class="sp"></div>
+  <button class="tb"     onclick="exportScene()">↓ SAHNE</button>
+  <button class="tb grn" onclick="genBase()">⬡ TABAN</button>
+  <button class="tb gld" onclick="exportSTL()">▲ STL</button>
+</div>
+
+<div id="pill">MOD: YÜKSELT</div>
+
+<!-- ═══ LEFT OFFCANVAS ═══ -->
+<div class="oc" id="loc">
+  <!-- Panel Tabs -->
+  <div class="ptabs">
+    <button class="ptab on" data-p="ptpTerrain">🏔 Arazi</button>
+    <button class="ptab" data-p="ptpBrush">🖌 Fırça</button>
+    <button class="ptab" data-p="ptpPlugins">🔌 Plugin</button>
+  </div>
+
+  <!-- ───── TERRAIN PANEL ───── -->
+  <div class="ptp on ocb" id="ptpTerrain">
+
+    <!-- Heightmap -->
+    <div class="acc">
+      <div class="acch" onclick="toggleAcc(this)">
+        <span>🗺 Heightmap</span><span class="accic">▼</span>
+      </div>
+      <div class="accb open">
+        <input type="file" id="hmf" hidden accept="image/*">
+        <div class="fd" onclick="document.getElementById('hmf').click()">📂 HARİTA YÜKLE (.png/.jpg)</div>
+        <div class="sr">
+          <div class="sl">Y Çarpanı <b id="hMv">0.2</b></div>
+          <input type="range" id="hM" min="-8" max="8" step="0.1" value="0.2">
+        </div>
+        <div class="sr">
+          <div class="sl">Dikey Ofset <b id="hOv">0</b></div>
+          <input type="range" id="hO" min="-100" max="100" value="0">
+        </div>
+        <div class="sr">
+          <div class="sl">Bias <b id="hBv">0.00</b></div>
+          <input type="range" id="hB" min="-1" max="1" step="0.05" value="0">
+        </div>
+      </div>
+    </div>
+
+    <!-- Atmosfer -->
+    <div class="acc">
+      <div class="acch" onclick="toggleAcc(this)">
+        <span>☁ Atmosfer</span><span class="accic">▼</span>
+      </div>
+      <div class="accb">
+        <div class="sr">
+          <div class="sl">Bulut Yoğunluğu <b id="cDv">40</b></div>
+          <input type="range" id="cD" min="0" max="200" value="40">
+        </div>
+        <div class="sr">
+          <div class="sl">İrtifa <b id="cHv">350</b></div>
+          <input type="range" id="cH" min="100" max="800" value="350">
+        </div>
+        <div class="sr">
+          <div class="sl">Ölçek <b id="cSv">1.0</b></div>
+          <input type="range" id="cS" min="0.5" max="5" step="0.1" value="1.0">
+        </div>
+        <button class="btn wide" onclick="spawnClouds()">↻ BULUTLARI YENİLE</button>
+      </div>
+    </div>
+
+    <!-- Deniz -->
+    <div class="acc">
+      <div class="acch" onclick="toggleAcc(this)">
+        <span>💧 Deniz</span><span class="accic">▼</span>
+      </div>
+      <div class="accb">
+        <div class="sr">
+          <div class="sl">Deniz Seviyesi <b id="sLv">0</b></div>
+          <input type="range" id="sL" min="-60" max="150" value="0">
+        </div>
+        <div class="sr">
+          <div class="sl">Dalga Genliği <b id="wHv">2.5</b></div>
+          <input type="range" id="wH" min="0" max="25" step="0.1" value="2.5">
+        </div>
+        <div class="sr">
+          <div class="sl">Dalga Hızı <b id="wSv">1.0</b></div>
+          <input type="range" id="wS" min="0.1" max="5" step="0.1" value="1.0">
+        </div>
+      </div>
+    </div>
+
+    <!-- 3D Baskı -->
+    <div class="acc">
+      <div class="acch" onclick="toggleAcc(this)">
+        <span>📦 3D Baskı STL</span><span class="accic">▼</span>
+      </div>
+      <div class="accb">
+        <div class="sr">
+          <div class="sl">Zemin Kalınlığı <b id="bDv">50</b></div>
+          <input type="range" id="bD" min="5" max="200" value="50">
+        </div>
+        <div class="sr">
+          <div class="sl">Boyut (cm) <b id="pCv">15</b></div>
+          <input type="range" id="pC" min="5" max="50" step="0.5" value="15">
+        </div>
+        <div class="pi" id="pinfo">Hedef: 15cm × 15cm</div>
+        <div class="g2">
+          <button class="btn gld" onclick="genBase()">⬡ TABAN</button>
+          <button class="btn ok" onclick="exportSTL()">▲ STL</button>
+        </div>
+        <input type="file" id="scf" hidden accept=".json">
+        <button class="btn wide" style="margin-top:5px;" onclick="document.getElementById('scf').click()">↑ SAHNE YÜKLE</button>
+      </div>
+    </div>
+
+  </div><!-- /ptpTerrain -->
+
+  <!-- ───── BRUSH PANEL ───── -->
+  <div class="ptp ocb" id="ptpBrush">
+
+    <!-- Brush Mode Tabs -->
+    <div class="btabs" id="brushTabs">
+      <button class="btab on" data-bm="raise" onclick="selectBrushTab(this,'raise')">
+        <span class="bticon">⬆</span>YÜKSELT
+      </button>
+      <button class="btab" data-bm="lower" onclick="selectBrushTab(this,'lower')">
+        <span class="bticon">⬇</span>ALÇALT
+      </button>
+      <button class="btab" data-bm="smooth" onclick="selectBrushTab(this,'smooth')">
+        <span class="bticon">〰</span>YUMUŞAT
+      </button>
+      <button class="btab" data-bm="paint" onclick="selectBrushTab(this,'paint')">
+        <span class="bticon">🖌</span>BOYA
+      </button>
+      <button class="btab" data-bm="place" onclick="selectBrushTab(this,'place')">
+        <span class="bticon">📌</span>OBJ
+      </button>
+    </div>
+
+    <!-- RAISE settings -->
+    <div class="btpanel on" id="btp-raise">
+      <div class="stt">Yükselt Ayarları</div>
+      <div class="sr">
+        <div class="sl">Fırça Çapı <b id="bSv_raise">80</b></div>
+        <input type="range" id="bS_raise" min="10" max="300" value="80" oninput="syncBrush('bS',this.value,'raise')">
+      </div>
+      <div class="sr">
+        <div class="sl">Güç <b id="bPv_raise">5</b></div>
+        <input type="range" id="bP_raise" min="0.1" max="20" step="0.1" value="5" oninput="syncBrush('bP',this.value,'raise')">
+      </div>
+      <div class="sr">
+        <div class="sl">Falloff <b id="bFv_raise">2.0</b></div>
+        <input type="range" id="bF_raise" min="0.5" max="5" step="0.1" value="2.0" oninput="syncBrush('bF',this.value,'raise')">
+      </div>
+      <div class="note">Sol tık basılı tutarak arazi üzerine sürükle → yükseltme yapar.</div>
+    </div>
+
+    <!-- LOWER settings -->
+    <div class="btpanel" id="btp-lower">
+      <div class="stt">Alçalt Ayarları</div>
+      <div class="sr">
+        <div class="sl">Fırça Çapı <b id="bSv_lower">80</b></div>
+        <input type="range" id="bS_lower" min="10" max="300" value="80" oninput="syncBrush('bS',this.value,'lower')">
+      </div>
+      <div class="sr">
+        <div class="sl">Güç <b id="bPv_lower">5</b></div>
+        <input type="range" id="bP_lower" min="0.1" max="20" step="0.1" value="5" oninput="syncBrush('bP',this.value,'lower')">
+      </div>
+      <div class="sr">
+        <div class="sl">Falloff <b id="bFv_lower">2.0</b></div>
+        <input type="range" id="bF_lower" min="0.5" max="5" step="0.1" value="2.0" oninput="syncBrush('bF',this.value,'lower')">
+      </div>
+      <div class="note">Vadi, krater, çukur oluşturmak için kullan.</div>
+    </div>
+
+    <!-- SMOOTH settings -->
+    <div class="btpanel" id="btp-smooth">
+      <div class="stt">Yumuşat Ayarları</div>
+      <div class="sr">
+        <div class="sl">Fırça Çapı <b id="bSv_smooth">80</b></div>
+        <input type="range" id="bS_smooth" min="10" max="300" value="80" oninput="syncBrush('bS',this.value,'smooth')">
+      </div>
+      <div class="sr">
+        <div class="sl">Yoğunluk <b id="bPv_smooth">0.15</b></div>
+        <input type="range" id="bP_smooth" min="0.01" max="0.5" step="0.01" value="0.15" oninput="syncBrush('bP',this.value,'smooth')">
+      </div>
+      <div class="note">Keskin kenarları ve gürültüyü yumuşatır.</div>
+    </div>
+
+    <!-- PAINT settings -->
+    <div class="btpanel" id="btp-paint">
+      <div class="stt">Boya Ayarları</div>
+      <div class="sr">
+        <div class="sl">Fırça Çapı <b id="bSv_paint">80</b></div>
+        <input type="range" id="bS_paint" min="10" max="300" value="80" oninput="syncBrush('bS',this.value,'paint')">
+      </div>
+      <div class="sr">
+        <div class="sl">Opaklık <b id="bPv_paint">0.12</b></div>
+        <input type="range" id="bP_paint" min="0.01" max="0.5" step="0.01" value="0.12" oninput="syncBrush('bP',this.value,'paint')">
+      </div>
+      <div class="colorRow">
+        <label>Boya Rengi</label>
+        <input type="color" id="pc" value="#2ed573" style="width:60px;height:26px;">
+      </div>
+      <div class="stt" style="margin-top:8px;">Hızlı Renkler</div>
+      <div class="g3" style="gap:4px;">
+        <button class="btn" onclick="quickColor('#2d6b27')" style="background:#2d6b27">🌿</button>
+        <button class="btn" onclick="quickColor('#d4b483')" style="background:#d4b483">🏜</button>
+        <button class="btn" onclick="quickColor('#6b5a40')" style="background:#6b5a40">🪨</button>
+        <button class="btn" onclick="quickColor('#aaaaaa')" style="background:#aaaaaa">⛰</button>
+        <button class="btn" onclick="quickColor('#ffffff')" style="background:#fff">❄️</button>
+        <button class="btn" onclick="quickColor('#0a1e35')" style="background:#0a1e35">🌊</button>
+      </div>
+    </div>
+
+    <!-- PLACE settings -->
+    <div class="btpanel" id="btp-place">
+      <div class="stt">Obje Yerleştir</div>
+      <div id="soi" style="font-size:8px;padding:5px 0 3px;margin-bottom:6px;min-height:28px;border:1px solid var(--border);border-radius:4px;padding:6px 8px;">
+        — seçilmedi (Objeler panelinden seç) —
+      </div>
+      <div class="sr">
+        <div class="sl">Fırça Çapı <b id="bSv_place">80</b></div>
+        <input type="range" id="bS_place" min="10" max="300" value="80" oninput="syncBrush('bS',this.value,'place')">
+      </div>
+      <div class="sr">
+        <div class="sl">Sıklık <b id="fRv">5</b></div>
+        <input type="range" id="fR" min="1" max="30" value="5">
+      </div>
+      <div class="sr">
+        <div class="sl">Min Ölçek <b id="sMnv">0.8</b></div>
+        <input type="range" id="sMn" min="0.1" max="3" step="0.1" value="0.8">
+      </div>
+      <div class="sr">
+        <div class="sl">Max Ölçek <b id="sMxv">1.5</b></div>
+        <input type="range" id="sMx" min="0.1" max="5" step="0.1" value="1.5">
+      </div>
+      <div class="sr">
+        <div class="sl">Y Ofset <b id="yOv">0</b></div>
+        <input type="range" id="yO" min="-20" max="50" value="0">
+      </div>
+      <div class="g2" style="margin-top:8px;">
+        <button class="btn red" onclick="clearObjs()">✕ HEPSİNİ SİL</button>
+        <button class="btn" onclick="undoLast()">↩ GERİ AL</button>
+      </div>
+    </div>
+
+  </div><!-- /ptpBrush -->
+
+  <!-- ───── PLUGINS PANEL ───── -->
+  <div class="ptp ocb" id="ptpPlugins">
+    <div style="padding:10px 11px 5px;">
+      <div class="stt">Aktif Pluginler</div>
+      <div id="pluginList"></div>
+    </div>
+    <div style="padding:5px 11px;">
+      <div class="stt">Plugin Ekle</div>
+      <div class="acc">
+        <div class="acch" onclick="toggleAcc(this)">
+          <span>📋 Hazır Pluginler</span><span class="accic">▼</span>
+        </div>
+        <div class="accb open">
+          <div id="availPlugins"></div>
+        </div>
+      </div>
+      <div class="acc">
+        <div class="acch" onclick="toggleAcc(this)">
+          <span>🔧 JSON Plugin Yükle</span><span class="accic">▼</span>
+        </div>
+        <div class="accb">
+          <div class="note">Plugin JSON formatı: {"id":"unique_id","name":"Plugin Adı","icon":"🔌","desc":"Açıklama","sliders":[{"id":"s1","label":"Ayar","min":0,"max":100,"val":50}],"buttons":[{"label":"Çalıştır","fn":"myFn"}]}</div>
+          <input type="file" id="plugf" hidden accept=".json">
+          <button class="btn wide ok" onclick="document.getElementById('plugf').click()" style="margin-top:8px;">📂 PLUGIN JSON SEÇ</button>
+        </div>
+      </div>
+    </div>
+    <div id="pluginActivePanel" style="padding:5px 11px 15px;"></div>
+  </div><!-- /ptpPlugins -->
+
+</div><!-- /loc -->
+
+<!-- ═══ RIGHT OFFCANVAS ═══ -->
+<div class="oc" id="roc">
+  <div class="rtabs">
+    <button class="rtab on" data-rt="rtpObjs">Kütüphane</button>
+    <button class="rtab" data-rt="rtpEditor">Mesh Editör</button>
+    <button class="rtab" data-rt="rtpImport">İmport/Export</button>
+  </div>
+  <div class="och" style="border-top:1px solid var(--border);">
+    <div class="oct" id="rOchTitle">Obje Kütüphanesi</div>
+    <button class="ocx" onclick="toc('r')">✕</button>
+  </div>
+
+  <!-- ── OBJECTS TAB ── -->
+  <div class="rtp on ocb" id="rtpObjs">
+    <div class="acc">
+      <div class="acch active" onclick="toggleAcc(this)">
+        <span>⬡ Seçili Obje</span><span class="accic">▼</span>
+      </div>
+      <div class="accb open">
+        <div id="soi2" style="font-size:8px;padding:4px 0 6px;color:var(--dim);">— seçilmedi —</div>
+      </div>
+    </div>
+    <div class="acc">
+      <div class="acch active" onclick="toggleAcc(this)">
+        <span>⬡ Obje Seç</span><span class="accic">▼</span>
+      </div>
+      <div class="accb open">
+        <div class="og" id="ogrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MESH EDITOR TAB ── -->
+  <div class="rtp" id="rtpEditor">
+    <div class="me-toolbar">
+      <button class="me-btn on" id="metb-select" onclick="setMeTool('select')">↖ SEÇ</button>
+      <button class="me-btn" id="metb-move" onclick="setMeTool('move')">✥ TAŞI</button>
+      <button class="me-btn" id="metb-rotate" onclick="setMeTool('rotate')">↺ DÖNDÜR</button>
+      <button class="me-btn" id="metb-scale" onclick="setMeTool('scale')">⤡ ÖLÇEK</button>
+      <button class="me-btn" id="metb-delete" onclick="deleteSelected()" style="border-color:var(--danger);color:var(--danger);">✕ SİL</button>
+    </div>
+    <div class="me-prop" id="mePropPanel">
+      <div class="note" style="text-align:center;padding:15px 0;">Sahneden bir objeye sol tıklayarak seç</div>
+    </div>
+    <div id="meDetail" style="display:none;">
+      <div class="stt">Dönüşüm</div>
+      <div class="meDetailRow">
+        <span class="meDetailLbl">Konum</span>
+        <div class="xyz-group">
+          <input class="xyz-inp" id="me_px" placeholder="X" onchange="applyMeTransform()">
+          <input class="xyz-inp" id="me_py" placeholder="Y" onchange="applyMeTransform()">
+          <input class="xyz-inp" id="me_pz" placeholder="Z" onchange="applyMeTransform()">
+        </div>
+      </div>
+      <div class="meDetailRow">
+        <span class="meDetailLbl">Rotasyon</span>
+        <div class="xyz-group">
+          <input class="xyz-inp" id="me_rx" placeholder="X°" onchange="applyMeTransform()">
+          <input class="xyz-inp" id="me_ry" placeholder="Y°" onchange="applyMeTransform()">
+          <input class="xyz-inp" id="me_rz" placeholder="Z°" onchange="applyMeTransform()">
+        </div>
+      </div>
+      <div class="meDetailRow">
+        <span class="meDetailLbl">Ölçek</span>
+        <div class="xyz-group">
+          <input class="xyz-inp" id="me_sx" placeholder="X" onchange="applyMeTransform()">
+          <input class="xyz-inp" id="me_sy" placeholder="Y" onchange="applyMeTransform()">
+          <input class="xyz-inp" id="me_sz" placeholder="Z" onchange="applyMeTransform()">
+        </div>
+      </div>
+      <div class="g2" style="margin-top:6px;">
+        <button class="btn" onclick="duplicateSelected()">⧉ KOPYALA</button>
+        <button class="btn red" onclick="deleteSelected()">✕ SİL</button>
+      </div>
+      <div class="stt" style="margin-top:10px;">Obje Rengi</div>
+      <input type="color" id="meColor" value="#888888" onchange="applyMeColor()">
+    </div>
+    <div style="padding:10px 11px;border-top:1px solid var(--border);">
+      <div class="stt">Saha</div>
+      <div class="g2">
+        <button class="btn" onclick="selectAll()">☑ HEPSİNİ SEÇ</button>
+        <button class="btn red" onclick="clearObjs()">✕ HEPSİNİ SİL</button>
+      </div>
+      <div class="sr" style="margin-top:8px;">
+        <div class="sl">Obje Sayısı <b id="stO2">0</b></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── IMPORT/EXPORT TAB ── -->
+  <div class="rtp ocb" id="rtpImport">
+
+    <!-- JSON Import -->
+    <div class="acc">
+      <div class="acch active" onclick="toggleAcc(this)">
+        <span>⬡ JSON Obje İmport</span><span class="accic">▼</span>
+      </div>
+      <div class="accb open">
+        <input type="file" id="jif" hidden accept=".json">
+        <div class="iz">
+          <p style="font-size:16px;margin-bottom:5px;">{ }</p>
+          <p>Sürükle &amp; bırak veya:</p>
+          <button class="btn" style="margin-top:6px;" onclick="document.getElementById('jif').click()">📂 JSON SEÇ</button>
+        </div>
+        <div class="note">Format: {"name":"Ad","icon":"🌲","key":"key","parts":[{"type":"box","w":5,"h":5,"d":5,"color":255}]}</div>
+      </div>
+    </div>
+
+    <!-- JSON Templates -->
+    <div class="acc">
+      <div class="acch active" onclick="toggleAcc(this)">
+        <span>⬡ JSON Şablonları</span><span class="accic">▼</span>
+      </div>
+      <div class="accb open">
+        <div class="note" style="margin-bottom:8px;">Şablon indir → düzenle → import et ile kütüphaneye ekle:</div>
+        <div id="templateCards"></div>
+      </div>
+    </div>
+
+    <!-- Saved Objects -->
+    <div class="acc">
+      <div class="acch" onclick="toggleAcc(this)">
+        <span>⬡ Kayıtlı Objeler <span id="sct">(0)</span></span><span class="accic">▼</span>
+      </div>
+      <div class="accb">
+        <div id="slist" style="display:flex;flex-direction:column;gap:4px;"></div>
+        <div class="g2" style="margin-top:8px;">
+          <button class="btn ok" onclick="expLib()">↓ KÜTÜPHANE</button>
+          <button class="btn red" onclick="clrSaved()">✕ SİL</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- /roc -->
+
+<!-- ═══ STATUS BAR ═══ -->
+<div id="sb">
+  <div class="si">MOD: <span id="stM">YÜKSELT</span></div>
+  <div class="si">POLY: <span id="stP">150×150</span></div>
+  <div class="si">OBJE: <span id="stO">0</span></div>
+  <div class="si">SEÇ: <span id="stS">—</span></div>
+  <div class="si" style="margin-left:auto;">SOL TIK: SCULPT | SAĞ TIK: KAMERA | TEKERLEK: ZOOM</div>
+</div>
+
+<div id="toast"></div>
+
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { STLExporter } from 'three/addons/exporters/STLExporter.js';
+import { TransformControls } from 'three/addons/controls/TransformControls.js';
+
+/* ═══════════════ GLOBALS ═══════════════ */
+const WS = 1000;
+let scene, cam, renderer, ctrl, transformCtrl;
+let tMesh, tGeo;
+let sMesh, sGeo;
+let baseMesh;
+let baseH;
+let currentRes = 150;
+let mode = 'raise';
+let mouseDown = false;
+let lastHmap = null;
+let selKey = null;
+let selectedObj = null; // mesh editor selection
+let meTool = 'select';
+let objGrp, cloudGrp;
+let brushHist = [];
+let db;
+let custObjs = {};
+
+// Per-brush settings
+const brushSettings = {
+  raise:  { bS: 80, bP: 5,    bF: 2.0 },
+  lower:  { bS: 80, bP: 5,    bF: 2.0 },
+  smooth: { bS: 80, bP: 0.15, bF: 2.0 },
+  paint:  { bS: 80, bP: 0.12, bF: 2.0 },
+  place:  { bS: 80 }
+};
+
+const rc   = new THREE.Raycaster();
+const mpos = new THREE.Vector2();
+
+/* ═══════════════ BRUSH TAB UI ═══════════════ */
+window.selectBrushTab = (el, bm) => {
+  document.querySelectorAll('.btab').forEach(b => b.classList.remove('on'));
+  document.querySelectorAll('.btpanel').forEach(p => p.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('btp-'+bm).classList.add('on');
+  sMode(bm);
+};
+
+window.syncBrush = (param, val, bm) => {
+  brushSettings[bm][param] = parseFloat(val);
+  const vid = document.getElementById(param+'v_'+bm);
+  if (vid) vid.textContent = parseFloat(val).toFixed(param==='bP'&&(bm==='smooth'||bm==='paint')?2:1);
+};
+
+window.quickColor = c => {
+  document.getElementById('pc').value = c;
+};
+
+/* ═══════════════ BUILT-IN OBJECTS ═══════════════ */
+function msh(geo, col) {
+  return new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ color: col }));
+}
+
+const BI = {
+  tree: { name:'Ağaç', icon:'🌲', bi:true, build() {
+    const g = new THREE.Group();
+    g.add(msh(new THREE.CylinderGeometry(1.5,2,10,6), 0x4d2902));
+    const l = msh(new THREE.ConeGeometry(6,18,5), 0x1a5c1a); l.position.y=12; g.add(l);
+    const b = new THREE.Box3().setFromObject(g); g.position.y -= b.min.y;
+    return g;
+  }},
+  pine: { name:'Çam', icon:'🌲', bi:true, build() {
+    const g = new THREE.Group();
+    g.add(msh(new THREE.CylinderGeometry(0.8,1.2,9,5), 0x3d1f00));
+    [[0,6,5],[7,5,4],[13,4,3]].forEach(([y,r,h]) => {
+      const t = msh(new THREE.ConeGeometry(r,h+4,6), 0x0d4d0d);
+      t.position.y = y+3; g.add(t);
+    });
+    const b = new THREE.Box3().setFromObject(g); g.position.y -= b.min.y;
+    return g;
+  }},
+  rock: { name:'Kaya', icon:'🪨', bi:true, build() {
+    const g = new THREE.Group();
+    const geo = new THREE.DodecahedronGeometry(4+Math.random()*3,0);
+    const pa = geo.attributes.position.array;
+    for (let i=0;i<pa.length;i+=3){pa[i]+=(Math.random()-.5)*1.4;pa[i+2]+=(Math.random()-.5)*1.4;}
+    geo.computeVertexNormals();
+    const r = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({color:0x787878}));
+    r.rotation.set(Math.random()*2,Math.random()*2,Math.random()*2); g.add(r);
+    const b = new THREE.Box3().setFromObject(g); g.position.y -= b.min.y;
+    return g;
+  }},
+  stone: { name:'Taş', icon:'🪨', bi:true, build() {
+    const g = new THREE.Group();
+    const s = msh(new THREE.DodecahedronGeometry(2,0), 0x999999);
+    s.scale.set(1+Math.random()*.5,.5+Math.random()*.3,.8+Math.random()*.4); g.add(s);
+    const b = new THREE.Box3().setFromObject(g); g.position.y -= b.min.y;
+    return g;
+  }},
+  house: { name:'Ev', icon:'🏠', bi:true, build() {
+    const g = new THREE.Group();
+    g.add(msh(new THREE.BoxGeometry(10,8,10), 0xd4c4a8));
+    const r = msh(new THREE.ConeGeometry(9,7,4), 0x8b1a1a);
+    r.position.y=7.5; r.rotation.y=Math.PI/4; g.add(r);
+    const b = new THREE.Box3().setFromObject(g); g.position.y -= b.min.y;
+    return g;
+  }},
+  sheep: { name:'Koyun', icon:'🐑', bi:true, build() {
+    const g = new THREE.Group();
+    const bod = msh(new THREE.SphereGeometry(3,8,6), 0xf0f0f0);
+    bod.scale.set(1.5,1,1); g.add(bod);
+    const h = msh(new THREE.SphereGeometry(1.5,6,5), 0xd0d0d0);
+    h.position.set(4.5,.5,0); g.add(h);
+    [[3,-2.5,-1],[3,-2.5,1],[-2,-2.5,-1],[-2,-2.5,1]].forEach(([x,y,z]) => {
+      const leg = msh(new THREE.CylinderGeometry(.4,.4,2.5,4), 0x888888);
+      leg.position.set(x,y,z); g.add(leg);
+    });
+    const b = new THREE.Box3().setFromObject(g); g.position.y -= b.min.y;
+    return g;
+  }},
+  boat: { name:'Tekne', icon:'⛵', bi:true, build() {
+    const g = new THREE.Group();
+    g.add(msh(new THREE.BoxGeometry(6,3,14), 0x5d4037));
+    const mst = msh(new THREE.CylinderGeometry(.3,.3,14,6), 0x8d6e63);
+    mst.position.y=8.5; g.add(mst);
+    const sail = new THREE.Mesh(new THREE.PlaneGeometry(7,10), new THREE.MeshLambertMaterial({color:0xfffde7,side:THREE.DoubleSide}));
+    sail.position.set(3,9,0); sail.rotation.y=.2; g.add(sail);
+    const b = new THREE.Box3().setFromObject(g); g.position.y -= b.min.y;
+    return g;
+  }},
+  cactus: { name:'Kaktüs', icon:'🌵', bi:true, build() {
+    const g = new THREE.Group();
+    const body = msh(new THREE.CylinderGeometry(1.3,1.6,12,10), 0x2f8f2f);
+    body.rotation.z=(Math.random()-.5)*.1; g.add(body);
+    const a1 = msh(new THREE.CylinderGeometry(.7,.9,6,8), 0x2f8f2f);
+    a1.position.set(2.8,3.5,0); a1.rotation.z=Math.PI/3.2; g.add(a1);
+    const a2 = msh(new THREE.CylinderGeometry(.6,.8,5.5,8), 0x2f8f2f);
+    a2.position.set(-2.6,2.5,0); a2.rotation.z=-Math.PI/3; g.add(a2);
+    const b = new THREE.Box3().setFromObject(g); g.position.y -= b.min.y;
+    return g;
+  }},
+  mushroom: { name:'Mantar', icon:'🍄', bi:true, build() {
+    const g = new THREE.Group();
+    g.add(msh(new THREE.CylinderGeometry(.8,1,5,6), 0xfff8dc));
+    const c = msh(new THREE.SphereGeometry(3.5,8,5), 0xcc2200);
+    c.scale.y=.6; c.position.y=4.5; g.add(c);
+    const b = new THREE.Box3().setFromObject(g); g.position.y -= b.min.y;
+    return g;
+  }},
+  palm: { name:'Palmiye', icon:'🌴', bi:true, build() {
+    const g = new THREE.Group();
+    const trunk = msh(new THREE.CylinderGeometry(.8,1.4,18,8), 0x8B6914);
+    trunk.position.y=9; g.add(trunk);
+    const crown = new THREE.Group(); crown.position.y=18; g.add(crown);
+    for (let i=0;i<8;i++) {
+      const ang=(i/8)*Math.PI*2;
+      const leaf = new THREE.Mesh(new THREE.PlaneGeometry(10,2.5),new THREE.MeshLambertMaterial({color:0x1f8a2a,side:THREE.DoubleSide}));
+      leaf.position.set(Math.cos(ang)*.2,0,Math.sin(ang)*.2);
+      leaf.rotation.y=ang; leaf.rotation.x=-.35; crown.add(leaf);
+    }
+    const b = new THREE.Box3().setFromObject(g); g.position.y -= b.min.y;
+    return g;
+  }},
+  tower: { name:'Kule', icon:'🗼', bi:true, build() {
+    const g = new THREE.Group();
+    g.add(msh(new THREE.CylinderGeometry(3,4,20,8), 0x888877));
+    const top = msh(new THREE.ConeGeometry(4,8,8), 0x664433);
+    top.position.y=14; g.add(top);
+    for (let i=0;i<4;i++) {
+      const win = msh(new THREE.BoxGeometry(1,.5,1.2), 0x222244);
+      win.position.set(Math.cos(i*Math.PI/2)*3,5+i*4,Math.sin(i*Math.PI/2)*3);
+      g.add(win);
+    }
+    const b = new THREE.Box3().setFromObject(g); g.position.y -= b.min.y;
+    return g;
+  }},
+  windmill: { name:'Yel Değirmeni', icon:'🏭', bi:true, build() {
+    const g = new THREE.Group();
+    g.add(msh(new THREE.CylinderGeometry(2,3,16,6), 0xddccbb));
+    const hub = msh(new THREE.SphereGeometry(1,6,5), 0x888888);
+    hub.position.y=16; g.add(hub);
+    for (let i=0;i<4;i++) {
+      const blade = msh(new THREE.BoxGeometry(1,8,.3), 0xeeeecc);
+      blade.position.y=16; blade.rotation.z=i*Math.PI/2;
+      blade.position.x=Math.cos(i*Math.PI/2)*4;
+      blade.position.y=16+Math.sin(i*Math.PI/2)*4;
+      g.add(blade);
+    }
+    const b = new THREE.Box3().setFromObject(g); g.position.y -= b.min.y;
+    return g;
+  }}
+};
+Object.keys(BI).forEach(k => BI[k].key = k);
+
+/* ═══════════════ PLUGINS SYSTEM ═══════════════ */
+const BUILTIN_PLUGINS = [
+  {
+    id:'erosion', name:'Erozyon Simülasyonu', icon:'🌊', desc:'Su erozyonu ile gerçekçi vadi ve nehir yatakları oluşturur.',
+    sliders:[
+      {id:'er_iter',label:'İterasyon',min:1,max:50,val:10},
+      {id:'er_rain',label:'Yağış Miktarı',min:0.1,max:5,step:0.1,val:1},
+      {id:'er_evap',label:'Buharlaşma',min:0.01,max:0.5,step:0.01,val:0.05}
+    ],
+    buttons:[{label:'▶ EROZYONU UYGULA',fn:'applyErosion',cls:'ok'}]
+  },
+  {
+    id:'noise', name:'Gürültü Katmanı', icon:'🎲', desc:'Perlin benzeri gürültü ile arazi detayı ekler.',
+    sliders:[
+      {id:'ns_scale',label:'Ölçek',min:0.001,max:0.05,step:0.001,val:0.01},
+      {id:'ns_amp',label:'Genlik',min:1,max:100,val:30},
+      {id:'ns_oct',label:'Oktav',min:1,max:8,val:4}
+    ],
+    buttons:[{label:'▶ GÜRÜLTÜ EKLE',fn:'applyNoise',cls:'ok'},{label:'↺ SIFIRLA',fn:'resetTerrain',cls:''}]
+  },
+  {
+    id:'terrace', name:'Teras Oluşturucu', icon:'🏔', desc:'Andean teras yapıları gibi adım adım yükseklik kademeleri oluşturur.',
+    sliders:[
+      {id:'tr_steps',label:'Adım Sayısı',min:2,max:20,val:8},
+      {id:'tr_blend',label:'Yumuşatma',min:0,max:1,step:0.05,val:0.3}
+    ],
+    buttons:[{label:'▶ TERAS UYGULA',fn:'applyTerrace',cls:'ok'}]
+  },
+  {
+    id:'volcano', name:'Volkan Üretici', icon:'🌋', desc:'Seçili noktaya volkanik krater şekli ekler.',
+    sliders:[
+      {id:'vl_r',label:'Yarıçap',min:20,max:300,val:120},
+      {id:'vl_h',label:'Yükseklik',min:20,max:300,val:120},
+      {id:'vl_cr',label:'Krater Derinliği',min:5,max:100,val:40}
+    ],
+    buttons:[{label:'▶ MERKEZİ YÜKSELT',fn:'applyVolcano',cls:'ok gld'}]
+  },
+  {
+    id:'flatten', name:'Düzleştirici', icon:'📐', desc:'Belirli bir yüksekliğin üzerindeki veya altındaki alanları düzleştirir.',
+    sliders:[
+      {id:'fl_h',label:'Hedef Yükseklik',min:-100,max:300,val:0},
+      {id:'fl_blend',label:'Geçiş',min:0,max:50,val:10}
+    ],
+    buttons:[
+      {label:'▼ ALT DÜZLEŞTIR',fn:'flattenBelow',cls:''},
+      {label:'▲ ÜST DÜZLEŞTIR',fn:'flattenAbove',cls:''}
+    ]
+  }
+];
+
+let activePlugins = new Set();
+let pluginData = {};
+
+function renderPlugins() {
+  const listEl = document.getElementById('pluginList');
+  const availEl = document.getElementById('availPlugins');
+  const panelEl = document.getElementById('pluginActivePanel');
+
+  // available (not active)
+  const allPlugins = [...BUILTIN_PLUGINS, ...Object.values(custObjs).filter(o=>o._isPlugin)];
+  
+  availEl.innerHTML = '';
+  allPlugins.filter(p => !activePlugins.has(p.id)).forEach(p => {
+    const d = document.createElement('div');
+    d.className = 'plugcard';
+    d.innerHTML = `<div class="plugcard-h"><span class="plugcard-ic">${p.icon}</span><span class="plugcard-name">${p.name}</span><span class="plugcard-badge">EKLE +</span></div><div class="plugcard-desc">${p.desc}</div>`;
+    d.onclick = () => { activePlugins.add(p.id); renderPlugins(); toast(`"${p.name}" eklendi`); };
+    availEl.appendChild(d);
+  });
+
+  // active
+  listEl.innerHTML = '';
+  panelEl.innerHTML = '';
+  allPlugins.filter(p => activePlugins.has(p.id)).forEach(p => {
+    const d = document.createElement('div');
+    d.className = 'plugcard active';
+    d.innerHTML = `<div class="plugcard-h"><span class="plugcard-ic">${p.icon}</span><span class="plugcard-name">${p.name}</span><span class="plugcard-badge">AKTİF ✓</span></div><div class="plugcard-desc">${p.desc}</div>`;
+    d.onclick = () => { activePlugins.delete(p.id); renderPlugins(); toast(`"${p.name}" kaldırıldı`); };
+    listEl.appendChild(d);
+
+    // panel
+    if (!pluginData[p.id]) {
+      pluginData[p.id] = {};
+      (p.sliders||[]).forEach(s => pluginData[p.id][s.id] = s.val);
+    }
+    const panel = document.createElement('div');
+    panel.className = 'pluginPanel';
+    let html = `<div class="pluginPanelHead">${p.icon} ${p.name}</div><div class="pluginPanelBody">`;
+    (p.sliders||[]).forEach(s => {
+      const step = s.step||1;
+      html += `<div class="sr"><div class="sl">${s.label} <b id="pv_${s.id}">${s.val}</b></div>
+        <input type="range" id="pr_${s.id}" min="${s.min}" max="${s.max}" step="${step}" value="${s.val}"
+          oninput="pluginData['${p.id}']['${s.id}']=parseFloat(this.value);document.getElementById('pv_${s.id}').textContent=this.value">
+      </div>`;
+    });
+    (p.buttons||[]).forEach(b => {
+      html += `<button class="btn wide ${b.cls||''}" style="margin:4px 0;" onclick="window.${b.fn}&&window.${b.fn}(pluginData['${p.id}'])">${b.label}</button>`;
+    });
+    html += '</div>';
+    panel.innerHTML = html;
+    panelEl.appendChild(panel);
+  });
+
+  if (!activePlugins.size) listEl.innerHTML = '<div class="note" style="padding:8px 0;">Henüz aktif plugin yok. Aşağıdan ekle.</div>';
+}
+
+// Plugin functions
+window.applyErosion = (params) => {
+  const iter = Math.round(pluginData.erosion?.er_iter ?? 10);
+  const rain = pluginData.erosion?.er_rain ?? 1;
+  const evap = pluginData.erosion?.er_evap ?? 0.05;
+  const pos = tGeo.attributes.position;
+  const R = currentRes + 1;
+  for (let it=0; it<iter; it++) {
+    for (let i=0; i<pos.count; i++) {
+      const col = i % R, row = Math.floor(i/R);
+      if (col===0||col===R-1||row===0||row===R-1) continue;
+      const neighbors = [i-1,i+1,i-R,i+R];
+      const minN = neighbors.reduce((m,n) => (baseH[n]<baseH[m]?n:m), neighbors[0]);
+      const diff = baseH[i] - baseH[minN];
+      if (diff > 0) {
+        const flow = Math.min(diff*.1*rain, baseH[i]*.05);
+        baseH[i] -= flow;
+        baseH[minN] += flow * (1-evap);
+      }
+    }
+  }
+  pushH();
+  toast(`Erozyon uygulandı (${iter} iterasyon)`);
+};
+
+window.applyNoise = (params) => {
+  const scale = pluginData.noise?.ns_scale ?? 0.01;
+  const amp   = pluginData.noise?.ns_amp   ?? 30;
+  const oct   = Math.round(pluginData.noise?.ns_oct ?? 4);
+  const pos = tGeo.attributes.position;
+  for (let i=0; i<pos.count; i++) {
+    const x = pos.getX(i) * scale;
+    const z = pos.getZ(i) * scale;
+    let n=0, a=1, f=1, tot=0;
+    for (let o=0;o<oct;o++) { n+=simplexLike(x*f,z*f)*a; tot+=a; a*=.5; f*=2; }
+    baseH[i] += (n/tot) * amp;
+  }
+  pushH();
+  toast('Gürültü katmanı eklendi');
+};
+
+function simplexLike(x,z) {
+  const xi=Math.floor(x), zi=Math.floor(z);
+  const xf=x-xi, zf=z-zi;
+  const fade=t=>t*t*t*(t*(t*6-15)+10);
+  const lerp=(a,b,t)=>a+t*(b-a);
+  const grad=(h,x,z)=>{const v=[1,1,-1,-1,1,-1,1,-1];return v[h%8]*x+v[(h+4)%8]*z};
+  const h=n=>Math.abs(Math.sin(n*127.1+n*311.7)*43758.545)%1*256|0;
+  const aa=h(xi+h(zi)), ab=h(xi+h(zi+1)), ba=h(xi+1+h(zi)), bb=h(xi+1+h(zi+1));
+  return lerp(lerp(grad(aa,xf,zf),grad(ba,xf-1,zf),fade(xf)),lerp(grad(ab,xf,zf-1),grad(bb,xf-1,zf-1),fade(xf)),fade(zf));
+}
+
+window.resetTerrain = () => { baseH.fill(0); pushH(); toast('Arazi sıfırlandı'); };
+
+window.applyTerrace = (params) => {
+  const steps = Math.round(pluginData.terrace?.tr_steps ?? 8);
+  const blend  = pluginData.terrace?.tr_blend ?? 0.3;
+  const pos = tGeo.attributes.position;
+  const minH = Math.min(...baseH), maxH = Math.max(...baseH);
+  const range = maxH - minH || 1;
+  for (let i=0;i<pos.count;i++) {
+    const n = (baseH[i]-minH)/range;
+    const stepped = Math.floor(n*steps)/steps;
+    baseH[i] = minH + THREE.MathUtils.lerp(stepped, n, blend) * range;
+  }
+  pushH();
+  toast(`Teras uygulandı (${steps} adım)`);
+};
+
+window.applyVolcano = (params) => {
+  const r = pluginData.volcano?.vl_r ?? 120;
+  const h = pluginData.volcano?.vl_h ?? 120;
+  const cr = pluginData.volcano?.vl_cr ?? 40;
+  const pos = tGeo.attributes.position;
+  for (let i=0;i<pos.count;i++) {
+    const dx=pos.getX(i), dz=pos.getZ(i);
+    const d=Math.sqrt(dx*dx+dz*dz);
+    if (d<r) {
+      const n=1-d/r;
+      const cone=n*h;
+      const crater=d<r*.2 ? -cr*(1-(d/(r*.2))*(d/(r*.2))) : 0;
+      baseH[i] = Math.max(baseH[i], cone+crater);
+    }
+  }
+  pushH();
+  toast('Volkan uygulandı');
+};
+
+window.flattenBelow = (params) => {
+  const targetH = pluginData.flatten?.fl_h ?? 0;
+  const blend   = pluginData.flatten?.fl_blend ?? 10;
+  const pos = tGeo.attributes.position;
+  for (let i=0;i<pos.count;i++) {
+    if (baseH[i] < targetH-blend) baseH[i] = targetH;
+    else if (baseH[i] < targetH) baseH[i] = THREE.MathUtils.lerp(baseH[i],targetH,(targetH-baseH[i])/Math.max(blend,0.01));
+  }
+  pushH(); toast('Alt düzleştirme uygulandı');
+};
+
+window.flattenAbove = (params) => {
+  const targetH = pluginData.flatten?.fl_h ?? 0;
+  const blend   = pluginData.flatten?.fl_blend ?? 10;
+  const pos = tGeo.attributes.position;
+  for (let i=0;i<pos.count;i++) {
+    if (baseH[i] > targetH+blend) baseH[i] = targetH;
+    else if (baseH[i] > targetH) baseH[i] = THREE.MathUtils.lerp(baseH[i],targetH,(baseH[i]-targetH)/Math.max(blend,0.01));
+  }
+  pushH(); toast('Üst düzleştirme uygulandı');
+};
+
+/* ═══════════════ INDEXEDDB ═══════════════ */
+function initDB() {
+  return new Promise((ok,fail) => {
+    const r = indexedDB.open('TerraSculptPRO',2);
+    r.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('obj')) d.createObjectStore('obj',{keyPath:'key'});
+    };
+    r.onsuccess  = e => { db = e.target.result; ok(db); };
+    r.onerror    = fail;
+  });
+}
+const dbSet = v  => new Promise((ok,f)=>{const t=db.transaction('obj','readwrite');t.objectStore('obj').put(v);t.oncomplete=ok;t.onerror=f;});
+const dbDel = k  => new Promise((ok,f)=>{const t=db.transaction('obj','readwrite');t.objectStore('obj').delete(k);t.oncomplete=ok;t.onerror=f;});
+const dbAll = () => new Promise((ok,f)=>{const t=db.transaction('obj','readonly');const r=t.objectStore('obj').getAll();r.onsuccess=()=>ok(r.result);r.onerror=f;});
+
+async function loadDB() {
+  const all = await dbAll();
+  custObjs = {};
+  all.forEach(o => custObjs[o.key] = o);
+  renderGrid(); renderSlist(); renderPlugins();
+  document.getElementById('sct').textContent = `(${all.length})`;
+}
+
+/* ═══════════════ THREE INIT ═══════════════ */
+function init() {
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x05070a);
+  scene.fog = new THREE.FogExp2(0x05070a, 0.00028);
+
+  cam = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 1, 40000);
+  cam.position.set(1400,1100,1400);
+
+  renderer = new THREE.WebGLRenderer({ antialias:true, logarithmicDepthBuffer:true });
+  renderer.setSize(innerWidth,innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  document.getElementById('cv').appendChild(renderer.domElement);
+
+  const sun = new THREE.DirectionalLight(0xfff4e0,2.8); sun.position.set(600,1200,400);
+  const fil = new THREE.DirectionalLight(0x7088aa,0.6);  fil.position.set(-400,300,-600);
+  scene.add(sun, fil, new THREE.AmbientLight(0x202840,1.2));
+
+  const grid = new THREE.GridHelper(WS,20,0x111118,0x0d0d14);
+  grid.position.y=-2; scene.add(grid);
+
+  ctrl = new OrbitControls(cam, renderer.domElement);
+  ctrl.mouseButtons = { RIGHT:THREE.MOUSE.ROTATE, MIDDLE:THREE.MOUSE.DOLLY, LEFT:null };
+  ctrl.enableDamping=true; ctrl.dampingFactor=.05;
+
+  // Transform Controls for mesh editor
+  transformCtrl = new TransformControls(cam, renderer.domElement);
+  transformCtrl.addEventListener('dragging-changed', e => { ctrl.enabled = !e.value; });
+  transformCtrl.addEventListener('change', () => {
+    if (selectedObj) updateMePanel(selectedObj);
+  });
+  scene.add(transformCtrl);
+
+  objGrp   = new THREE.Group(); scene.add(objGrp);
+  cloudGrp = new THREE.Group(); scene.add(cloudGrp);
+
+  buildTerrain();
+  buildSea();
+  spawnClouds();
+  setupEvents();
+  buildTemplateCards();
+  animate();
+}
+
+/* ═══════════════ TERRAIN ═══════════════ */
+function buildTerrain() {
+  if (tMesh) { scene.remove(tMesh); tGeo.dispose(); }
+  tGeo  = new THREE.PlaneGeometry(WS,WS,currentRes,currentRes);
+  tGeo.rotateX(-Math.PI/2);
+  baseH = new Float32Array(tGeo.attributes.position.count).fill(0);
+  tMesh = new THREE.Mesh(tGeo, new THREE.MeshStandardMaterial({vertexColors:true,roughness:.75,metalness:.05}));
+  scene.add(tMesh);
+  recolor();
+  document.getElementById('stP').textContent = `${currentRes}×${currentRes}`;
+}
+
+function pushH() {
+  const pos = tGeo.attributes.position;
+  for (let i=0;i<pos.count;i++) pos.setY(i,baseH[i]);
+  pos.needsUpdate=true;
+  recolor();
+}
+
+function recolor() {
+  const pos = tGeo.attributes.position;
+  const sl  = parseFloat(document.getElementById('sL').value);
+  const cols=[]; const c=new THREE.Color();
+  for (let i=0;i<pos.count;i++) {
+    const h=pos.getY(i);
+    if      (h>sl+130) c.setHex(0xffffff);
+    else if (h>sl+80)  c.setHex(0xaaaaaa);
+    else if (h>sl+40)  c.setHex(0x6b5a40);
+    else if (h>sl+4)   c.setHex(0x2d6b27);
+    else if (h>sl-1)   c.setHex(0xd4b483);
+    else               c.setHex(0x0a1e35);
+    cols.push(c.r,c.g,c.b);
+  }
+  tGeo.setAttribute('color', new THREE.Float32BufferAttribute(cols,3));
+  tGeo.attributes.color.needsUpdate=true;
+  tGeo.computeVertexNormals();
+}
+
+function applyHmap() {
+  if (!lastHmap) return;
+  const m=parseFloat(document.getElementById('hM').value);
+  const o=parseFloat(document.getElementById('hO').value);
+  const b=parseFloat(document.getElementById('hB').value);
+  const p=tGeo.attributes.position;
+  for (let i=0;i<p.count;i++) baseH[i]=((lastHmap[i*4]/255)+b)*255*m+o;
+  pushH();
+}
+
+function buildSea() {
+  if (sMesh) scene.remove(sMesh);
+  sGeo  = new THREE.PlaneGeometry(WS,WS,80,80);
+  sGeo.rotateX(-Math.PI/2);
+  sMesh = new THREE.Mesh(sGeo, new THREE.MeshPhysicalMaterial({
+    color:0x0066cc, transparent:true, opacity:.58, roughness:.06, metalness:.15
+  }));
+  scene.add(sMesh);
+}
+
+window.spawnClouds = () => {
+  while (cloudGrp.children.length) cloudGrp.remove(cloudGrp.children[0]);
+  const cnt=parseInt(document.getElementById('cD').value);
+  const ht=parseFloat(document.getElementById('cH').value);
+  const sc=parseFloat(document.getElementById('cS').value);
+  const pg=new THREE.DodecahedronGeometry(13,1);
+  const pm=new THREE.MeshLambertMaterial({color:0xffffff,transparent:true,opacity:.44});
+  for (let i=0;i<cnt;i++) {
+    const cl=new THREE.Group();
+    for (let j=0;j<5+Math.floor(Math.random()*5);j++) {
+      const p=new THREE.Mesh(pg,pm);
+      p.position.set(Math.random()*70-35,Math.random()*20-10,Math.random()*50-25);
+      p.scale.setScalar(.4+Math.random()*1.3); cl.add(p);
+    }
+    cl.position.set((Math.random()-.5)*WS*3,ht+Math.random()*120,(Math.random()-.5)*WS*3);
+    cl.scale.setScalar(sc);
+    cl.userData.spd=.08+Math.random()*.35;
+    cloudGrp.add(cl);
+  }
+};
+
+/* ═══════════════ SCULPT ═══════════════ */
+function getBrushParam(param) {
+  return brushSettings[mode]?.[param] ?? 80;
+}
+
+function applyBrush(pt) {
+  const pos=tGeo.attributes.position;
+  const ca=tGeo.attributes.color;
+  const sz=getBrushParam('bS');
+  const pw=getBrushParam('bP');
+  const ff=getBrushParam('bF');
+  const pc=new THREE.Color(document.getElementById('pc').value);
+
+  for (let i=0;i<pos.count;i++) {
+    const dx=pos.getX(i)-pt.x, dz=pos.getZ(i)-pt.z;
+    const d=Math.sqrt(dx*dx+dz*dz);
+    if (d<sz) {
+      const f=Math.pow(1-d/sz, ff);
+      if      (mode==='raise')  baseH[i]+=pw*f;
+      else if (mode==='lower')  baseH[i]-=pw*f;
+      else if (mode==='smooth') {
+        let sum=0,cnt=0,span=currentRes+1;
+        for (let j=Math.max(0,i-span-1);j<Math.min(pos.count,i+span+2);j++) {
+          if (Math.abs(i-j)<=span+1) { sum+=baseH[j]; cnt++; }
+        }
+        baseH[i]=THREE.MathUtils.lerp(baseH[i],sum/cnt,pw*f*5);
+      }
+      else if (mode==='paint'&&ca) {
+        ca.setXYZ(i,
+          THREE.MathUtils.lerp(ca.getX(i),pc.r,pw*f),
+          THREE.MathUtils.lerp(ca.getY(i),pc.g,pw*f),
+          THREE.MathUtils.lerp(ca.getZ(i),pc.b,pw*f));
+      }
+    }
+  }
+  if (mode==='paint'&&ca) ca.needsUpdate=true;
+  else pushH();
+}
+
+function placeBrush(pt) {
+  if (!selKey) return;
+  const fr=parseInt(document.getElementById('fR').value);
+  const smn=parseFloat(document.getElementById('sMn').value);
+  const smx=parseFloat(document.getElementById('sMx').value);
+  const yo=parseFloat(document.getElementById('yO').value);
+  const sz=getBrushParam('bS');
+  const placed=[];
+
+  for (let k=0;k<fr;k++) {
+    if (Math.random()>.45) continue;
+    const ang=Math.random()*Math.PI*2;
+    const r=Math.random()*sz;
+    const px=pt.x+Math.cos(ang)*r, pz=pt.z+Math.sin(ang)*r;
+    const tr=new THREE.Raycaster(new THREE.Vector3(px,2000,pz),new THREE.Vector3(0,-1,0));
+    const hit=tr.intersectObject(tMesh);
+    const py=(hit.length?hit[0].point.y:pt.y)+yo;
+    const obj=buildObj(selKey);
+    if (!obj) continue;
+    obj.position.set(px,py,pz);
+    obj.rotation.y=Math.random()*Math.PI*2;
+    obj.scale.setScalar(smn+Math.random()*(smx-smn));
+    obj.userData.key=selKey;
+    objGrp.add(obj); placed.push(obj);
+  }
+  if (placed.length) {
+    brushHist.push(placed);
+    document.getElementById('stO').textContent=objGrp.children.length;
+    document.getElementById('stO2').textContent=objGrp.children.length;
+  }
+}
+
+function buildObj(key) {
+  if (BI[key])       return BI[key].build();
+  if (custObjs[key]) return buildFromDef(custObjs[key]);
+  return null;
+}
+
+function buildFromDef(def) {
+  const g=new THREE.Group();
+  const parts=def.parts||[{type:'box',w:5,h:5,d:5,color:0x888888}];
+  parts.forEach(p => {
+    let geo;
+    if      (p.type==='box')      geo=new THREE.BoxGeometry(p.w||4,p.h||4,p.d||4);
+    else if (p.type==='cylinder') geo=new THREE.CylinderGeometry(p.rt||2,p.rb||2,p.h||6,p.seg||8);
+    else if (p.type==='sphere')   geo=new THREE.SphereGeometry(p.r||3,p.sw||8,p.sh||6);
+    else if (p.type==='cone')     geo=new THREE.ConeGeometry(p.r||3,p.h||6,p.seg||6);
+    else                           geo=new THREE.BoxGeometry(4,4,4);
+    const m=msh(geo,p.color||0x888888);
+    if (p.pos)   m.position.set(...p.pos);
+    if (p.rot)   m.rotation.set(...p.rot.map(v=>v*Math.PI/180));
+    if (p.scale) m.scale.set(...p.scale);
+    g.add(m);
+  });
+  const b=new THREE.Box3().setFromObject(g); g.position.y-=b.min.y;
+  return g;
+}
+
+/* ═══════════════ MESH EDITOR ═══════════════ */
+window.setMeTool = tool => {
+  meTool = tool;
+  document.querySelectorAll('.me-btn[id^="metb-"]').forEach(b => b.classList.remove('on'));
+  const btn = document.getElementById('metb-'+tool);
+  if (btn) btn.classList.add('on');
+  if (selectedObj) {
+    if (tool==='move')   transformCtrl.setMode('translate');
+    if (tool==='rotate') transformCtrl.setMode('rotate');
+    if (tool==='scale')  transformCtrl.setMode('scale');
+    if (tool==='select'||tool==='delete') transformCtrl.detach();
+  }
+};
+
+function selectMeshObj(obj) {
+  selectedObj = obj;
+  transformCtrl.attach(obj);
+  if (meTool==='move')   transformCtrl.setMode('translate');
+  else if (meTool==='rotate') transformCtrl.setMode('rotate');
+  else if (meTool==='scale')  transformCtrl.setMode('scale');
+  else transformCtrl.setMode('translate');
+  updateMePanel(obj);
+  document.getElementById('stS').textContent = obj.userData.key || '?';
+}
+
+function deselectMesh() {
+  selectedObj = null;
+  transformCtrl.detach();
+  document.getElementById('meDetail').style.display = 'none';
+  document.getElementById('mePropPanel').innerHTML = '<div class="note" style="text-align:center;padding:15px 0;">Sahneden bir objeye sol tıklayarak seç</div>';
+  document.getElementById('stS').textContent = '—';
+}
+
+function updateMePanel(obj) {
+  document.getElementById('meDetail').style.display='block';
+  document.getElementById('mePropPanel').innerHTML='';
+  const fmt = n => parseFloat(n.toFixed(3));
+  document.getElementById('me_px').value=fmt(obj.position.x);
+  document.getElementById('me_py').value=fmt(obj.position.y);
+  document.getElementById('me_pz').value=fmt(obj.position.z);
+  document.getElementById('me_rx').value=fmt(obj.rotation.x*180/Math.PI);
+  document.getElementById('me_ry').value=fmt(obj.rotation.y*180/Math.PI);
+  document.getElementById('me_rz').value=fmt(obj.rotation.z*180/Math.PI);
+  document.getElementById('me_sx').value=fmt(obj.scale.x);
+  document.getElementById('me_sy').value=fmt(obj.scale.y);
+  document.getElementById('me_sz').value=fmt(obj.scale.z);
+}
+
+window.applyMeTransform = () => {
+  if (!selectedObj) return;
+  const v = id => parseFloat(document.getElementById(id).value)||0;
+  selectedObj.position.set(v('me_px'),v('me_py'),v('me_pz'));
+  selectedObj.rotation.set(v('me_rx')*Math.PI/180,v('me_ry')*Math.PI/180,v('me_rz')*Math.PI/180);
+  selectedObj.scale.set(v('me_sx')||1,v('me_sy')||1,v('me_sz')||1);
+};
+
+window.applyMeColor = () => {
+  if (!selectedObj) return;
+  const col = new THREE.Color(document.getElementById('meColor').value);
+  selectedObj.traverse(c => { if (c.isMesh) c.material.color.set(col); });
+};
+
+window.duplicateSelected = () => {
+  if (!selectedObj) return;
+  const clone = selectedObj.clone();
+  clone.position.x += 15;
+  clone.userData = { ...selectedObj.userData };
+  objGrp.add(clone);
+  selectMeshObj(clone);
+  document.getElementById('stO').textContent=objGrp.children.length;
+  document.getElementById('stO2').textContent=objGrp.children.length;
+  toast('Obje kopyalandı');
+};
+
+window.deleteSelected = () => {
+  if (!selectedObj) return;
+  objGrp.remove(selectedObj);
+  deselectMesh();
+  document.getElementById('stO').textContent=objGrp.children.length;
+  document.getElementById('stO2').textContent=objGrp.children.length;
+  toast('Obje silindi');
+};
+
+window.selectAll = () => {
+  toast(`${objGrp.children.length} obje sahnede`);
+};
+
+/* ═══════════════ STL EXPORT ═══════════════ */
+function collectGeos(root,geoList,parentMat) {
+  root.updateMatrix();
+  const mat=parentMat?parentMat.clone().multiply(root.matrix):root.matrix.clone();
+  if (root.isMesh&&root.geometry) {
+    const gc=root.geometry.clone();
+    gc.deleteAttribute('color'); gc.deleteAttribute('uv');
+    gc.applyMatrix4(mat); gc.computeVertexNormals();
+    geoList.push(gc);
+  }
+  (root.children||[]).forEach(c=>collectGeos(c,geoList,mat));
+}
+
+function mergeAll(geos) {
+  const arrays=geos.map(g=>{if(g.index){const ni=g.toNonIndexed();ni.computeVertexNormals();return ni;}return g;});
+  let total=0; arrays.forEach(g=>total+=g.attributes.position.count);
+  const pos=new Float32Array(total*3), nor=new Float32Array(total*3);
+  let off=0;
+  arrays.forEach(g=>{
+    const p=g.attributes.position.array;
+    const n=g.attributes.normal?g.attributes.normal.array:new Float32Array(p.length);
+    pos.set(p,off*3); nor.set(n,off*3); off+=g.attributes.position.count;
+  });
+  const merged=new THREE.BufferGeometry();
+  merged.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  merged.setAttribute('normal',new THREE.BufferAttribute(nor,3));
+  return merged;
+}
+
+window.genBase = () => {
+  if (baseMesh) scene.remove(baseMesh);
+  const sl=parseFloat(document.getElementById('sL').value);
+  const depth=-parseFloat(document.getElementById('bD').value);
+  const R=currentRes, pos=tGeo.attributes.position;
+  const verts=[],idxs=[];
+  function addWall(rowIdxs) {
+    for (let i=0;i<rowIdxs.length-1;i++) {
+      const a=rowIdxs[i],b=rowIdxs[i+1];
+      const ay=Math.max(pos.getY(a),sl),by=Math.max(pos.getY(b),sl);
+      const ax=pos.getX(a),az=pos.getZ(a),bx=pos.getX(b),bz=pos.getZ(b);
+      const vs=verts.length/3;
+      verts.push(ax,ay,az,bx,by,bz,ax,depth,az,bx,depth,bz);
+      idxs.push(vs,vs+2,vs+1,vs+1,vs+2,vs+3);
+    }
+  }
+  const t=[],bo=[],l=[],ri=[];
+  for (let i=0;i<=R;i++){t.push(i);bo.push(R*(R+1)+i);l.push(i*(R+1));ri.push(i*(R+1)+R);}
+  addWall(t);addWall(bo);addWall(l);addWall(ri);
+  const hw=WS/2,vs2=verts.length/3;
+  verts.push(-hw,depth,-hw,hw,depth,-hw,-hw,depth,hw,hw,depth,hw);
+  idxs.push(vs2,vs2+1,vs2+2,vs2+1,vs2+3,vs2+2);
+  const geo=new THREE.BufferGeometry();
+  geo.setIndex(idxs);
+  geo.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));
+  geo.computeVertexNormals();
+  baseMesh=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:0x222233,roughness:.9}));
+  scene.add(baseMesh);
+  toast('Kapalı taban oluşturuldu!');
+};
+
+window.exportSTL = () => {
+  const cm=parseFloat(document.getElementById('pC').value);
+  const sl=parseFloat(document.getElementById('sL').value);
+  const depth=-parseFloat(document.getElementById('bD').value);
+  const sf=(cm*10)/WS;
+  const R=currentRes, srcPos=tGeo.attributes.position;
+  const hw=WS/2, time=Date.now()*.001;
+  const wH=parseFloat(document.getElementById('wH').value);
+  const wSp=parseFloat(document.getElementById('wS').value);
+
+  function toFlat(geo) {
+    const g=geo.index?geo.toNonIndexed():geo.clone();
+    g.deleteAttribute('color'); g.deleteAttribute('uv');
+    g.computeVertexNormals(); return g;
+  }
+  function buildIndexed(verts,idxs) {
+    const g=new THREE.BufferGeometry();
+    g.setIndex(idxs);
+    g.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));
+    g.computeVertexNormals(); return toFlat(g);
+  }
+
+  const tClone=tGeo.clone();
+  tClone.deleteAttribute('color'); tClone.deleteAttribute('uv');
+  const tcp=tClone.attributes.position;
+  for (let i=0;i<tcp.count;i++) if(tcp.getY(i)<sl) tcp.setY(i,sl);
+  tcp.needsUpdate=true;
+  const terrainFlat=toFlat(tClone);
+
+  const seaRes=300, seaSurfGeo=new THREE.PlaneGeometry(WS,WS,seaRes,seaRes);
+  seaSurfGeo.rotateX(-Math.PI/2);
+  const ssp=seaSurfGeo.attributes.position;
+  for (let i=0;i<ssp.count;i++) {
+    const x=Math.max(-hw,Math.min(hw,ssp.getX(i))), z=Math.max(-hw,Math.min(hw,ssp.getZ(i)));
+    const l1=Math.sin(x*.018+time*wSp*.7)*Math.cos(z*.014+time*wSp*.5)*wH*.42;
+    const l2=Math.sin((x+z)*.028+time*wSp*1.1)*wH*.22;
+    const l3=Math.cos((x-z)*.022+time*wSp*.9)*wH*.14;
+    const l4=Math.sin(x*.10+time*wSp*2)*Math.sin(z*.09+time*wSp*1.7)*wH*.12;
+    const l5=Math.cos((x+z*.6)*.07+time*wSp*2.5)*wH*.10;
+    ssp.setX(i,x); ssp.setY(i,sl+l1+l2+l3+l4+l5); ssp.setZ(i,z);
+  }
+  ssp.needsUpdate=true;
+  const seaSurfFlat=toFlat(seaSurfGeo);
+
+  const swv=[],swi=[];
+  function addSeaWall(rowIdxs) {
+    for (let i=0;i<rowIdxs.length-1;i++) {
+      const a=rowIdxs[i],b=rowIdxs[i+1];
+      const ay=ssp.getY(a),by=ssp.getY(b);
+      const ax=ssp.getX(a),az=ssp.getZ(a),bx=ssp.getX(b),bz=ssp.getZ(b);
+      const vs=swv.length/3;
+      swv.push(ax,ay,az,bx,by,bz,ax,depth,az,bx,depth,bz);
+      swi.push(vs,vs+2,vs+1,vs+1,vs+2,vs+3);
+    }
+  }
+  const st=[],sb=[],sl2=[],sr=[];
+  for (let i=0;i<=seaRes;i++){st.push(i);sb.push(seaRes*(seaRes+1)+i);sl2.push(i*(seaRes+1));sr.push(i*(seaRes+1)+seaRes);}
+  addSeaWall(st);addSeaWall(sb);addSeaWall(sl2);addSeaWall(sr);
+  const seaBase=swv.length/3;
+  swv.push(-hw,depth,-hw,hw,depth,-hw,-hw,depth,hw,hw,depth,hw);
+  swi.push(seaBase,seaBase+1,seaBase+2,seaBase+1,seaBase+3,seaBase+2);
+  const seaWallFlat=buildIndexed(swv,swi);
+
+  const wv=[],wi=[];
+  function addWall(rowIdxs) {
+    for (let i=0;i<rowIdxs.length-1;i++) {
+      const a=rowIdxs[i],b=rowIdxs[i+1];
+      const ay=Math.max(srcPos.getY(a),sl),by=Math.max(srcPos.getY(b),sl);
+      const ax=srcPos.getX(a),az=srcPos.getZ(a),bx=srcPos.getX(b),bz=srcPos.getZ(b);
+      const vs=wv.length/3;
+      wv.push(ax,ay,az,bx,by,bz,ax,depth,az,bx,depth,bz);
+      wi.push(vs,vs+2,vs+1,vs+1,vs+2,vs+3);
+    }
+  }
+  const tr=[],bo=[],le=[],ri=[];
+  for (let i=0;i<=R;i++){tr.push(i);bo.push(R*(R+1)+i);le.push(i*(R+1));ri.push(i*(R+1)+R);}
+  addWall(tr);addWall(bo);addWall(le);addWall(ri);
+  const bvs=wv.length/3;
+  wv.push(-hw,depth,-hw,hw,depth,-hw,-hw,depth,hw,hw,depth,hw);
+  wi.push(bvs,bvs+1,bvs+2,bvs+1,bvs+3,bvs+2);
+  const wallFlat=buildIndexed(wv,wi);
+
+  objGrp.updateMatrixWorld(true);
+  const objGeos=[];
+  objGrp.children.forEach(o=>{o.updateMatrixWorld(true);collectGeos(o,objGeos,null);});
+  const objFlat=objGeos.map(g=>toFlat(g));
+
+  const merged=mergeAll([terrainFlat,wallFlat,seaSurfFlat,seaWallFlat,...objFlat]);
+  merged.applyMatrix4(new THREE.Matrix4().multiplyMatrices(
+    new THREE.Matrix4().makeRotationX(Math.PI/2),
+    new THREE.Matrix4().makeScale(sf,sf,sf)
+  ));
+  merged.computeVertexNormals();
+
+  const exporter=new STLExporter();
+  const result=exporter.parse(new THREE.Mesh(merged),{binary:true});
+  const blob=new Blob([result],{type:'application/octet-stream'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download=`TerraSculptPRO_${cm}cm.stl`; a.click();
+  toast(`✓ STL indirildi`);
+};
+
+/* ═══════════════ SCENE JSON ═══════════════ */
+window.exportScene = () => {
+  const pos=tGeo.attributes.position;
+  const hs=Array.from({length:pos.count},(_,i)=>pos.getY(i));
+  const data={ver:'PRO',res:currentRes,heights:hs,
+    objs:objGrp.children.map(o=>({
+      key:o.userData.key,
+      pos:[o.position.x,o.position.y,o.position.z],
+      rot:[o.rotation.x,o.rotation.y,o.rotation.z],
+      sc:[o.scale.x,o.scale.y,o.scale.z]
+    }))
+  };
+  dl('scene.json',JSON.stringify(data));
+  toast('Sahne JSON kaydedildi!');
+};
+
+function loadScene(data) {
+  if (data.res) { currentRes=data.res; buildTerrain(); }
+  if (data.heights) {
+    const pos=tGeo.attributes.position;
+    data.heights.forEach((h,i)=>{baseH[i]=h;pos.setY(i,h);}); 
+    pos.needsUpdate=true; recolor();
+  }
+  if (data.objs) {
+    data.objs.forEach(o=>{
+      const obj=buildObj(o.key); if(!obj) return;
+      obj.position.set(...(o.pos||[0,0,0]));
+      if (o.rot) obj.rotation.set(...o.rot);
+      else if (o.ry) obj.rotation.y=o.ry;
+      if (o.sc) obj.scale.set(...o.sc);
+      else if (o.sc_v) obj.scale.setScalar(o.sc_v);
+      obj.userData.key=o.key; objGrp.add(obj);
+    });
+    const n=objGrp.children.length;
+    document.getElementById('stO').textContent=n;
+    document.getElementById('stO2').textContent=n;
+  }
+  toast('Sahne yüklendi!');
+}
+
+function dl(name,text) {
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([text],{type:'application/json'}));
+  a.download=name; a.click();
+}
+
+/* ═══════════════ OBJECT GRID / SAVED LIST ═══════════════ */
+window.renderGrid = renderGrid;
+function renderGrid() {
+  const grid=document.getElementById('ogrid'); grid.innerHTML='';
+  const all={...BI,...custObjs};
+  Object.values(all).forEach(o=>{
+    const c=document.createElement('div');
+    c.className='oc2'+(o.bi?' bi':'')+(selKey===o.key?' sel':'');
+    c.innerHTML=`<span class="ic">${o.icon||'📦'}</span><div class="nm">${o.name}</div>`
+      +(!o.bi?`<button class="dx" onclick="delCust('${o.key}',event)">✕</button>`:'');
+    c.onclick=()=>pickObj(o.key);
+    grid.appendChild(c);
+  });
+}
+
+function renderSlist() {
+  const list=document.getElementById('slist'); list.innerHTML='';
+  Object.values(custObjs).forEach(o=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:7px;padding:5px 7px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);border-radius:4px;';
+    row.innerHTML=`<span style="font-size:15px">${o.icon||'📦'}</span><span style="font-size:8px;flex:1;color:var(--text);letter-spacing:.7px;">${o.name}</span><button onclick="delCust('${o.key}',event)" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:10px;">✕</button>`;
+    list.appendChild(row);
+  });
+}
+
+window.pickObj = key => {
+  selKey=key;
+  const o=BI[key]||custObjs[key];
+  if (o) {
+    const html=`<span style="font-size:18px">${o.icon||'📦'}</span> <span style="color:var(--ac)">${o.name}</span>`;
+    document.getElementById('soi').innerHTML=html;
+    document.getElementById('soi2').innerHTML=html;
+    document.getElementById('stS').textContent=o.name;
+    sMode('place');
+    // Switch to brush panel
+    document.querySelectorAll('.ptab').forEach(t=>t.classList.remove('on'));
+    document.querySelectorAll('.ptp').forEach(p=>p.classList.remove('on'));
+    document.querySelector('.ptab[data-p="ptpBrush"]').classList.add('on');
+    document.getElementById('ptpBrush').classList.add('on');
+    // Activate place btab
+    document.querySelectorAll('.btab').forEach(b=>b.classList.remove('on'));
+    document.querySelectorAll('.btpanel').forEach(p=>p.classList.remove('on'));
+    document.querySelector('.btab[data-bm="place"]').classList.add('on');
+    document.getElementById('btp-place').classList.add('on');
+  }
+  renderGrid();
+};
+
+window.delCust = async (key,e) => {
+  e.stopPropagation();
+  delete custObjs[key]; await dbDel(key);
+  renderGrid(); renderSlist();
+  document.getElementById('sct').textContent=`(${Object.keys(custObjs).length})`;
+  toast('Obje silindi');
+};
+
+async function importJSON(json) {
+  try {
+    const d=typeof json==='string'?JSON.parse(json):json;
+    if (!d.name) throw new Error('name alanı gerekli');
+    d.key=d.key||('c_'+Date.now());
+    custObjs[d.key]=d; await dbSet(d);
+    renderGrid(); renderSlist();
+    document.getElementById('sct').textContent=`(${Object.keys(custObjs).length})`;
+    toast(`"${d.name}" eklendi!`);
+  } catch(err) { toast('JSON hata: '+err.message); }
+}
+
+window.expLib = () => {
+  dl('library.json',JSON.stringify(Object.values(custObjs),null,2));
+  toast('Kütüphane aktarıldı!');
+};
+
+window.clrSaved = async () => {
+  for (const k of Object.keys(custObjs)) await dbDel(k);
+  custObjs={}; renderGrid(); renderSlist();
+  document.getElementById('sct').textContent='(0)';
+  toast('Kayıtlar silindi');
+};
+
+window.clearObjs = () => {
+  while (objGrp.children.length) objGrp.remove(objGrp.children[0]);
+  brushHist=[]; deselectMesh();
+  document.getElementById('stO').textContent=0;
+  document.getElementById('stO2').textContent=0;
+  toast('Tüm objeler silindi');
+};
+
+window.undoLast = () => {
+  if (!brushHist.length) return;
+  brushHist.pop().forEach(o=>objGrp.remove(o));
+  document.getElementById('stO').textContent=objGrp.children.length;
+  document.getElementById('stO2').textContent=objGrp.children.length;
+  toast('Geri alındı');
+};
+
+/* ═══════════════ TEMPLATE CARDS ═══════════════ */
+function buildTemplateCards() {
+  const templates = [
+    { key:'tree',   icon:'🌲', name:'Ağaç', desc:'Silindir gövde + koni yaprak', def:{name:'Ağaç',key:'tree',icon:'🌲',parts:[{type:'cylinder',rt:1.5,rb:2,h:10,seg:6,color:0x4d2902},{type:'cone',r:6,h:18,seg:5,color:0x1a5c1a,pos:[0,12,0]}]}},
+    { key:'rock',   icon:'🪨', name:'Kaya', desc:'Tek dodecahedron küre', def:{name:'Kaya',key:'rock',icon:'🪨',parts:[{type:'sphere',r:4,sw:6,sh:5,color:0x787878}]}},
+    { key:'house',  icon:'🏠', name:'Ev', desc:'Kutu bina + koni çatı', def:{name:'Ev',key:'house',icon:'🏠',parts:[{type:'box',w:10,h:8,d:10,color:0xd4c4a8},{type:'cone',r:9,h:7,seg:4,color:0x8b1a1a,pos:[0,7.5,0]}]}},
+    { key:'pine',   icon:'🌲', name:'Çam Ağacı', desc:'Çok katmanlı koni çam', def:{name:'Çam',key:'pine',icon:'🌲',parts:[{type:'cylinder',rt:0.8,rb:1.2,h:9,seg:5,color:0x3d1f00},{type:'cone',r:5,h:8,seg:6,color:0x0d4d0d,pos:[0,6,0]},{type:'cone',r:3.5,h:7,seg:6,color:0x0d4d0d,pos:[0,10,0]},{type:'cone',r:2,h:6,seg:6,color:0x0d4d0d,pos:[0,13,0]}]}},
+    { key:'tower',  icon:'🗼', name:'Kule', desc:'Silindir kule + koni çatı', def:{name:'Kule',key:'tower',icon:'🗼',parts:[{type:'cylinder',rt:2.5,rb:3.5,h:20,seg:8,color:0x888877},{type:'cone',r:4,h:8,seg:8,color:0x664433,pos:[0,14,0]}]}},
+    { key:'bridge', icon:'🌉', name:'Köprü Kesmesi', desc:'Köprü traversi parçası', def:{name:'Köprü',key:'bridge',icon:'🌉',parts:[{type:'box',w:20,h:2,d:5,color:0x777766},{type:'cylinder',rt:1,rb:1.5,h:8,seg:6,color:0x666655,pos:[-8,-5,0]},{type:'cylinder',rt:1,rb:1.5,h:8,seg:6,color:0x666655,pos:[8,-5,0]}]}},
+    { key:'lamp',   icon:'💡', name:'Sokak Lambası', desc:'Direk + küre lamba', def:{name:'Lamba',key:'lamp',icon:'💡',parts:[{type:'cylinder',rt:0.3,rb:0.5,h:14,seg:6,color:0x555555},{type:'sphere',r:1.2,sw:8,sh:6,color:0xffffaa,pos:[0,8,0]}]}},
+    { key:'fence',  icon:'🔒', name:'Çit Parçası', desc:'Yatay-dikey çit bölümü', def:{name:'Çit',key:'fence',icon:'🔒',parts:[{type:'box',w:12,h:0.8,d:0.5,color:0x8b6914,pos:[0,4,0]},{type:'box',w:12,h:0.8,d:0.5,color:0x8b6914,pos:[0,6,0]},{type:'box',w:0.8,h:6,d:0.5,color:0x8b6914,pos:[-5,3,0]},{type:'box',w:0.8,h:6,d:0.5,color:0x8b6914,pos:[0,3,0]},{type:'box',w:0.8,h:6,d:0.5,color:0x8b6914,pos:[5,3,0]}]}}
+  ];
+
+  const container = document.getElementById('templateCards');
+  container.innerHTML = '';
+  templates.forEach(t => {
+    const d = document.createElement('div');
+    d.className = 'tcard';
+    d.innerHTML = `<div class="tcard-preview">${t.icon}</div><div class="tcard-name">${t.name}</div><div class="tcard-desc">${t.desc}</div>`;
+    d.onclick = () => {
+      dl(`ts_${t.key}.json`, JSON.stringify(t.def, null, 2));
+      toast(`${t.name} şablonu indirildi`);
+    };
+    container.appendChild(d);
+  });
+}
+
+/* ═══════════════ MODE ═══════════════ */
+const MODES={raise:'YÜKSELT',lower:'ALÇALT',smooth:'YUMUŞAT',paint:'BOYA',place:'OBJ.YERLEŞTİR'};
+window.sMode = m => {
+  mode=m;
+  document.getElementById('pill').textContent='MOD: '+(MODES[m]||m.toUpperCase());
+  document.getElementById('stM').textContent=MODES[m]||m;
+  document.querySelectorAll('[id^="bm-"]').forEach(b=>b.classList.remove('on'));
+  const b=document.getElementById('bm-'+m); if(b) b.classList.add('on');
+  // sync btabs
+  document.querySelectorAll('.btab').forEach(bt=>{
+    if (bt.dataset.bm===m) bt.classList.add('on'); else bt.classList.remove('on');
+  });
+  document.querySelectorAll('.btpanel').forEach(p=>p.classList.remove('on'));
+  const bp=document.getElementById('btp-'+m); if(bp) bp.classList.add('on');
+};
+
+/* ═══════════════ OFFCANVAS ═══════════════ */
+const ocS={l:true,r:false};
+window.toc = s => {
+  ocS[s]=!ocS[s];
+  if (s==='l') {
+    document.getElementById('loc').classList.toggle('hide',!ocS.l);
+    document.getElementById('ltb').classList.toggle('on',ocS.l);
+  } else {
+    document.getElementById('roc').classList.toggle('show',ocS.r);
+    document.getElementById('rtb').classList.toggle('on',ocS.r);
+  }
+};
+
+/* ═══════════════ PANEL TABS ═══════════════ */
+document.querySelectorAll('.ptab').forEach(t=>{
+  t.onclick=()=>{
+    document.querySelectorAll('.ptab').forEach(b=>b.classList.remove('on'));
+    document.querySelectorAll('.ptp').forEach(p=>p.classList.remove('on'));
+    t.classList.add('on');
+    document.getElementById(t.dataset.p).classList.add('on');
+  };
+});
+
+document.querySelectorAll('.rtab').forEach(t=>{
+  t.onclick=()=>{
+    document.querySelectorAll('.rtab').forEach(b=>b.classList.remove('on'));
+    document.querySelectorAll('.rtp').forEach(p=>p.classList.remove('on'));
+    t.classList.add('on');
+    document.getElementById(t.dataset.rt).classList.add('on');
+    document.getElementById('rOchTitle').textContent=
+      {rtpObjs:'Obje Kütüphanesi',rtpEditor:'Mesh Editörü',rtpImport:'İmport / Export'}[t.dataset.rt]||'';
+  };
+});
+
+/* ═══════════════ EVENTS ═══════════════ */
+function setupEvents() {
+  document.getElementById('hmf').onchange=e=>{
+    const r=new FileReader();
+    r.onload=ev=>{
+      const img=new Image();
+      img.onload=()=>{
+        const cvs=document.createElement('canvas');
+        const n=currentRes+1; cvs.width=n; cvs.height=n;
+        cvs.getContext('2d').drawImage(img,0,0,n,n);
+        lastHmap=cvs.getContext('2d').getImageData(0,0,n,n).data;
+        applyHmap(); toast('Heightmap yüklendi!');
+      };
+      img.src=ev.target.result;
+    };
+    r.readAsDataURL(e.target.files[0]);
+  };
+
+  // Slider bindings
+  [
+    ['hM','hMv',applyHmap],['hO','hOv',applyHmap],['hB','hBv',applyHmap],
+    ['sL','sLv',()=>{recolor();if(sMesh)sMesh.position.y=parseFloat(document.getElementById('sL').value);}],
+    ['wH','wHv',null],['wS','wSv',null],
+    ['cD','cDv',spawnClouds],['cH','cHv',spawnClouds],['cS','cSv',spawnClouds],
+    ['fR','fRv',null],['sMn','sMnv',null],['sMx','sMxv',null],['yO','yOv',null],
+    ['bD','bDv',null],
+    ['pC','pCv',v=>{document.getElementById('pinfo').textContent=`Hedef: ${v}cm × ${v}cm (~${Math.round(v*10)}mm)`;}]
+  ].forEach(([id,vid,cb])=>{
+    const el=document.getElementById(id); if(!el) return;
+    el.oninput=e=>{
+      const v=e.target.value;
+      const d=document.getElementById(vid); if(d) d.textContent=parseFloat(v).toFixed(id.startsWith('h')?2:0);
+      if(cb) cb(v);
+    };
+  });
+
+  // Mouse sculpt / click
+  let isSculpting = false;
+  window.addEventListener('mousedown', e => {
+    if (e.button!==0) return;
+    if (e.target.closest('#loc')||e.target.closest('#roc')||e.target.closest('#bar')) return;
+    
+    // Mesh editor click-to-select in select mode
+    if (meTool==='select' && mode!=='raise'&&mode!=='lower'&&mode!=='smooth'&&mode!=='paint'&&mode!=='place') {
+      pickFromScene(e); return;
+    }
+    if (meTool==='select' || meTool==='delete') {
+      // if in place mode or not me mode, allow sculpting
+    }
+    
+    // In mesh editor tab: click selects
+    const rtpEditor=document.getElementById('rtpEditor');
+    if (rtpEditor.classList.contains('on') && document.getElementById('roc').classList.contains('show')) {
+      pickFromScene(e); return;
+    }
+    
+    mouseDown=true; isSculpting=true;
+  });
+
+  window.addEventListener('mouseup',()=>{ mouseDown=false; isSculpting=false; });
+  window.addEventListener('mousemove',e=>{
+    if (!mouseDown) return;
+    mpos.x=(e.clientX/innerWidth)*2-1;
+    mpos.y=-(e.clientY/innerHeight)*2+1;
+    rc.setFromCamera(mpos,cam);
+    const hit=rc.intersectObject(tMesh);
+    if (hit.length) {
+      if (mode==='place') placeBrush(hit[0].point);
+      else applyBrush(hit[0].point);
+    }
+  });
+
+  // Click: pick obj in mesh editor
+  renderer.domElement.addEventListener('click', e => {
+    const rtpEditor = document.getElementById('rtpEditor');
+    const rocVisible = document.getElementById('roc').classList.contains('show');
+    if (rocVisible && rtpEditor.classList.contains('on')) {
+      pickFromScene(e);
+    }
+  });
+
+  document.getElementById('jif').onchange=e=>{
+    const f=e.target.files[0]; if(!f) return;
+    const r=new FileReader();
+    r.onload=ev=>{
+      try{const d=JSON.parse(ev.target.result);Array.isArray(d)?d.forEach(importJSON):importJSON(d);}
+      catch{toast('JSON okuma hatası!');}
+    };
+    r.readAsText(f); e.target.value='';
+  };
+
+  document.getElementById('scf').onchange=e=>{
+    const r=new FileReader();
+    r.onload=ev=>{try{loadScene(JSON.parse(ev.target.result));}catch{toast('Sahne yükleme hatası!');}};
+    r.readAsText(e.target.files[0]); e.target.value='';
+  };
+
+  document.getElementById('plugf').onchange=e=>{
+    const f=e.target.files[0]; if(!f) return;
+    const r=new FileReader();
+    r.onload=ev=>{
+      try {
+        const d=JSON.parse(ev.target.result);
+        const plugins=Array.isArray(d)?d:[d];
+        plugins.forEach(p=>{
+          if (!p.id||!p.name) { toast('Plugin: id ve name gerekli'); return; }
+          BUILTIN_PLUGINS.push(p);
+          toast(`"${p.name}" plugin eklendi`);
+        });
+        renderPlugins();
+      } catch{ toast('Plugin JSON hatası'); }
+    };
+    r.readAsText(f); e.target.value='';
+  };
+
+  window.addEventListener('dragover',e=>{e.preventDefault();document.getElementById('dov').classList.add('on');});
+  window.addEventListener('dragleave',e=>{if(!e.relatedTarget)document.getElementById('dov').classList.remove('on');});
+  window.addEventListener('drop',e=>{
+    e.preventDefault(); document.getElementById('dov').classList.remove('on');
+    [...e.dataTransfer.files].filter(f=>f.name.endsWith('.json')).forEach(f=>{
+      const r=new FileReader();
+      r.onload=ev=>{try{const d=JSON.parse(ev.target.result);Array.isArray(d)?d.forEach(importJSON):importJSON(d);}catch{toast('JSON format hatası!');}};
+      r.readAsText(f);
+    });
+  });
+
+  window.addEventListener('resize',()=>{
+    cam.aspect=innerWidth/innerHeight;
+    cam.updateProjectionMatrix();
+    renderer.setSize(innerWidth,innerHeight);
+  });
+}
+
+function pickFromScene(e) {
+  mpos.x=(e.clientX/innerWidth)*2-1;
+  mpos.y=-(e.clientY/innerHeight)*2+1;
+  rc.setFromCamera(mpos,cam);
+  const hits=rc.intersectObjects(objGrp.children,true);
+  if (hits.length) {
+    let obj=hits[0].object;
+    while(obj.parent&&obj.parent!==objGrp) obj=obj.parent;
+    if (meTool==='delete') { objGrp.remove(obj); deselectMesh(); document.getElementById('stO').textContent=objGrp.children.length; document.getElementById('stO2').textContent=objGrp.children.length; toast('Obje silindi'); }
+    else selectMeshObj(obj);
+  } else {
+    deselectMesh();
+  }
+}
+
+/* ═══════════════ ANIMATE ═══════════════ */
+function animate() {
+  requestAnimationFrame(animate);
+  const t=Date.now()*.001;
+  const sl=parseFloat(document.getElementById('sL').value);
+  const wA=parseFloat(document.getElementById('wH').value);
+  const wSp=parseFloat(document.getElementById('wS').value);
+
+  if (sGeo) {
+    const sp=sGeo.attributes.position;
+    for (let i=0;i<sp.count;i++) {
+      const x=sp.getX(i), z=sp.getZ(i);
+      const l1=Math.sin(x*.018+t*wSp*.7)*Math.cos(z*.014+t*wSp*.5)*wA*.42;
+      const l2=Math.sin((x+z)*.028+t*wSp*1.1)*wA*.22;
+      const l3=Math.cos((x-z)*.022+t*wSp*.9)*wA*.14;
+      const l4=Math.sin(x*.10+t*wSp*2)*Math.sin(z*.09+t*wSp*1.7)*wA*.12;
+      const l5=Math.cos((x+z*.6)*.07+t*wSp*2.5)*wA*.10;
+      sp.setY(i,l1+l2+l3+l4+l5);
+    }
+    sp.needsUpdate=true;
+    sMesh.position.y=sl;
+  }
+
+  cloudGrp.children.forEach(c=>{
+    c.position.z+=c.userData.spd;
+    if(c.position.z>WS*1.5) c.position.z=-WS*1.5;
+  });
+
+  ctrl.update();
+  renderer.render(scene,cam);
+}
+
+/* ═══════════════ TOAST ═══════════════ */
+function toast(msg) {
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('on');
+  clearTimeout(el._t);
+  el._t=setTimeout(()=>el.classList.remove('on'),2800);
+}
+window.toast=toast;
+
+/* ═══════════════ BOOT ═══════════════ */
+(async()=>{
+  await initDB();
+  await loadDB();
+  renderGrid();
+  init();
+  renderPlugins();
+  document.getElementById('loc').classList.remove('hide');
+  document.getElementById('ltb').classList.add('on');
+})();
+</script>
+
+<script>
+function toggleAcc(el) {
+  const body=el.nextElementSibling;
+  body.classList.toggle('open');
+  el.classList.toggle('active');
+}
+</script>
+
+</body>
+</html>
