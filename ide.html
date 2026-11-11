@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI ile Web Araçları Yapımı - IDE</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&family=Space+Grotesk:wght@500;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --yellow: #FFDE00; --pink: #ee1e8d9c; --blue: #00E0FF; --green: #00FF66;
+            --orange: #FF8A00; --black: #000000; --white: #FFFFFF;
+            --border-width: 3px;
+            --border: var(--border-width) solid #000;
+            --shadow: 5px 5px 0px #000;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; cursor: crosshair; }
+        body { 
+            font-family: 'Space Grotesk', sans-serif; 
+            background: var(--white); 
+            color: var(--black); 
+            height: 100vh; 
+            display: flex; 
+            overflow: hidden; 
+        }
+
+        /* --- SIDEBAR --- */
+        #sidebar {
+            width: 380px; background: var(--pink); border-right: var(--border);
+            display: flex; flex-direction: column; z-index: 100;
+        }
+        .sidebar-header { 
+            padding: 15px; background: var(--black); color: var(--white); 
+            display: flex; justify-content: space-between; align-items: center;
+            font-weight: 800; font-size: 1.1rem;
+        }
+        .tree-container { flex-grow: 1; overflow-y: auto; padding: 10px; }
+        
+        .tree-item { 
+            background: var(--white); border: var(--border); margin-bottom: 8px; 
+            box-shadow: 4px 4px 0px #000; transition: transform 0.1s;
+        }
+        .item-main { display: flex; align-items: center; padding: 8px; gap: 6px; background: #fff; }
+        .item-main input { 
+            border: none; font-weight: 700; width: 100%; outline: none; 
+            background: transparent; font-family: 'Space Grotesk'; font-size: 14px;
+        }
+        .handle { cursor: grab; font-size: 20px; color: #aaa; padding-right: 5px; }
+        .nested-group { margin-left: 22px; border-left: 2px dashed rgba(0,0,0,0.3); min-height: 5px; padding-top: 5px; }
+
+        /* --- MAIN CONTENT --- */
+        #main-wrapper { flex-grow: 1; display: flex; flex-direction: column; background: var(--black); gap: 4px; }
+        nav { 
+            background: var(--yellow); border-bottom: var(--border); 
+            padding: 12px 20px; display: flex; gap: 12px; align-items: center; 
+            cursor: pointer; /* Tıklanabilir başlık hissi */
+        }
+        nav:hover .logo-text { color: var(--pink); }
+        .logo-text { font-weight: 900; font-size: 1.4rem; letter-spacing: -1px; transition: 0.2s; }
+
+        #workspace { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            flex-grow: 1; gap: 4px; background: var(--black); position: relative; 
+            transition: grid-template-columns 0.3s ease;
+        }
+        #workspace.detay-mode { grid-template-columns: 1fr 0fr; }
+        #workspace.preview-full { grid-template-columns: 0fr 1fr; }
+
+        .pane { background: var(--white); display: flex; flex-direction: column; overflow: hidden; position: relative; }
+
+        .tabs { display: flex; border-bottom: var(--border); background: var(--white); align-items: center; }
+        .tab-btn { 
+            flex: 1; padding: 12px; border: none; border-right: var(--border); 
+            cursor: pointer; font-weight: 800; background: var(--white); 
+            text-transform: uppercase; transition: 0.2s;
+        }
+        .tab-btn.active { background: var(--black); color: var(--white); }
+        
+        .view-toggle {
+            margin-right: 10px; background: var(--black); color: var(--white);
+            font-size: 11px; padding: 4px 8px; border-radius: 4px;
+        }
+
+        textarea { 
+            width: 100%; height: 100%; padding: 20px; 
+            font-family: 'JetBrains Mono', monospace; border: none; outline: none; 
+            resize: none; font-size: 15px; line-height: 1.6;
+        }
+        iframe { width: 100%; height: 100%; border: none; background: white; }
+
+        /* --- DETAY VIEW --- */
+        #detay-presentation {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff; z-index: 50; overflow-y: auto; display: none;
+            padding: 60px; box-sizing: border-box;
+        }
+        #detay-presentation.active { display: block; }
+
+        /* --- DRAWING OVERLAY --- */
+        #drawing-canvas-container {
+            position: fixed; top: 100vh; left: 0; width: 100vw; height: 100vh;
+            background: rgba(255, 255, 255, 0.1); 
+            z-index: 9999; transition: top 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            backdrop-filter: blur(0px);
+        }
+        #drawing-canvas-container.active { top: 0; }
+        #draw-surface { cursor: crosshair; }
+
+        .draw-toolbar {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            background: var(--black); padding: 10px 20px; border-radius: 50px;
+            display: flex; gap: 15px; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 2px solid var(--white);
+        }
+
+        /* --- UI COMPONENTS --- */
+        #details-overlay {
+            position: fixed; right: -500px; top: 0; width: 480px; height: 100%;
+            background: var(--white); border-left: var(--border); 
+            box-shadow: -15px 0 0 rgba(0,0,0,0.1); transition: 0.4s; 
+            z-index: 200; display: flex; flex-direction: column; overflow-y: auto;
+        }
+        #details-overlay.active { right: 0; }
+        .overlay-body { padding: 20px; }
+
+        button { 
+            padding: 8px 15px; border: var(--border); box-shadow: 3px 3px 0 #000; 
+            font-weight: 800; text-transform: uppercase; transition: 0.1s; cursor: pointer;
+        }
+        button:active { transform: translate(2px, 2px); box-shadow: none; }
+        .btn-green { background: var(--green); }
+        .btn-pink { background: var(--pink); color: white; }
+        .btn-blue { background: var(--blue); }
+        .btn-orange { background: var(--orange); color: white; }
+        .btn-draw { background: #000; color: #fff; border-color: #fff; }
+
+        #quill-editor { height: 200px; background: white; border: var(--border) !important; margin-bottom: 15px;}
+        
+        /* Audio Player Styles */
+        .audio-section {
+            background: #f0f0f0; border: 2px dashed #000; padding: 10px; margin: 15px 0;
+        }
+        audio { width: 100%; height: 35px; outline: none; }
+    </style>
+</head>
+<body>
+
+    <aside id="sidebar">
+        <div class="sidebar-header">
+            <span>Over-the-Shoulder</span>
+            <button class="btn-green" onclick="saveAllToDB()" style="padding: 4px 8px;">💾</button>
+        </div>
+        <div class="tree-container" id="mainTree"></div>
+        <div style="padding:15px; background: var(--black);">
+            <button onclick="addNewItem(null)" class="btn-green" style="width:100%">+ YENİ ANA KONU EKLE</button>
+        </div>
+    </aside>
+
+    <div id="main-wrapper">
+        <nav onclick="playCurrentAudio()">
+            <div class="logo-text">AI ile Web Araçları Yapımı: Fikirden Uygulamaya Tüm Süreç 🎙️</div>
+            <div style="margin-left:auto; display:flex; gap:12px" onclick="event.stopPropagation()">
+                <button onclick="toggleDrawingMode()" class="btn-draw">🖍 </button>
+                <button onclick="openDetailPanel()" class="btn-orange">📝 DETAY</button>
+                <button onclick="downloadProject()" class="btn-green">export</button>
+            </div>
+        </nav>
+
+        <div id="workspace">
+            <div class="pane" id="left-pane">
+                <div class="tabs">
+                    <button class="tab-btn active" id="tab-code" onclick="switchTab('code')">FULL HTML</button>
+                    <button class="tab-btn" id="tab-detay" onclick="switchTab('detay')" style="background:#ffe6f7">📄 DETAY SUNUMU</button>
+                </div>
+                <div style="flex-grow:1; position:relative">
+                    <textarea id="fullEditor" oninput="updatePreview()" placeholder="Kodları buraya yazın..."></textarea>
+                    <div id="detay-presentation">
+                        <div id="pres-title" style="font-size:3rem; font-weight:900; border-bottom:5px solid #000; margin-bottom:20px">Seçim Yapın</div>
+                        <div id="pres-details" class="ql-editor"></div>
+                        <div id="mermaid-wrap" style="margin-top:30px">
+                            <div id="pres-mermaid" style="border:var(--border); padding:20px; margin-top:10px"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pane" id="right-pane">
+                <div class="tabs" style="justify-content: space-between; background: #eee;">
+                    <div style="padding:12px; font-weight: 800;">CANLI ÖNİZLEME</div>
+                    <button class="view-toggle" id="toggleSizeBtn" onclick="togglePreviewSize()">GENİŞLİK: %50</button>
+                </div>
+                <iframe id="livePreview"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <audio id="globalAudioPlayer" style="display:none"></audio>
+
+    <div id="drawing-canvas-container">
+        <div class="draw-toolbar">
+            <input type="color" id="draw-color" value="#ff0000" style="border:none; width:30px; height:30px; cursor:pointer">
+            <select id="draw-weight" style="background:#fff; border:none; font-weight:bold; padding:5px">
+                <option value="3">İnce</option>
+                <option value="6" selected>Orta</option>
+                <option value="12">Kalın</option>
+            </select>
+            <button onclick="clearCanvas()">TEMİZLE</button>
+            <button onclick="toggleDrawingMode()" class="btn-green">KAPAT (ESC)</button>
+        </div>
+        <canvas id="draw-surface"></canvas>
+    </div>
+
+    <div id="details-overlay">
+        <div class="sidebar-header" style="background:var(--orange)">
+            <span>İÇERİK EDİTÖRÜ</span>
+            <button onclick="closeDetailPanel()" style="background:none; border:none; color:white; font-size:24px;">×</button>
+        </div>
+        <div class="overlay-body">
+            <label style="font-weight:800">AÇIKLAMA</label>
+            <div id="quill-editor"></div>
+            
+            <label style="font-weight:800">SESLİ NOT (MP3)</label>
+            <div class="audio-section">
+                <input type="file" id="mp3Input" accept="audio/mpeg" style="margin-bottom:10px; font-size:12px;">
+                <audio id="detailAudioPreview" controls></audio>
+            </div>
+
+            <label style="font-weight:800">MERMAID KODU</label>
+            <textarea id="mermaidInput" style="height:80px; width:100%; border:var(--border); margin-bottom:20px; font-family:monospace"></textarea>
+            
+            <button onclick="saveDetailData()" class="btn-pink" style="width:100%; padding:15px">VERİLERİ KAYDET</button>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+
+    <script>
+        // DB Şemasına mp3Data alanı eklendi
+        const db = new Dexie("ProIdeFinalDB_V2");
+        db.version(1).stores({ 
+            topics: 'id, title, content, details, mermaid, mp3Data, parentId, order' 
+        });
+
+        let currentId = null;
+        let currentAudioBlob = null;
+        const quill = new Quill('#quill-editor', { theme: 'snow', modules: { toolbar: [['bold', 'italic'], [{list:'ordered'},{list:'bullet'}], ['image']] }});
+        mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
+
+        // --- SES YÖNETİMİ ---
+        document.getElementById('mp3Input').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    currentAudioBlob = event.target.result;
+                    const url = URL.createObjectURL(new Blob([currentAudioBlob]));
+                    document.getElementById('detailAudioPreview').src = url;
+                };
+                reader.readAsArrayBuffer(file);
+            }
+        });
+
+        function playCurrentAudio() {
+            const player = document.getElementById('globalAudioPlayer');
+            if (player.src) {
+                if (player.paused) player.play();
+                else player.pause();
+            } else {
+                alert("Bu ders için henüz bir sesli not eklenmemiş.");
+            }
+        }
+
+        // --- ÇİZİM SİSTEMİ ---
+        const canvas = document.getElementById('draw-surface');
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
+
+        function initCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        }
+
+        function toggleDrawingMode() {
+            const container = document.getElementById('drawing-canvas-container');
+            container.classList.toggle('active');
+            if(container.classList.contains('active')) initCanvas();
+            else clearCanvas();
+        }
+
+        canvas.addEventListener('mousedown', (e) => { drawing = true; draw(e); });
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', () => { drawing = false; ctx.beginPath(); });
+
+        function draw(e) {
+            if(!drawing) return;
+            ctx.lineWidth = document.getElementById('draw-weight').value;
+            ctx.strokeStyle = document.getElementById('draw-color').value;
+            ctx.lineTo(e.clientX, e.clientY);
+            ctx.stroke(); ctx.beginPath(); ctx.moveTo(e.clientX, e.clientY);
+        }
+
+        function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+        window.addEventListener('keydown', (e) => { if(e.key === "Escape") toggleDrawingMode(); });
+
+        // --- PANEL & TAB YÖNETİMİ ---
+        function switchTab(type) {
+            const workspace = document.getElementById('workspace');
+            const pres = document.getElementById('detay-presentation');
+            if(type === 'detay') {
+                pres.classList.add('active'); workspace.classList.add('detay-mode');
+                document.getElementById('tab-detay').classList.add('active');
+                document.getElementById('tab-code').classList.remove('active');
+            } else {
+                pres.classList.remove('active'); workspace.classList.remove('detay-mode');
+                document.getElementById('tab-code').classList.add('active');
+                document.getElementById('tab-detay').classList.remove('active');
+            }
+        }
+
+        function togglePreviewSize() {
+            const workspace = document.getElementById('workspace');
+            const btn = document.getElementById('toggleSizeBtn');
+            if(workspace.classList.contains('preview-full')) {
+                workspace.classList.remove('preview-full'); btn.innerText = "GENİŞLİK: %50";
+            } else {
+                workspace.classList.add('preview-full'); workspace.classList.remove('detay-mode'); btn.innerText = "GENİŞLİK: %100";
+            }
+        }
+
+        // --- TREE & DB İŞLEMLERİ ---
+        async function loadHierarchy() {
+            const all = await db.topics.orderBy('order').toArray();
+            const container = document.getElementById('mainTree');
+            container.innerHTML = '';
+            all.filter(t => !t.parentId).forEach(root => container.appendChild(renderNode(root, all)));
+        }
+
+        function renderNode(node, all) {
+            const div = document.createElement('div');
+            div.className = 'tree-item';
+            div.dataset.id = node.id;
+            div.innerHTML = `
+                <div class="item-main">
+                    <span class="handle">⠿</span>
+                    <input type="text" value="${node.title}" onchange="updateTitle('${node.id}', this.value)">
+                    <button class="btn-blue" style="padding:2px 6px" onclick="loadContent('${node.id}')">✎</button>
+                    <button class="btn-green" style="padding:2px 6px" onclick="addNewItem('${node.id}')">+</button>
+                    <button class="btn-pink" style="padding:2px 6px" onclick="deleteItem('${node.id}')">×</button>
+                </div>
+                <div class="nested-group"></div>
+            `;
+            const childContainer = div.querySelector('.nested-group');
+            all.filter(t => t.parentId === node.id).forEach(child => childContainer.appendChild(renderNode(child, all)));
+            new Sortable(childContainer, { group: 'nested', animation: 150, handle: '.handle', onEnd: () => saveAllToDB() });
+            return div;
+        }
+
+        async function loadContent(id) {
+            currentId = id;
+            const data = await db.topics.get(id);
+            document.getElementById('fullEditor').value = data.content || "";
+            quill.root.innerHTML = data.details || "";
+            document.getElementById('mermaidInput').value = data.mermaid || "";
+            document.getElementById('pres-title').innerText = data.title;
+            document.getElementById('pres-details').innerHTML = data.details || "Açıklama yok.";
+            
+            // MP3 Yükleme
+            const previewPlayer = document.getElementById('detailAudioPreview');
+            const globalPlayer = document.getElementById('globalAudioPlayer');
+            
+            if (data.mp3Data) {
+                const blob = new Blob([data.mp3Data], { type: 'audio/mpeg' });
+                const url = URL.createObjectURL(blob);
+                previewPlayer.src = url;
+                globalPlayer.src = url;
+                currentAudioBlob = data.mp3Data;
+            } else {
+                previewPlayer.src = "";
+                globalPlayer.src = "";
+                currentAudioBlob = null;
+            }
+
+            updatePreview();
+            renderMermaid(data.mermaid);
+        }
+
+        function updatePreview() {
+            const code = document.getElementById('fullEditor').value;
+            document.getElementById('livePreview').srcdoc = code;
+            if(currentId) db.topics.update(currentId, { content: code });
+        }
+
+        async function renderMermaid(code) {
+            const container = document.getElementById('pres-mermaid');
+            if(!code) { document.getElementById('mermaid-wrap').style.display="none"; return; }
+            document.getElementById('mermaid-wrap').style.display="block";
+            container.innerHTML = `<div class="mermaid">${code}</div>`;
+            try { mermaid.init(undefined, container.querySelectorAll(".mermaid")); } catch(e) {}
+        }
+
+        async function saveDetailData() {
+            if(!currentId) return;
+            await db.topics.update(currentId, { 
+                details: quill.root.innerHTML, 
+                mermaid: document.getElementById('mermaidInput').value,
+                mp3Data: currentAudioBlob 
+            });
+            loadContent(currentId);
+            closeDetailPanel();
+        }
+
+        async function addNewItem(parentId) {
+            const id = 't_' + Date.now();
+            await db.topics.add({ id, title: "Yeni Konu", content: "", details: "", mermaid: "", mp3Data: null, parentId, order: Date.now() });
+            loadHierarchy();
+        }
+
+        async function deleteItem(id) {
+            if(confirm('Silinsin mi?')) { await db.topics.delete(id); loadHierarchy(); }
+        }
+
+        async function updateTitle(id, val) { 
+            await db.topics.update(id, { title: val }); 
+            if(id === currentId) document.getElementById('pres-title').innerText = val;
+        }
+
+        function openDetailPanel() { 
+            if(!currentId) { alert("Lütfen önce soldan bir konu seçin (✎)"); return; }
+            document.getElementById('details-overlay').classList.add('active'); 
+        }
+        function closeDetailPanel() { document.getElementById('details-overlay').classList.remove('active'); }
+
+        function downloadProject() {
+            const blob = new Blob([document.getElementById('fullEditor').value], {type: 'text/html'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `neo_ide_export.html`;
+            a.click();
+        }
+
+        window.onload = loadHierarchy;
+        window.onresize = initCanvas;
+    </script>
+</body>
+</html>
